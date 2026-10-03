@@ -125,6 +125,8 @@ export interface Lead {
   nurtureStep?: string;
   customSequence?: ScheduledMessage[];
   createdAt: string;
+  createdAtIso?: string;
+  calBookingId?: string;
   conversationHistory?: ChatMessage[];
   notes?: string;
   lastAction?: {

@@ -108,6 +108,10 @@ export async function syncLeadToSupabase(lead: Partial<Lead>): Promise<string | 
         email: lead.email,
         propertyType: lead.propertyType,
         city: lead.city,
+        address: lead.address,
+        estimatedValue: lead.estimatedValue,
+        motive: lead.motive,
+        timeframe: lead.timeframe,
         surface: lead.surface,
         score: lead.score,
         status: lead.status,
@@ -314,3 +318,40 @@ export async function fetchSupabaseLeads(): Promise<LeadRecord[]> {
 }
 
 
+
+export type CrmLoadResult =
+  | { state: 'live'; leads: Lead[] }
+  | { state: 'demo' }
+  | { state: 'unauthorized' }
+  | { state: 'error'; message: string };
+
+/** Loads the advisor's real leads (needs an advisor session). */
+export async function fetchCrmLeads(): Promise<CrmLoadResult> {
+  try {
+    const res = await fetch('/api/crm/leads', { credentials: 'same-origin' });
+    if (res.status === 401) return { state: 'unauthorized' };
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { state: 'error', message: data.error || `Erreur ${res.status}` };
+    if (data.configured === false) return { state: 'demo' };
+    return { state: 'live', leads: Array.isArray(data.leads) ? data.leads : [] };
+  } catch (e: any) {
+    return { state: 'error', message: 'Serveur injoignable' };
+  }
+}
+
+/** Saves CRM-only data (notes, tasks, mandate…) for one lead. Resolves to an error message or null. */
+export async function saveCrmLead(lead: Lead): Promise<string | null> {
+  try {
+    const res = await fetch(`/api/crm/leads/${encodeURIComponent(lead.id)}`, {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead),
+    });
+    if (res.ok) return null;
+    const data = await res.json().catch(() => ({}));
+    return data.error || `Erreur ${res.status}`;
+  } catch {
+    return 'Serveur injoignable';
+  }
+}

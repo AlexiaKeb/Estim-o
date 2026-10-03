@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { ValuationInputs, ValuationResult, Lead, AgentPrivacySettings } from './types';
 import { INITIAL_LEADS } from './data/mockLeads';
+import { fetchCrmLeads, saveCrmLead } from './lib/supabaseService';
 import { LandingSimulator } from './components/LandingSimulator';
 import { QualificationChatbot } from './components/QualificationChatbot';
 import { CrmPipelineView } from './components/CrmPipelineView';
@@ -180,10 +181,18 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [privacySettings.customAgentSlug, sessionChecked]);
 
+  useEffect(() => {
+    if (!isAgentAuthenticated) return;
+    loadLeads();
+    const t = window.setInterval(loadLeads, 60000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAgentAuthenticated]);
+
   // Reconcile with Cal.com whenever the advisor opens the pipeline (cancellations / reschedules)
   useEffect(() => {
     if (currentView === 'pipeline' && isAgentMode) {
-      fetch('/api/cal/sync', { method: 'POST' }).catch(() => {});
+      fetch('/api/cal/sync', { method: 'POST' }).then(() => loadLeads()).catch(() => {});
     }
   }, [currentView, isAgentMode]);
 
@@ -237,7 +246,44 @@ export default function App() {
   // Shared state
   const [valuationInputs, setValuationInputs] = useState<ValuationInputs | null>(null);
   const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
-  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
+  // Real leads come from Supabase through the advisor API; demo data only when Supabase is not configured
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [crmState, setCrmState] = useState<'loading' | 'live' | 'demo' | 'error'>('loading');
+  const [crmError, setCrmError] = useState<string | null>(null);
+  const pendingSaves = useRef(0);
+  const saveTimers = useRef<Record<string, number>>({});
+
+  const loadLeads = async () => {
+    if (pendingSaves.current > 0) return; // do not overwrite edits still on their way to the server
+    const r = await fetchCrmLeads();
+    if (r.state === 'live') {
+      setLeads(r.leads);
+      setCrmState('live');
+      setCrmError(null);
+    } else if (r.state === 'demo') {
+      setLeads((prev) => (prev.length ? prev : INITIAL_LEADS));
+      setCrmState('demo');
+    } else if (r.state === 'unauthorized') {
+      authRef.current = false;
+      setIsAgentAuthenticated(false);
+      setIsAgentMode(false);
+      setCurrentView('landing');
+    } else {
+      setCrmState('error');
+      setCrmError(r.message);
+    }
+  };
+
+  const persistLead = (lead: Lead) => {
+    if (crmState !== 'live') return;
+    window.clearTimeout(saveTimers.current[lead.id]);
+    pendingSaves.current += 1;
+    saveTimers.current[lead.id] = window.setTimeout(async () => {
+      const err = await saveCrmLead(lead);
+      pendingSaves.current -= 1;
+      if (err) showToast(`Enregistrement impossible : ${err}`);
+    }, 700);
+  };
 
   // Booking modal
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -255,6 +301,7 @@ export default function App() {
 
   const handleUpdateLead = (updatedLead: Lead) => {
     setLeads((prev) => prev.map((l) => (l.id === updatedLead.id ? updatedLead : l)));
+    persistLead(updatedLead);
   };
 
   const handleNavigateToNurture = (leadId: string) => {
@@ -370,6 +417,8 @@ export default function App() {
   };
 
   const handleUpdateLeadStatus = (leadId: string, newStatus: 'HOT' | 'WARM' | 'COLD') => {
+    const target = leads.find((l) => l.id === leadId);
+    if (target) persistLead({ ...target, status: newStatus });
     setLeads((prev) =>
       prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
     );
@@ -723,7 +772,7 @@ export default function App() {
           />
         )}
 
-        {currentView === 'confirmation' && (
+        {currentView === 'confirmation' && (latestConfirmedLead || leads[0]) && (
           <BookingConfirmationView
             confirmedLead={latestConfirmedLead || leads[0]}
             onModifyBooking={() => {
@@ -735,6 +784,21 @@ export default function App() {
         )}
 
         {/* Protected Views: rendered only when accessed in authenticated agent mode */}
+        {currentView === 'pipeline' && crmState === 'demo' && (
+          <div role="status" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <strong>Données de démonstration.</strong> Supabase n'est pas configuré sur ce serveur : ces prospects sont fictifs. Renseignez SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY pour afficher vos vrais prospects.
+          </div>
+        )}
+        {currentView === 'pipeline' && crmState === 'error' && (
+          <div role="alert" className="mb-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+            Impossible de charger vos prospects ({crmError}). Les données affichées peuvent être incomplètes.
+          </div>
+        )}
+        {currentView === 'pipeline' && crmState === 'live' && leads.length === 0 && (
+          <div role="status" className="mb-4 rounded-xl border border-stone-200 bg-white px-4 py-6 text-center text-sm text-stone-600">
+            Aucun prospect pour l'instant. Ils apparaissent ici dès qu'un vendeur débloque son estimation.
+          </div>
+        )}
         {currentView === 'pipeline' && (
           <CrmPipelineView
             leads={leads}

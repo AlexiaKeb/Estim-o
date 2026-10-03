@@ -13,6 +13,7 @@ import {
   recordLoginFailure,
   clearLoginFailures,
 } from "./server/auth";
+import { toLead, pickCrm, isUuid as isUuidStr } from "./server/crm";
 import { estimateFromDvf, prewarm, type DvfEstimate } from "./server/dvf";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
@@ -478,9 +479,39 @@ async function startServer() {
   });
 
   // AI Qualification & Closer Chatbot endpoint using Claude
+  // Keeps the transcript and the qualification in Supabase so the advisor sees them in the CRM
+  async function persistChat(leadId: unknown, messages: any, result: any) {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(leadId) || !Array.isArray(messages)) return;
+    try {
+      const now = new Date().toISOString();
+      const history = [
+        ...messages.map((m: any) => ({ role: m.role === "user" ? "user" : "assistant", content: String(m.content || ""), timestamp: m.timestamp || now })),
+        { role: "assistant", content: String(result.reply || ""), timestamp: now },
+      ];
+      await client.from("conversations").upsert({ lead_id: leadId, messages: history, updated_at: now }, { onConflict: "lead_id" });
+
+      const score = Math.max(0, Math.min(100, Number(result.qualificationScore) || 0));
+      const { data: current } = await client.from("leads").select("statut").eq("id", leadId).maybeSingle();
+      const update: Record<string, any> = { score_qualification: score, updated_at: now };
+      if (current?.statut !== "rdv_pris") update.statut = score >= 75 || result.recommendedAction === "BOOK_MEETING" ? "qualifie" : "en_conversation";
+      const x = result.extractedData || {};
+      if (x.timeframe) update.delai_projet = String(x.timeframe);
+      const { error } = await client.from("leads").update(update).eq("id", leadId);
+      if (error) console.warn("[CRM] lead update after chat failed:", error.message);
+      if (x.motive) await client.from("leads").update({ motif: String(x.motive) }).eq("id", leadId); // column may not exist yet: ignored
+    } catch (e: any) {
+      console.warn("[CRM] chat persistence failed:", e.message);
+    }
+  }
+
   app.post("/api/chat-qualify", rateLimit("chat", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
-      const { messages, leadData } = req.body;
+      const { messages, leadData, leadId } = req.body;
+      const respond = async (result: any) => {
+        await persistChat(leadId, messages, result);
+        return res.json(result);
+      };
 
       // Claude first (structured JSON output); heuristic engine if the API is unreachable or slow
       if (isClaudeConfigured()) {
@@ -501,7 +532,7 @@ async function startServer() {
             effort: "low",
           });
           if (parsed && parsed.reply) {
-            return res.json(parsed);
+            return respond(parsed);
           }
         } catch (aiError) {
           console.warn("Claude chat fallback activated:", (aiError as any)?.message || aiError);
@@ -510,7 +541,7 @@ async function startServer() {
 
       // Fast fallback response
       const fallbackResult = generateIntelligentQualificationReply(messages, leadData);
-      return res.json(fallbackResult);
+      return respond(fallbackResult);
     } catch (error) {
       console.error("Chat qualify general error:", error);
       const safeFallback = generateIntelligentQualificationReply(req.body?.messages || [], req.body?.leadData || {});
@@ -950,6 +981,21 @@ async function startServer() {
   }
 
   // 1. Sync Lead Route (Creates/updates lead with Service Role to prevent RLS policy errors)
+  // Optional columns (added by the 20261003 migration) must not break older databases
+  async function runWithOptionalColumns<T>(
+    base: Record<string, any>,
+    optional: Record<string, any>,
+    run: (payload: Record<string, any>) => Promise<{ data: T | null; error: any }>,
+  ) {
+    const clean = Object.fromEntries(Object.entries(optional).filter(([, v]) => v !== null && v !== undefined && v !== ""));
+    let result = await run({ ...base, ...clean });
+    if (result.error && Object.keys(clean).length && (result.error.code === "PGRST204" || /column/i.test(result.error.message || ""))) {
+      console.warn("[Supabase] CRM columns missing (run supabase/migrations/20261003000000_crm_fields.sql). Retrying without them.");
+      result = await run(base);
+    }
+    return result;
+  }
+
   app.post("/api/supabase/sync-lead", rateLimit("lead", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
       const client = getSupabaseAdmin();
@@ -961,9 +1007,9 @@ async function startServer() {
       }
 
       const agentId = await getOrCreateActiveAgentId(client);
-      const isUuid = leadData.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadData.id);
+      const idIsUuid = isUuidStr(leadData.id);
 
-      const payload: any = {
+      const base: Record<string, any> = {
         agent_id: agentId,
         nom: leadData.name || leadData.nom || "Prospect Estiméo",
         telephone: leadData.phone || leadData.telephone || "06 00 00 00 00",
@@ -975,28 +1021,36 @@ async function startServer() {
         score_qualification: leadData.score || leadData.score_qualification || 35,
         updated_at: new Date().toISOString(),
       };
+      if (leadData.postalCode) base.code_postal = String(leadData.postalCode);
+      if (leadData.rooms) base.nb_pieces = Number(leadData.rooms) || null;
+      if (leadData.timeframe) base.delai_projet = String(leadData.timeframe);
+      const optional = {
+        adresse: leadData.address || null,
+        valeur_estimee: leadData.estimatedValue ? Number(leadData.estimatedValue) : null,
+        motif: leadData.motive || null,
+      };
 
-      if (isUuid) {
-        const { data, error } = await client
-          .from("leads")
-          .update(payload)
-          .eq("id", leadData.id)
-          .select("id")
-          .maybeSingle();
-
+      if (idIsUuid) {
+        // A lead that already has a confirmed appointment must never fall back to an earlier stage
+        const { data: existing } = await client.from("leads").select("statut, score_qualification").eq("id", leadData.id).maybeSingle();
+        if (existing?.statut === "rdv_pris") {
+          base.statut = "rdv_pris";
+          base.score_qualification = Math.max(existing.score_qualification || 0, base.score_qualification);
+        }
+        const { data, error } = await runWithOptionalColumns<{ id: string }>(base, optional, (p) =>
+          client.from("leads").update(p).eq("id", leadData.id).select("id").maybeSingle(),
+        );
         if (!error && data) {
           return res.json({ success: true, lead_id: data.id, persisted: true });
         }
       }
 
-      const { data: inserted, error: insertError } = await client
-        .from("leads")
-        .insert(payload)
-        .select("id")
-        .single();
+      const { data: inserted, error: insertError } = await runWithOptionalColumns<{ id: string }>(base, optional, (p) =>
+        client.from("leads").insert(p).select("id").single(),
+      );
 
-      if (insertError) {
-        console.warn("Supabase lead insertion warning:", insertError.message);
+      if (insertError || !inserted) {
+        console.warn("Supabase lead insertion warning:", insertError?.message);
         return res.json({ success: true, lead_id: leadData.id || `lead-${Date.now()}`, persisted: false });
       }
 
@@ -1005,6 +1059,46 @@ async function startServer() {
       console.error("Sync lead API error:", err);
       res.json({ success: true, lead_id: req.body?.id || `lead-${Date.now()}`, persisted: false });
     }
+  });
+
+  // --- CRM: real leads for the advisor (leads + conversation + appointments) ---
+  app.get("/api/crm/leads", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.json({ configured: false, leads: [] });
+    try {
+      const { data: rows, error } = await client.from("leads").select("*").order("created_at", { ascending: false }).limit(500);
+      if (error) return res.status(500).json({ configured: true, error: error.message, leads: [] });
+      const ids = (rows || []).map((r: any) => r.id);
+      if (ids.length === 0) return res.json({ configured: true, leads: [] });
+      const [{ data: convs }, { data: rdvs }] = await Promise.all([
+        client.from("conversations").select("lead_id, messages").in("lead_id", ids),
+        client.from("rendez_vous").select("lead_id, creneau, statut, cal_booking_id").in("lead_id", ids),
+      ]);
+      const convBy = new Map((convs || []).map((c: any) => [c.lead_id, c]));
+      const rdvBy = new Map<string, any[]>();
+      for (const r of rdvs || []) (rdvBy.get(r.lead_id) || rdvBy.set(r.lead_id, []).get(r.lead_id)!).push(r);
+      res.json({ configured: true, leads: rows.map((r: any) => toLead(r, convBy.get(r.id), rdvBy.get(r.id) || [])) });
+    } catch (e: any) {
+      res.status(500).json({ configured: true, error: e.message, leads: [] });
+    }
+  });
+
+  // Saves what only the CRM knows (notes, tasks, mandate, forced status…) into leads.crm
+  app.patch("/api/crm/leads/:id", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    if (!isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const { error } = await client
+      .from("leads")
+      .update({ crm: pickCrm(req.body || {}), updated_at: new Date().toISOString() })
+      .eq("id", req.params.id);
+    if (error) {
+      const missing = error.code === "PGRST204" || /column/i.test(error.message || "");
+      return res.status(missing ? 409 : 500).json({
+        error: missing ? "Colonne 'crm' absente : exécutez la migration 20261003000000_crm_fields.sql dans Supabase." : error.message,
+      });
+    }
+    res.json({ success: true });
   });
 
   // 2. Qualify Lead Route (Attempts Edge Function or runs backend Claude with Service Role DB updates)
