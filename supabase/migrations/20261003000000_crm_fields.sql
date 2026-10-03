@@ -11,6 +11,7 @@ ALTER TABLE leads
   ADD COLUMN IF NOT EXISTS adresse TEXT,
   ADD COLUMN IF NOT EXISTS valeur_estimee NUMERIC(12, 2),
   ADD COLUMN IF NOT EXISTS motif TEXT,
+  ADD COLUMN IF NOT EXISTS delai_projet TEXT,
   ADD COLUMN IF NOT EXISTS crm JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 COMMENT ON COLUMN leads.crm IS 'Données CRM libres : notes, tâches, activités, mandat, séquence de relance, statut forcé.';

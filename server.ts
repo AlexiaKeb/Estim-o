@@ -496,10 +496,11 @@ async function startServer() {
       const update: Record<string, any> = { score_qualification: score, updated_at: now };
       if (current?.statut !== "rdv_pris") update.statut = score >= 75 || result.recommendedAction === "BOOK_MEETING" ? "qualifie" : "en_conversation";
       const x = result.extractedData || {};
-      if (x.timeframe) update.delai_projet = String(x.timeframe);
       const { error } = await client.from("leads").update(update).eq("id", leadId);
       if (error) console.warn("[CRM] lead update after chat failed:", error.message);
-      if (x.motive) await client.from("leads").update({ motif: String(x.motive) }).eq("id", leadId); // column may not exist yet: ignored
+      // Optional columns: a missing column must never block the main update above
+      if (x.motive) await client.from("leads").update({ motif: String(x.motive) }).eq("id", leadId);
+      if (x.timeframe) await client.from("leads").update({ delai_projet: String(x.timeframe) }).eq("id", leadId);
     } catch (e: any) {
       console.warn("[CRM] chat persistence failed:", e.message);
     }
@@ -1023,11 +1024,11 @@ async function startServer() {
       };
       if (leadData.postalCode) base.code_postal = String(leadData.postalCode);
       if (leadData.rooms) base.nb_pieces = Number(leadData.rooms) || null;
-      if (leadData.timeframe) base.delai_projet = String(leadData.timeframe);
       const optional = {
         adresse: leadData.address || null,
         valeur_estimee: leadData.estimatedValue ? Number(leadData.estimatedValue) : null,
         motif: leadData.motive || null,
+        delai_projet: leadData.timeframe ? String(leadData.timeframe) : null,
       };
 
       if (idIsUuid) {
@@ -1254,7 +1255,6 @@ async function startServer() {
                 ville_bien: address || "Lyon",
                 type_bien: property_type || "Appartement",
                 surface: surface || 80,
-                delai_projet: timeframe || "1-3 mois",
                 statut: "qualifie",
                 score_qualification: 95,
               })
