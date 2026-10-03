@@ -33,6 +33,14 @@ export interface ValuationResult {
   propertyType: string;
   marketTension: string;
   confidenceScore: number;
+  /** 'dvf' = computed from real recorded sales; 'baseline' = sector average (no sales data available) */
+  dataSource?: 'dvf' | 'baseline';
+  sampleSize?: number;
+  radiusM?: number | null;
+  periodFrom?: string;
+  periodTo?: string;
+  medianM2?: number;
+  comparables?: Array<{ street: string; month: string; surface: number; rooms: number; price: number; ppm2: number; distanceM: number | null }>;
 }
 
 export interface ChatMessage {

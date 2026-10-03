@@ -1,6 +1,19 @@
 import express, { Request, Response } from "express";
 import path from "path";
 import crypto from "crypto";
+import {
+  requireAgent,
+  rateLimit,
+  isAuthConfigured,
+  checkPassword,
+  setSessionCookie,
+  clearSessionCookie,
+  isAgentRequest,
+  loginBlocked,
+  recordLoginFailure,
+  clearLoginFailures,
+} from "./server/auth";
+import { estimateFromDvf, prewarm, type DvfEstimate } from "./server/dvf";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
@@ -254,13 +267,44 @@ async function startServer() {
     }),
   );
 
+  // --- Advisor authentication (server-side session, HttpOnly cookie) ---
+  app.set("trust proxy", 1);
+
+  app.get("/api/agent/session", (req: Request, res: Response) => {
+    res.json({ authenticated: isAgentRequest(req), configured: isAuthConfigured() });
+  });
+
+  app.post("/api/agent/login", (req: Request, res: Response) => {
+    if (!isAuthConfigured()) {
+      return res.status(503).json({ error: "L'accès conseiller n'est pas configuré (variable AGENT_PASSWORD, 8 caractères minimum)." });
+    }
+    const wait = loginBlocked(req.ip || "");
+    if (wait > 0) {
+      res.setHeader("Retry-After", String(wait));
+      return res.status(429).json({ error: `Trop de tentatives. Réessayez dans ${Math.ceil(wait / 60)} min.` });
+    }
+    const { password, remember } = req.body || {};
+    if (typeof password !== "string" || !checkPassword(password)) {
+      recordLoginFailure(req.ip || "");
+      return res.status(401).json({ error: "Mot de passe incorrect." });
+    }
+    clearLoginFailures(req.ip || "");
+    setSessionCookie(req, res, Boolean(remember));
+    res.json({ authenticated: true });
+  });
+
+  app.post("/api/agent/logout", (_req: Request, res: Response) => {
+    clearSessionCookie(res);
+    res.json({ authenticated: false });
+  });
+
   // Health check
   app.get("/api/health", (_req: Request, res: Response) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
   // Real estate estimation calculation endpoint
-  app.post("/api/valuation", (req: Request, res: Response) => {
+  app.post("/api/valuation", rateLimit("valuation", 40, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
       const {
         propertyType = "apartment",
@@ -300,6 +344,25 @@ async function startServer() {
         cannes: 5600,
       };
 
+      // 1. Real sales first (DVF). Falls back to the sector table below when data is unavailable.
+      let dvf: DvfEstimate | null = null;
+      if (propertyType === "apartment" || propertyType === "house") {
+        try {
+          dvf = await Promise.race([
+            estimateFromDvf({
+              address: String(address || ""),
+              city: String(city),
+              postalCode: String(postalCode),
+              type: propertyType,
+              surface: Math.max(15, Number(surface) || 75),
+            }),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 9000)),
+          ]);
+        } catch (e: any) {
+          console.warn("[DVF] estimation failed:", e.message);
+        }
+      }
+
       const normalizedCity = String(city).toLowerCase().trim();
       let baseM2 = 3800;
       for (const [key, val] of Object.entries(cityPrices)) {
@@ -311,7 +374,7 @@ async function startServer() {
 
       // Adjustments
       let multiplier = 1.0;
-      if (propertyType === "house") multiplier *= 1.08;
+      if (propertyType === "house" && !dvf) multiplier *= 1.08; // DVF is already filtered by property type
       
       // Condition (including refresh_needed between to_renovate and good)
       if (condition === "to_renovate") multiplier *= 0.82;
@@ -364,10 +427,23 @@ async function startServer() {
       if (hasCellar) extraValue += propertyType === "apartment" ? 4000 : 2500;
 
       const numSurface = Math.max(15, Number(surface) || 75);
+      if (dvf) {
+        baseM2 = dvf.medianM2;
+        // The DVF median mixes all conditions: keep our adjustments, but bounded
+        multiplier = Math.min(1.25, Math.max(0.8, multiplier));
+      }
       const estimatedAvg = Math.round(numSurface * baseM2 * multiplier + extraValue);
-      const lowPrice = Math.round(estimatedAvg * 0.94);
-      const highPrice = Math.round(estimatedAvg * 1.06);
+      // Range width follows the real dispersion of nearby sales (5 % to 12 %); flat 6 % for the sector table
+      const halfWidth = dvf
+        ? Math.min(0.12, Math.max(0.05, ((dvf.p75M2 - dvf.p25M2) / (2 * dvf.medianM2)) * 0.6))
+        : 0.06;
+      const lowPrice = Math.round((estimatedAvg * (1 - halfWidth)) / 1000) * 1000;
+      const highPrice = Math.round((estimatedAvg * (1 + halfWidth)) / 1000) * 1000;
       const avgM2 = Math.round(estimatedAvg / numSurface);
+
+      const confidenceScore = dvf
+        ? Math.min(92, 55 + Math.min(25, dvf.sampleSize) + (dvf.precision === "adresse" ? 8 : 0) + (dvf.radiusM !== null && dvf.radiusM <= 600 ? 4 : 0))
+        : 40;
 
       res.json({
         success: true,
@@ -381,9 +457,18 @@ async function startServer() {
           city,
           postalCode,
           surface: numSurface,
-          propertyType: propertyType === "apartment" ? "Appartement" : "Maison",
-          marketTension: "Forte demande sur ce secteur",
-          confidenceScore: 94,
+          propertyType: propertyType === "apartment" ? "Appartement" : propertyType === "house" ? "Maison" : "Bien",
+          marketTension: dvf
+            ? `${dvf.sampleSize} ventes comparables ${dvf.radiusM ? `dans un rayon de ${dvf.radiusM} m` : `à ${dvf.commune}`}`
+            : "Estimation indicative de secteur",
+          confidenceScore,
+          dataSource: dvf ? "dvf" : "baseline",
+          sampleSize: dvf?.sampleSize,
+          radiusM: dvf?.radiusM ?? null,
+          periodFrom: dvf?.periodFrom,
+          periodTo: dvf?.periodTo,
+          medianM2: dvf?.medianM2,
+          comparables: dvf?.comparables,
         },
       });
     } catch (error) {
@@ -393,7 +478,7 @@ async function startServer() {
   });
 
   // AI Qualification & Closer Chatbot endpoint using Claude
-  app.post("/api/chat-qualify", async (req: Request, res: Response) => {
+  app.post("/api/chat-qualify", rateLimit("chat", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
       const { messages, leadData } = req.body;
 
@@ -475,7 +560,7 @@ async function startServer() {
   ];
 
   // Send Direct Message Endpoint
-  app.post("/api/send-message", (req: Request, res: Response) => {
+  app.post("/api/send-message", requireAgent, (req: Request, res: Response) => {
     try {
       const { leadId, leadName, recipient, channel, subject, message } = req.body;
 
@@ -506,12 +591,12 @@ async function startServer() {
   });
 
   // Get Dispatch Logs Endpoint
-  app.get("/api/dispatch-logs", (_req: Request, res: Response) => {
+  app.get("/api/dispatch-logs", requireAgent, (_req: Request, res: Response) => {
     res.json({ logs: dispatchLogs });
   });
 
   // AI Nurture Sequence generator endpoint
-  app.post("/api/generate-nurture", async (req: Request, res: Response) => {
+  app.post("/api/generate-nurture", requireAgent, async (req: Request, res: Response) => {
     try {
       const { leadProfile } = req.body;
 
@@ -574,7 +659,7 @@ async function startServer() {
   });
 
   // AI Meta Ad Creative Generator endpoint
-  app.post("/api/generate-ad-copy", async (req: Request, res: Response) => {
+  app.post("/api/generate-ad-copy", requireAgent, async (req: Request, res: Response) => {
     try {
       const { motive, targetCity } = req.body;
       const city = targetCity || "Lyon";
@@ -610,32 +695,6 @@ async function startServer() {
       console.error("Ad copy error:", error);
       res.status(500).json({ error: "Erreur lors de la génération" });
     }
-  });
-
-  // Supabase Architecture & Schema inspection endpoint
-  app.get("/api/supabase/status", (_req: Request, res: Response) => {
-    const isConfigured = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
-    const hasCalSecret = Boolean(process.env.CAL_API_KEY);
-    const hasClaude = isClaudeConfigured();
-
-    res.json({
-      configured: isConfigured,
-      supabaseUrl: process.env.SUPABASE_URL ? `${process.env.SUPABASE_URL.substring(0, 15)}...` : null,
-      secretsStatus: {
-        CAL_API_KEY: hasCalSecret ? "Configuré (Secret d'environnement sécurisé)" : "Non configuré (Requis pour book-appointment)",
-        ANTHROPIC_API_KEY: hasClaude ? `Configuré (modèle ${CLAUDE_MODEL})` : "Non configuré (moteur heuristique local actif)",
-      },
-      tables: ["agents", "leads", "conversations", "rendez_vous"],
-      edgeFunctions: ["qualify-lead", "book-appointment"],
-      initialAgent: {
-        nom: "Céline Levrat (NOVEA Immobilier)",
-        ville: "Lyon",
-        zone_intervention: "Lyon et alentours, rayon de 30 km",
-        email_contact: "cel@novea-immobilier.fr",
-        cal_username: "[à compléter avec son identifiant Cal.com une fois son compte créé]",
-        multiAgentReady: true
-      }
-    });
   });
 
   // --- Supabase Admin & Edge Function Gateway (Bypasses RLS & Handles Edge Invocation) ---
@@ -891,7 +950,7 @@ async function startServer() {
   }
 
   // 1. Sync Lead Route (Creates/updates lead with Service Role to prevent RLS policy errors)
-  app.post("/api/supabase/sync-lead", async (req: Request, res: Response) => {
+  app.post("/api/supabase/sync-lead", rateLimit("lead", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
       const client = getSupabaseAdmin();
       const leadData = req.body;
@@ -949,7 +1008,7 @@ async function startServer() {
   });
 
   // 2. Qualify Lead Route (Attempts Edge Function or runs backend Claude with Service Role DB updates)
-  app.post("/api/supabase/qualify-lead", async (req: Request, res: Response) => {
+  app.post("/api/supabase/qualify-lead", rateLimit("qualify", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
       const { lead_id, user_message } = req.body;
       const client = getSupabaseAdmin();
@@ -1054,7 +1113,7 @@ async function startServer() {
   });
 
   // 3. Book Appointment Route (Cal.com v2 API & Supabase rendez_vous persistence)
-  app.post("/api/supabase/book-appointment", async (req: Request, res: Response) => {
+  app.post("/api/supabase/book-appointment", rateLimit("book", 12, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
       const {
         lead_id,
@@ -1420,7 +1479,7 @@ async function startServer() {
   });
 
   // 4. Get Supabase Status & Diagnostics Route
-  app.get("/api/supabase/status", async (_req: Request, res: Response) => {
+  app.get("/api/supabase/status", requireAgent, async (_req: Request, res: Response) => {
     try {
       const client = getSupabaseAdmin();
       const calApiKey = process.env.CAL_API_KEY;
@@ -1482,7 +1541,7 @@ async function startServer() {
   });
 
   // 5. Get Supabase Rendez-vous Route
-  app.get("/api/supabase/rendez-vous", async (_req: Request, res: Response) => {
+  app.get("/api/supabase/rendez-vous", requireAgent, async (_req: Request, res: Response) => {
     try {
       const client = getSupabaseAdmin();
       if (!client) return res.json({ rendez_vous: [] });
@@ -1521,7 +1580,7 @@ async function startServer() {
   });
 
   // 6. Slots Route (Cal.com v2 Slots API strictly verifying real agent calendar availability)
-  app.get("/api/cal/slots", async (req: Request, res: Response) => {
+  app.get("/api/cal/slots", rateLimit("slots", 120, 10 * 60 * 1000), async (req: Request, res: Response) => {
     try {
       const { start, end, username, eventTypeSlug, eventTypeId, agentId } = req.query;
       const calApiKey = process.env.CAL_API_KEY;
@@ -1813,7 +1872,7 @@ async function startServer() {
   });
 
   // Pull-based reconciliation (safety net if a webhook was missed). Called by the CRM on load.
-  app.post("/api/cal/sync", async (_req: Request, res: Response) => {
+  app.post("/api/cal/sync", requireAgent, async (_req: Request, res: Response) => {
     const calApiKey = process.env.CAL_API_KEY;
     const client = getSupabaseAdmin();
     if (!calApiKey || !client) return res.json({ success: false, synced: 0, reason: "not_configured" });
@@ -1843,7 +1902,7 @@ async function startServer() {
   });
 
   // 5. Get Supabase Leads Route
-  app.get("/api/supabase/leads", async (_req: Request, res: Response) => {
+  app.get("/api/supabase/leads", requireAgent, async (_req: Request, res: Response) => {
     try {
       const client = getSupabaseAdmin();
       if (!client) return res.json({ leads: [] });
@@ -1879,6 +1938,8 @@ async function startServer() {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
+
+  prewarm((process.env.DVF_PREWARM || "69381,69382,69383,69384,69385,69386,69387,69388,69389,69266").split(",").filter(Boolean));
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);

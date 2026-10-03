@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { syncLeadToSupabase } from '../lib/supabaseService';
 import confetti from 'canvas-confetti';
-import { LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
+import { ValuationEvidence, LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { 
   Building2, 
   Home, 
@@ -1170,6 +1170,7 @@ export const LandingSimulator: React.FC<Props> = ({
                         <span className="truncate">{result.address}</span>
                       </div>
                     )}
+                    <ValuationEvidence result={result} />
                   </div>
                 </div>
 

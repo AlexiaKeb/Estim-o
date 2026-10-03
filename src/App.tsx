@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Building2, 
   Sparkles, 
@@ -40,26 +40,18 @@ type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'c
 
 export default function App() {
   // Agent Authentication & View Mode State - Default to authenticated pro mode for immediate dashboard view
-  const [isAgentAuthenticated, setIsAgentAuthenticated] = useState<boolean>(() => {
-    // Visitors are sellers by default: the agent space only opens with an explicit, remembered login
-    return localStorage.getItem('estimeo_agent_session') === 'true';
-  });
-  const [isAgentMode, setIsAgentMode] = useState<boolean>(() => {
-    return localStorage.getItem('estimeo_agent_session') === 'true' &&
-      typeof window !== 'undefined' && /^\/(agent|pro|conseiller|admin)\/?$/i.test(window.location.pathname);
-  });
+  // Truth comes from the server (signed HttpOnly cookie), never from localStorage
+  const [isAgentAuthenticated, setIsAgentAuthenticated] = useState<boolean>(false);
+  const authRef = useRef(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [isAgentMode, setIsAgentMode] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Logo secret multi-click counter
   const [logoClicks, setLogoClicks] = useState(0);
 
   // Active view - Default to CRM Pipeline Dashboard
-  const [currentView, setCurrentView] = useState<NavView>(() => {
-    return localStorage.getItem('estimeo_agent_session') === 'true' &&
-      typeof window !== 'undefined' && /^\/(agent|pro|conseiller|admin)\/?$/i.test(window.location.pathname)
-      ? 'pipeline'
-      : 'landing';
-  });
+  const [currentView, setCurrentView] = useState<NavView>('landing');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Privacy & Stealth Settings
@@ -75,15 +67,9 @@ export default function App() {
         if (parsed.hidePublicLoginButton === undefined) {
           parsed.hidePublicLoginButton = true;
         }
-        if (!parsed.stealthLoginToken) {
-          parsed.stealthLoginToken = 'pro-conseil-2026';
-        }
-        if (!parsed.agentPassword) {
-          parsed.agentPassword = 'Estimeo2026!';
-        }
-        if (!parsed.agentEmail) {
-          parsed.agentEmail = 'celine@estimeo.fr';
-        }
+        delete parsed.agentPinCode;
+        delete parsed.agentPassword;
+        delete parsed.agentEmail;
         return parsed;
       } catch {
         // fallback
@@ -97,9 +83,6 @@ export default function App() {
       hideInternalScoringFromProspect: true,
       stealthModeEnabled: true,
       customPrivacyDisclaimer: "Données protégées sous secret professionnel et conformité RGPD.",
-      agentPinCode: "1234",
-      agentPassword: "Estimeo2026!",
-      agentEmail: "celine@estimeo.fr",
       stealthLoginToken: "pro-conseil-2026",
       hidePublicLoginButton: true,
       sessionTimeoutMinutes: 30,
@@ -119,9 +102,20 @@ export default function App() {
     );
   };
 
+  useEffect(() => {
+    fetch('/api/agent/session', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .catch(() => ({ authenticated: false }))
+      .then((d) => {
+        authRef.current = Boolean(d.authenticated);
+        setIsAgentAuthenticated(authRef.current);
+        setSessionChecked(true);
+      });
+  }, []);
+
   // Check for /agent path or stealth URL parameters on initial mount and route accordingly
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !sessionChecked) return;
 
     const pathname = window.location.pathname;
     const urlParams = new URLSearchParams(window.location.search);
@@ -132,7 +126,7 @@ export default function App() {
     const proParam = urlParams.get('pro') || urlParams.get('agent') || urlParams.get('access') || urlParams.get('secret');
     const hasProFlag = urlParams.has('pro') || urlParams.has('agent') || hash.includes('pro') || hash.includes('access');
 
-    const isCurrentAuth = localStorage.getItem('estimeo_agent_session') === 'true' || localStorage.getItem('mandatflow_agent_session') === 'true';
+    const isCurrentAuth = authRef.current;
 
     // 1. Direct /agent URL access
     if (isDirectAgentUrl) {
@@ -169,7 +163,7 @@ export default function App() {
     const handlePopState = () => {
       const currentPath = window.location.pathname;
       if (isAgentPath(currentPath, customSlug)) {
-        const auth = localStorage.getItem('estimeo_agent_session') === 'true';
+        const auth = authRef.current;
         if (auth) {
           setIsAgentMode(true);
           setCurrentView('pipeline');
@@ -184,7 +178,7 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [privacySettings.customAgentSlug]);
+  }, [privacySettings.customAgentSlug, sessionChecked]);
 
   // Reconcile with Cal.com whenever the advisor opens the pipeline (cancellations / reschedules)
   useEffect(() => {
@@ -270,12 +264,10 @@ export default function App() {
 
   // Login handler
   const handleAuthSuccess = (rememberSession: boolean) => {
+    authRef.current = true;
     setIsAgentAuthenticated(true);
     setIsAgentMode(true);
-    if (rememberSession) {
-      localStorage.setItem('estimeo_agent_session', 'true');
-      localStorage.setItem('mandatflow_agent_session', 'true');
-    }
+    setIsAuthModalOpen(false);
     const slug = privacySettings.customAgentSlug || 'agent';
     try {
       window.history.pushState(null, '', `/${slug}`);
@@ -288,10 +280,10 @@ export default function App() {
 
   // Logout / Lock handler
   const handleLockAgentMode = () => {
+    authRef.current = false;
     setIsAgentAuthenticated(false);
     setIsAgentMode(false);
-    localStorage.removeItem('estimeo_agent_session');
-    localStorage.removeItem('mandatflow_agent_session');
+    fetch('/api/agent/logout', { method: 'POST' }).catch(() => {});
     try {
       window.history.pushState(null, '', '/');
     } catch {
