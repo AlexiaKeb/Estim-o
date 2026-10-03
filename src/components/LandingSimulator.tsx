@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { syncLeadToSupabase } from '../lib/supabaseService';
 import confetti from 'canvas-confetti';
+import { LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { 
   Building2, 
   Home, 
@@ -376,50 +377,10 @@ export const LandingSimulator: React.FC<Props> = ({
 
   return (
     <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto space-y-8">
-      {/* Header Banner - Value Proposition (Warm SaaS Theme) */}
-      <div className="bg-stone-900 text-stone-100 rounded-2xl p-7 md:p-10 shadow-sm border border-stone-800 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-3xl space-y-3.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-800/90 border border-stone-700/80 text-stone-300 text-xs font-medium tracking-wide">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              Simulateur d'Estimation & Analyse de Marché 2026
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-              <Compass className="w-3.5 h-3.5 text-amber-400" />
-              Secteur exclusif : Lyon, Villeurbanne, Beaujolais (50 km autour)
-            </div>
-          </div>
-
-          <h1 className="text-2xl md:text-4xl font-semibold tracking-tight text-white leading-snug">
-            Quelle est la valeur réelle de votre bien sur le marché actuel ?
-          </h1>
-
-          <p className="text-stone-300 text-sm md:text-base leading-relaxed font-normal">
-            Obtenez en 2 minutes une fourchette certifiée basée sur les transactions réelles de votre quartier, complétée par une étude comparative personnalisée avec votre conseillère locale <strong>Céline</strong> (joignable au 06 03 58 03 16).
-          </p>
-
-          <div className="flex flex-wrap items-center gap-6 pt-2 text-xs md:text-sm text-stone-300">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              100% Gratuit & Sans engagement
-            </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              Base notariée et DVF 2026
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-400" />
-              Expertise dédiée par Céline
-            </div>
-          </div>
-        </div>
-      </div>
+      <LandingHero />
 
       {/* Main Grid: Form + Result / Lead Gate Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div id="simulateur" className="scroll-mt-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Form: Inputs */}
         <div className="lg:col-span-7 bg-white rounded-xl border border-stone-200/80 shadow-2xs p-6 md:p-8 space-y-6">
           <div className="flex items-center justify-between border-b border-stone-100 pb-4">
@@ -1416,7 +1377,7 @@ export const LandingSimulator: React.FC<Props> = ({
                   Prêt à découvrir la valeur de votre bien ?
                 </h3>
                 <p className="text-xs text-stone-500 max-w-xs mx-auto font-normal">
-                  Renseignez les caractéristiques de votre bien à gauche et cliquez sur « Générer mon rapport » pour lancer l'algorithme certifié 2026.
+                  Renseignez les caractéristiques de votre bien à gauche et cliquez sur « Générer mon rapport » pour lancer la simulation.
                 </p>
               </div>
               <button
@@ -1452,8 +1413,17 @@ export const LandingSimulator: React.FC<Props> = ({
         </div>
       </div>
 
+      <div className="space-y-14 pt-6 pb-16 sm:pb-0">
+        <HowItWorks />
+        <WhyOnSite />
+        <SocialProof />
+        <FaqSection />
+        <FinalCta />
+      </div>
+      <StickyMobileCta />
+
       {/* Floating Closer Concierge Widget (Always Visible & Accessible) */}
-      <div className="fixed bottom-5 right-5 z-40">
+      <div className="hidden sm:block fixed bottom-5 right-5 z-40">
         {!showFloatingDrawer ? (
           <button
             type="button"

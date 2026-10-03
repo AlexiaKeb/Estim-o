@@ -634,7 +634,7 @@ export default function App() {
                         {privacySettings.publicBrandName.split('•')[0].trim() || 'Estiméo'}
                       </span>
                       <span className="px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-700 font-semibold text-[10px] uppercase border border-stone-200">
-                        Étude Certifiée
+                        Estimation offerte
                       </span>
                     </div>
                     <div className="text-[11px] text-stone-500 font-normal">
