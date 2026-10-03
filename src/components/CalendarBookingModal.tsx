@@ -261,7 +261,8 @@ export const CalendarBookingModal: React.FC<Props> = ({
         city: formData.address || initialLeadInfo?.city || 'Lyon',
         score: initialLeadInfo?.score || 95,
         status: 'HOT',
-        meetingBooked: true,
+        // Only flagged as booked by the server once Cal.com has really confirmed the slot
+        meetingBooked: false,
       });
 
       if (persistedLeadId) {
@@ -316,15 +317,17 @@ export const CalendarBookingModal: React.FC<Props> = ({
         return;
       }
 
-      if (bookResponse?.creneau) {
-        const parsedD = new Date(bookResponse.creneau);
-        if (!isNaN(parsedD.getTime())) {
-          confirmedSlotDate = parsedD.toISOString().split('T')[0];
-          confirmedSlotTime = parsedD.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
+      if (!bookResponse || bookResponse.success !== true) {
+        setIsSubmitting(false);
+        setBookingError(bookResponse?.error || "La réservation n'a pas pu être confirmée. Merci de réessayer.");
+        return;
       }
+      // The slot was chosen in Paris time and booked as such: show exactly that, whatever the browser timezone
     } catch (bookErr: any) {
       console.warn('book-appointment invocation error:', bookErr);
+      setIsSubmitting(false);
+      setBookingError("La réservation n'a pas pu être confirmée. Merci de réessayer.");
+      return;
     }
 
     try {

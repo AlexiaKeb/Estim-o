@@ -145,7 +145,7 @@ export const StrategyMasterclass: React.FC = () => {
               </div>
               <h3 className="text-base font-bold text-slate-900">La Technique Concrète</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Ce n'est pas de la "R&D IA complexe" : c'est un <strong>workflow d'orchestration Make/n8n</strong> qui relie un webhook Meta, un prompt LLM métier (Gemini/Claude), une écriture CRM et un calendrier.
+                Ce n'est pas de la "R&D IA complexe" : c'est un <strong>workflow d'orchestration Make/n8n</strong> qui relie un webhook Meta, un prompt LLM métier (Claude), une écriture CRM et un calendrier.
               </p>
               <div className="bg-emerald-50 rounded-xl p-3 text-[11px] text-emerald-900 border border-emerald-200">
                 <strong>Verdict :</strong> Parfaitement accessible techniquement et réplicable en mode SaaS pour ton amie.
@@ -256,7 +256,7 @@ export const StrategyMasterclass: React.FC = () => {
               {
                 step: '03',
                 title: 'Chatbot IA de Qualification',
-                desc: 'Brancher un LLM (Gemini/Claude) scripté sur 5-6 questions clés avec calcul de score automatique (/100) pour filtrer les curieux.',
+                desc: 'Brancher un LLM (Claude) scripté sur 5-6 questions clés avec calcul de score automatique (/100) pour filtrer les curieux.',
                 tag: 'Filtre Intelligent',
               },
               {

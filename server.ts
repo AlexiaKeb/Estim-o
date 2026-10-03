@@ -1,31 +1,21 @@
 import express, { Request, Response } from "express";
 import path from "path";
+import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
+import {
+  claudeJson,
+  isClaudeConfigured,
+  toClaudeMessages,
+  buildQualificationSystemPrompt,
+  QUALIFICATION_SCHEMA,
+  NURTURE_SCHEMA,
+  AD_SCHEMA,
+  CLAUDE_MODEL,
+} from "./server/ai";
 
 dotenv.config();
-
-// Initialize Gemini SDK with User-Agent telemetry as mandated by guidelines
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-  httpOptions: {
-    headers: {
-      "User-Agent": "aistudio-build",
-    },
-  },
-});
-
-// Helper for Gemini calls with timeout
-async function withTimeout<T>(promise: Promise<T>, timeoutMs = 2500): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
-    ),
-  ]);
-}
 
 // Helper to detect gibberish, spam or nonsense
 function isGibberishOrNonsense(input: string): boolean {
@@ -222,11 +212,47 @@ function generateIntelligentQualificationReply(
   };
 }
 
+async function getQualification(messages: Array<{ role: string; content: string }>, leadData: any) {
+  if (isClaudeConfigured()) {
+    try {
+      const history = toClaudeMessages(messages);
+      const parsed = await claudeJson<any>({
+        system: buildQualificationSystemPrompt(AGENT_PROFILE),
+        messages: history,
+        schema: QUALIFICATION_SCHEMA,
+        maxTokens: 1500,
+        timeoutMs: 20000,
+        effort: "low",
+      });
+      if (parsed?.reply) return parsed;
+    } catch (e) {
+      console.warn("Claude qualification fallback activated:", (e as any)?.message || e);
+    }
+  }
+  return generateIntelligentQualificationReply(messages, leadData);
+}
+
+const CAL_BASE = (process.env.CAL_API_BASE || "https://api.cal.com").replace(/\/$/, "");
+
+const AGENT_PROFILE = {
+  name: process.env.AGENT_NAME || "Céline Levrat",
+  agency: process.env.AGENT_AGENCY || "NOVEA Immobilier",
+  phone: process.env.AGENT_PHONE || "06 03 58 03 16",
+  city: process.env.AGENT_CITY || "Lyon",
+};
+
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
-  app.use(express.json());
+  app.use(
+    express.json({
+      // Keep the raw bytes: Cal.com webhook signatures are computed on them
+      verify: (req: any, _res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
 
   // Health check
   app.get("/api/health", (_req: Request, res: Response) => {
@@ -366,120 +392,35 @@ async function startServer() {
     }
   });
 
-  // AI Qualification & Closer Chatbot endpoint using Gemini 3.7 Flash
+  // AI Qualification & Closer Chatbot endpoint using Claude
   app.post("/api/chat-qualify", async (req: Request, res: Response) => {
     try {
       const { messages, leadData } = req.body;
 
-      const systemInstruction = `Tu es Céline, conseillère immobilière experte et Closer dédiée de l'agence Valoria Immobilier.
-Ton rôle est d'échanger avec un propriétaire vendeur pour l'accompagner, répondre à ses doutes, valoriser son patrimoine et CLÔTURER en fixant une visite de découverte sur place (100% offerte et sans aucun engagement).
-
-PÉRIMÈTRE GÉOGRAPHIQUE D'INTERVENTION DE CÉLINE (STRICT) :
-- Céline est agent immobilier basée à Lyon et intervient exclusivement sur : Lyon, Villeurbanne, le Beaujolais et les communes situées à 50 km maximum autour de Lyon.
-- Si le prospect mentionne une commune très éloignée hors de ce périmètre (ex : Paris, Marseille, Nantes, Bordeaux, Lille, Toulouse...) :
-  -> Explique avec courtoisie et bienveillance que par souci d'excellence et de proximité humaine, Céline concentre ses visites sur Lyon, Villeurbanne, le Beaujolais et jusqu'à 50 km autour.
-  -> Propose-lui tout de même d'échanger directement au 06 03 58 03 16 s'il a une situation particulière ou un projet en région lyonnaise.
-
-BIENS PARTICULIERS SANS ESTIMATION AUTOMATIQUE (GARAGES, BOX, TERRAINS, LOCAUX) :
-- Pour les biens de type Garage, Box, Terrain à bâtir ou Locaux commerciaux/immeubles : rappelle qu'une estimation algorithmique ne peut pas refléter les règles d'urbanisme (PLU), la constructibilité ou les charges. Céline étudie ces dossiers de façon personnalisée et est joignable directement au 06 03 58 03 16.
-
-RÔLE DE CLOSER BIENVEILLANT :
-- Tu ne te contentes pas de poser des questions passives : tu es proactive, engageante, rassurante et orientée action.
-- Tu valorises constamment le projet et les spécificités du bien pour donner envie au vendeur de concrétiser son étude.
-- Tu expliques avec clarté pourquoi une simulation en ligne est limitée et pourquoi la visite de découverte in situ est la seule clé pour verrouiller la valeur haute du bien et éviter que de futurs acheteurs ne négocient à la baisse.
-
-TRAITEMENT DES PRINCIPALES OBJECTIONS VENDEURS :
-1. "Je suis juste curieux / Je teste le marché" :
-   -> "C'est la meilleure façon de faire ! Connaître la valeur réelle de son patrimoine permet d'anticiper sereinement sans aucune pression. Une visite de 20 min vous donne les chiffres réels des notaires 2026 sans aucun engagement."
-2. "J'ai déjà fait estimer par une autre agence" :
-   -> "Excellente démarche de comparer ! C'est primordial pour vérifier si l'estimation n'a pas été sous-évaluée pour brader ou sur-évaluée pour décrocher un mandat. Un deuxième avis d'expert indépendant est gratuit et vous protège."
-3. "Je vends dans plus de 6 mois / 1 an" :
-   -> "Le calendrier idéal se prépare plusieurs mois à l'avance (diagnostics obligatoires, petits travaux à forte plus-value, stratégie fiscale). Une visite préparatoire vous donne une feuille de route claire."
-4. "Combien coûte cette visite / avez-vous des frais ?" :
-   -> "L'étude complète et la visite sur place sont 100% offertes et sans aucun engagement de votre part."
-5. "Envoyez-moi le dossier par mail" :
-   -> "Un envoi automatique ne refléterait pas la vraie valeur de votre logement car il ne peut apprécier ni la lumière naturelle, ni les finitions, ni le calme. Une visite de 20 min sur place est indispensable pour établir votre dossier officiel."
-
-OBJECTIF DU RENDEZ-VOUS SUR PLACE (CRUCIAL) :
-- Le rendez-vous a pour unique et véritable vocation de **RÉALISER LA VISITE DU BIEN SUR PLACE** (découvrir le logement, examiner l'état réel, les matériaux, la luminosité, le cachet et les détails) afin de pouvoir ensuite élaborer et lui remettre son avis de valeur exact et incontestable.
-- Explique toujours que la simulation internet n'est qu'un repère indicatif et que seule la visite sur place permet de valoriser chaque mètre carré au juste prix.
-
-GESTION DES MESSAGES FARFELUS, CHARABIA OU HORS-SUJET (RECADRAGE BIENVEILLANT) :
-- Si le prospect écrit n'importe quoi (suites de lettres aléatoires, blagues, "test", charabia, grossièretés ou propos hors-sujet) :
-  -> Ne sois jamais agacée, ni froide, ni robotique.
-  -> Recadre avec le sourire, beaucoup de tact et de bienveillance (ex : "Je ne suis pas sûre d'avoir bien saisi votre message ☺️ Pour que notre échange vous soit réellement utile et que nous puissions valoriser votre bien à [Ville], pourriez-vous me préciser...").
-  -> Repose gentiment la question en cours (motif du projet, agence déjà consultée, délai de vente ou visite sur place).
-
-CAPITAL SYMPATHIE & HUMANISATION (STRICT) :
-- Exprime-toi comme une vraie professionnelle humaine, à l'écoute, chaleureuse et persuasive.
-- Flatte toujours le prospect et son bien (ex : "Votre bien à Lyon a de remarquables atouts !", "Ce secteur est très prisé par les acquéreurs", "C'est une excellente décision d'anticiper").
-- Rappelle que Céline est joignable directement au 06 03 58 03 16 si le prospect préfère échanger par téléphone.
-- La première visite est une phase de découverte bienveillante (faire connaissance, découvrir le projet, pas de documents formels obligatoires, recueil des informations comme travaux votés/à voter, taxe foncière, charges copro, plan éventuel) et l'évaluation finale se fait collégialement en équipe.
-
-RÈGLES DE LANGAGE & INTERDICTIONS (STRICT) :
-- BANNI ABSOLU : Ne prononce JAMAIS les mots "Closer", "closing", "closé", "prospection", "qualification", "lead", "vendeur qualifié", "conversion" ou tout jargon commercial interne. Le prospect doit simplement voir en toi son interlocutrice privilégiée, bienveillante et experte.
-- BANNI : Ne dis JAMAIS "net vendeur" (terme banni ! Utilise plutôt "valeur de votre bien", "prix auquel vous souhaitez vendre", "valeur estimée").
-- BANNI : Ne dis JAMAIS "Votre dossier est parfaitement constitué" (trop administratif). Dis plutôt : "Merci pour tous ces éléments très précieux !" ou "Votre projet prend une excellente tournure !".
-- BANNI : Ne propose JAMAIS de "RDV visio" ou "visio". Propose toujours : "une visite de votre bien sur place (offerte et sans engagement)".
-- Ne révèle JAMAIS de score interne (ex: 85%) ou de statut technique (HOT, WARM, COLD).
-
-STRUCTURE DE RÉPONSE JSON ATTENDUE :
-Tu DOIS impérativement répondre au format JSON strict avec les champs suivants :
-{
-  "reply": "Ta réponse conversationnelle très humaine, chaleureuse, valorisante et persuasive (Closer)",
-  "extractedData": {
-    "propertyType": "string ou null",
-    "location": "string ou null",
-    "motive": "string ou null",
-    "hasConsultedAgency": "string ou null",
-    "timeframe": "string ou null",
-    "priceExpectation": "string ou null",
-    "readyForMeeting": boolean
-  },
-  "qualificationScore": number entre 0 et 100,
-  "leadStatus": "HOT" | "WARM" | "COLD",
-  "recommendedAction": "BOOK_MEETING" | "CONTINUE_QUESTIONS" | "SEND_NURTURE"
-}`;
-
-      // Try Gemini 3.7 Flash with a strict timeout; fallback instantly to high-precision conversational engine
-      try {
-        const contents = [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `Voici l'historique de la conversation avec le prospect vendeur :
-${JSON.stringify(messages, null, 2)}
-
-Données initiales issues du simulateur :
-${JSON.stringify(leadData || {}, null, 2)}
-
-Génère la réponse de qualification et l'évaluation JSON selon tes instructions.`,
-              },
-            ],
-          },
-        ];
-
-        const responsePromise = ai.models.generateContent({
-          model: "gemini-3.7-flash",
-          contents,
-          config: {
-            systemInstruction,
-            responseMimeType: "application/json",
-            temperature: 0.7,
-          },
-        });
-
-        const response = await withTimeout(responsePromise, 2500);
-        const responseText = response.text || "{}";
-        const cleanJson = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        const parsed = JSON.parse(cleanJson);
-
-        if (parsed && parsed.reply) {
-          return res.json(parsed);
+      // Claude first (structured JSON output); heuristic engine if the API is unreachable or slow
+      if (isClaudeConfigured()) {
+        try {
+          const systemPrompt = buildQualificationSystemPrompt(AGENT_PROFILE);
+          const history = toClaudeMessages(messages || []);
+          // Simulator data goes in the last user turn so the system prompt stays static
+          const last = history[history.length - 1];
+          if (leadData && Object.keys(leadData).length > 0 && last.role === "user") {
+            last.content += `\n\n[Contexte issu du simulateur, ne pas citer tel quel : ${JSON.stringify(leadData)}]`;
+          }
+          const parsed = await claudeJson<any>({
+            system: systemPrompt,
+            messages: history,
+            schema: QUALIFICATION_SCHEMA,
+            maxTokens: 1500,
+            timeoutMs: 20000,
+            effort: "low",
+          });
+          if (parsed && parsed.reply) {
+            return res.json(parsed);
+          }
+        } catch (aiError) {
+          console.warn("Claude chat fallback activated:", (aiError as any)?.message || aiError);
         }
-      } catch (geminiError) {
-        console.warn("Gemini chat API fallback activated:", (geminiError as any)?.message || geminiError);
       }
 
       // Fast fallback response
@@ -608,34 +549,21 @@ Génère la réponse de qualification et l'évaluation JSON selon tes instructio
       ];
 
       try {
-        const prompt = `Génère une séquence de nurture complète de 5 étapes (J+1, J+7, J+15, J+30, J+60) pour un propriétaire non-mûr dans le secteur immobilier.
-Profil du prospect :
-${JSON.stringify(leadProfile, null, 2)}
-
-Réponds en JSON strict :
-{
-  "sequence": [
-    { "step": "J+1", "channel": "SMS" ou "Email", "subject": "Titre", "message": "Contenu du message percutant et ultra personnalisé" }
-  ]
-}`;
-
-        const responsePromise = ai.models.generateContent({
-          model: "gemini-3.7-flash",
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-            temperature: 0.7,
-          },
+        const parsed = await claudeJson<{ sequence: any[] }>({
+          system: "Tu rédiges des relances immobilières pour une conseillère de NOVEA Immobilier (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. SMS: 300 caractères max. Email: objet court + 4 à 6 lignes. Chaque message propose un pas simple vers une visite de découverte offerte de 20 min.",
+          messages: [{
+            role: "user",
+            content: `Génère une séquence de 5 relances (J+1, J+7, J+15, J+30, J+60) pour ce propriétaire pas encore mûr.\nProfil :\n${JSON.stringify(leadProfile, null, 2)}\nLe champ step doit être de la forme "J+1 (SMS)".`,
+          }],
+          schema: NURTURE_SCHEMA,
+          maxTokens: 3000,
+          timeoutMs: 30000,
         });
-
-        const response = await withTimeout(responsePromise, 2500);
-        const cleanJson = (response.text || "{}").replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        const parsed = JSON.parse(cleanJson);
         if (parsed && Array.isArray(parsed.sequence) && parsed.sequence.length > 0) {
           return res.json(parsed);
         }
       } catch (err) {
-        console.warn("Gemini nurture fallback activated");
+        console.warn("Claude nurture fallback activated:", (err as any)?.message);
       }
 
       return res.json({ sequence: fallbackSequence });
@@ -660,34 +588,21 @@ Réponds en JSON strict :
       };
 
       try {
-        const prompt = `Crée un pack publicitaire Meta Ads ultra performant pour capter des vendeurs immobiliers à ${city} ayant comme motif : ${motive || "Succession ou Mutation"}.
-Respecte la règle anti-leadform Meta : le CTA doit diriger vers notre landing page de qualification avec simulateur.
-Réponds en JSON strict :
-{
-  "hook": "Titre accrocheur",
-  "body": "Texte principal (storytelling & problème/solution)",
-  "cta": "Bouton CTA",
-  "creativeVisualAngle": "Description du visuel recommandé",
-  "audienceTargeting": "Conseils de ciblage Meta"
-}`;
-
-        const responsePromise = ai.models.generateContent({
-          model: "gemini-3.7-flash",
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-            temperature: 0.7,
-          },
+        const parsed = await claudeJson<any>({
+          system: "Tu es expert Meta Ads pour l'immobilier français. Tu écris des publicités honnêtes (aucune promesse de prix ni de résultat garanti), conformes aux règles Meta. Le CTA mène vers une landing page avec simulateur d'estimation, jamais vers un formulaire Meta natif.",
+          messages: [{
+            role: "user",
+            content: `Crée un pack publicitaire pour capter des vendeurs à ${city}. Motif ciblé : ${motive || "Succession ou Mutation"}.`,
+          }],
+          schema: AD_SCHEMA,
+          maxTokens: 1500,
+          timeoutMs: 25000,
         });
-
-        const response = await withTimeout(responsePromise, 2500);
-        const cleanJson = (response.text || "{}").replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        const parsed = JSON.parse(cleanJson);
         if (parsed && parsed.hook) {
           return res.json(parsed);
         }
       } catch (err) {
-        console.warn("Gemini ad fallback activated");
+        console.warn("Claude ad fallback activated:", (err as any)?.message);
       }
 
       return res.json(fallbackAd);
@@ -701,14 +616,14 @@ Réponds en JSON strict :
   app.get("/api/supabase/status", (_req: Request, res: Response) => {
     const isConfigured = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
     const hasCalSecret = Boolean(process.env.CAL_API_KEY);
-    const hasGemini = Boolean(process.env.GEMINI_API_KEY);
+    const hasClaude = isClaudeConfigured();
 
     res.json({
       configured: isConfigured,
       supabaseUrl: process.env.SUPABASE_URL ? `${process.env.SUPABASE_URL.substring(0, 15)}...` : null,
       secretsStatus: {
         CAL_API_KEY: hasCalSecret ? "Configuré (Secret d'environnement sécurisé)" : "Non configuré (Requis pour book-appointment)",
-        GEMINI_API_KEY: hasGemini ? "Configuré (Utilisé par qualify-lead)" : "Non configuré",
+        ANTHROPIC_API_KEY: hasClaude ? `Configuré (modèle ${CLAUDE_MODEL})` : "Non configuré (moteur heuristique local actif)",
       },
       tables: ["agents", "leads", "conversations", "rendez_vous"],
       edgeFunctions: ["qualify-lead", "book-appointment"],
@@ -745,47 +660,48 @@ Réponds en JSON strict :
     return null;
   }
 
-  // Helper to convert a Europe/Paris date and time into an exact UTC ISO string for Cal.com
+  // Offset (ms) of Europe/Paris from UTC at a given instant (+1h winter, +2h summer)
+  function parisOffsetMs(instant: Date): number {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Europe/Paris",
+      year: "numeric", month: "numeric", day: "numeric",
+      hour: "numeric", minute: "numeric", second: "numeric",
+      hourCycle: "h23",
+    }).formatToParts(instant);
+    const g = (t: string) => parseInt(parts.find((p) => p.type === t)?.value || "0", 10);
+    const asUtc = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"), g("second"));
+    return asUtc - Math.floor(instant.getTime() / 1000) * 1000;
+  }
+
+  // Converts a Europe/Paris wall-clock date+time into the exact UTC ISO string Cal.com expects
   function convertParisTimeToUtcIso(dateOrIso: string, timeStr?: string): string {
     let datePart = dateOrIso;
     let timePart = timeStr || "10:00";
-
     if (dateOrIso.includes("T")) {
       const [d, t] = dateOrIso.split("T");
       datePart = d;
       timePart = t.replace("Z", "").slice(0, 5);
     }
-
     const [year, month, day] = datePart.split("-").map(Number);
     const [hour, minute] = timePart.split(":").map(Number);
+    const wall = Date.UTC(year, month - 1, day, hour, minute, 0);
+    // Two passes: the offset must be read at the real instant, not at the naive one (DST nights)
+    let guess = wall - parisOffsetMs(new Date(wall));
+    guess = wall - parisOffsetMs(new Date(guess));
+    return new Date(guess).toISOString();
+  }
 
-    const approxDate = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
-
-    const formatter = new Intl.DateTimeFormat("en-US", {
+  // Splits a UTC instant into Paris-local { date: "YYYY-MM-DD", time: "HH:mm" }
+  function toParisParts(iso: string): { date: string; time: string } | null {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Paris",
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: false,
-    });
-
-    const parts = formatter.formatToParts(approxDate);
-    const getPart = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || "0", 10);
-    const pYear = getPart("year");
-    const pMonth = getPart("month");
-    const pDay = getPart("day");
-    let pHour = getPart("hour");
-    if (pHour === 24) pHour = 0;
-    const pMin = getPart("minute");
-
-    const parisTimeAsUtcTimestamp = Date.UTC(pYear, pMonth - 1, pDay, pHour, pMin, 0);
-    const offsetMs = parisTimeAsUtcTimestamp - approxDate.getTime();
-
-    const targetParisTimestamp = Date.UTC(year, month - 1, day, hour, minute, 0);
-    const trueUtcDate = new Date(targetParisTimestamp - offsetMs);
-    return trueUtcDate.toISOString();
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).formatToParts(d);
+    const g = (t: string) => parts.find((p) => p.type === t)?.value || "00";
+    return { date: `${g("year")}-${g("month")}-${g("day")}`, time: `${g("hour")}:${g("minute")}` };
   }
 
   // Cache for Cal.com slots
@@ -812,7 +728,7 @@ Réponds en JSON strict :
 
     // 1. Resolve User info via v2 /v2/me or v1 /v1/users/me
     try {
-      const meRes = await fetch("https://api.cal.com/v2/me", {
+      const meRes = await fetch(`${CAL_BASE}/v2/me`, {
         headers: {
           "Authorization": `Bearer ${calApiKey}`,
           "cal-api-version": "2024-08-13",
@@ -826,7 +742,7 @@ Réponds en JSON strict :
         console.log(`[Cal.com] Detected v2 account username: ${profile.username}`);
       } else {
         // Fallback to v1 users/me
-        const meV1 = await fetch(`https://api.cal.com/v1/users/me?apiKey=${encodeURIComponent(calApiKey)}`, {
+        const meV1 = await fetch(`${CAL_BASE}/v1/users/me?apiKey=${encodeURIComponent(calApiKey)}`, {
           signal: AbortSignal.timeout(3500),
         });
         if (meV1.ok) {
@@ -841,9 +757,9 @@ Réponds en JSON strict :
     }
 
     // 2. Resolve Event Types via v2 /v2/event-types?username=... (version 2024-06-14)
-    const usernameForQuery = profile.username || "cel.novea";
+    const usernameForQuery = profile.username || process.env.CAL_USERNAME || "cel.novea";
     try {
-      const eventRes = await fetch(`https://api.cal.com/v2/event-types?username=${encodeURIComponent(usernameForQuery)}`, {
+      const eventRes = await fetch(`${CAL_BASE}/v2/event-types?username=${encodeURIComponent(usernameForQuery)}`, {
         headers: {
           "Authorization": `Bearer ${calApiKey}`,
           "cal-api-version": "2024-06-14",
@@ -874,7 +790,7 @@ Réponds en JSON strict :
         }
       } else {
         // Fallback to v1 event-types
-        const eventV1 = await fetch(`https://api.cal.com/v1/event-types?apiKey=${encodeURIComponent(calApiKey)}`, {
+        const eventV1 = await fetch(`${CAL_BASE}/v1/event-types?apiKey=${encodeURIComponent(calApiKey)}`, {
           signal: AbortSignal.timeout(3500),
         });
         if (eventV1.ok) {
@@ -891,9 +807,14 @@ Réponds en JSON strict :
       }
 
       if (profile.eventTypes && profile.eventTypes.length > 0) {
-        const match = profile.eventTypes.find(et => 
-          et.slug === "visite-d-estimation-a-domicile" || et.id === 6851203 || et.slug.includes("estimation") || et.slug.includes("immo") || et.slug.includes("visite")
-        );
+        const envId = Number(process.env.CAL_EVENT_TYPE_ID) || null;
+        const envSlug = process.env.CAL_EVENT_SLUG || null;
+        const match =
+          (envId && profile.eventTypes.find(et => et.id === envId)) ||
+          (envSlug && profile.eventTypes.find(et => et.slug === envSlug)) ||
+          profile.eventTypes.find(et =>
+            et.slug === "visite-d-estimation-a-domicile" || et.id === 6851203 || et.slug.includes("estimation") || et.slug.includes("visite")
+          );
         if (match) {
           profile.defaultEventTypeId = match.id;
           profile.defaultEventTypeSlug = match.slug;
@@ -907,7 +828,13 @@ Réponds en JSON strict :
       console.log(`[Cal.com] Could not fetch event types: ${e.message}`);
     }
 
-    cachedCalProfile = { profile, timestamp: Date.now() };
+    // Env overrides win when auto-discovery found nothing
+    if (!profile.defaultEventTypeId && process.env.CAL_EVENT_TYPE_ID) profile.defaultEventTypeId = Number(process.env.CAL_EVENT_TYPE_ID);
+    if (!profile.defaultEventTypeSlug && process.env.CAL_EVENT_SLUG) profile.defaultEventTypeSlug = process.env.CAL_EVENT_SLUG;
+    if (!profile.username && process.env.CAL_USERNAME) profile.username = process.env.CAL_USERNAME;
+
+    // Never cache a failed discovery for a full minute
+    if (profile.defaultEventTypeId) cachedCalProfile = { profile, timestamp: Date.now() };
     return profile;
   }
 
@@ -1021,7 +948,7 @@ Réponds en JSON strict :
     }
   });
 
-  // 2. Qualify Lead Route (Attempts Edge Function or runs backend Gemini with Service Role DB updates)
+  // 2. Qualify Lead Route (Attempts Edge Function or runs backend Claude with Service Role DB updates)
   app.post("/api/supabase/qualify-lead", async (req: Request, res: Response) => {
     try {
       const { lead_id, user_message } = req.body;
@@ -1030,7 +957,7 @@ Réponds en JSON strict :
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
       // 1. First attempt calling the remote Supabase Edge Function directly via HTTP
-      if (supabaseUrl && serviceKey) {
+      if (process.env.USE_EDGE_FUNCTIONS === "true" && supabaseUrl && serviceKey) {
         try {
           const edgeUrl = `${supabaseUrl.replace(/\/$/, "")}/functions/v1/qualify-lead`;
           const edgeRes = await fetch(edgeUrl, {
@@ -1052,7 +979,7 @@ Réponds en JSON strict :
         }
       }
 
-      // 2. Local fallback execution with Gemini & database persistence
+      // 2. Local fallback execution with Claude & database persistence
       let messages = [{ role: "user", content: user_message || "Bonjour, je souhaite estimer mon bien." }];
       let leadData: any = {};
 
@@ -1070,7 +997,7 @@ Réponds en JSON strict :
         }
       }
 
-      const qualifyResult = generateIntelligentQualificationReply(messages, leadData);
+      const qualifyResult = await getQualification(messages, leadData);
       const isHot = qualifyResult.leadStatus === "HOT" || qualifyResult.qualificationScore >= 75;
       const newStatus = isHot ? "qualifie" : "en_conversation";
 
@@ -1175,7 +1102,7 @@ Réponds en JSON strict :
                 type_bien: property_type || "Appartement",
                 surface: surface || 80,
                 delai_projet: timeframe || "1-3 mois",
-                statut: "rdv_pris",
+                statut: "qualifie",
                 score_qualification: 95,
               })
               .select()
@@ -1191,8 +1118,6 @@ Réponds en JSON strict :
           } else {
             // Update lead with latest details if provided
             await client.from("leads").update({
-              statut: "rdv_pris",
-              score_qualification: 95,
               ville_bien: address || leadRecord.ville_bien || "Lyon",
               type_bien: property_type || leadRecord.type_bien || "Appartement",
               surface: surface || leadRecord.surface || 80,
@@ -1214,17 +1139,27 @@ Réponds en JSON strict :
 
       const requestedDate = req.body.date;
       const requestedTime = req.body.time;
+      if (!(requestedDate && requestedTime) && !creneau) {
+        return res.status(400).json({ success: false, error: "Veuillez choisir une date et une heure." });
+      }
       const startIso = (requestedDate && requestedTime)
         ? convertParisTimeToUtcIso(requestedDate, requestedTime)
         : convertParisTimeToUtcIso(creneau);
+      if (isNaN(new Date(startIso).getTime()) || new Date(startIso).getTime() < Date.now()) {
+        return res.status(400).json({ success: false, error: "Ce créneau n'est plus valide. Merci d'en choisir un autre." });
+      }
+      const rawEmail = (leadRecord?.email || email || "").trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(rawEmail)) {
+        return res.status(400).json({ success: false, error: "Une adresse e-mail valide est nécessaire pour recevoir la confirmation du rendez-vous." });
+      }
 
       console.log(`[Timezone Align] Selected slot '${creneau}' (Paris local) converted to Cal.com UTC start: ${startIso}`);
       const leadName = leadRecord?.nom || name || "Prospect Estiméo";
-      const leadEmail = leadRecord?.email || email || `prospect.${(leadRecord?.telephone || phone || "0600000000").replace(/\s+/g, "")}@estimeo-lyon.fr`;
+      const leadEmail = rawEmail;
       const leadPhone = leadRecord?.telephone || phone || "06 03 58 03 16";
       const propertyAddress = address || leadRecord?.ville_bien || "Lyon et agglomération";
       const propType = property_type || leadRecord?.type_bien || "Appartement";
-      const propSurface = surface || leadRecord?.surface || 80;
+      const propSurface = surface || leadRecord?.surface || null;
       const propMotive = motive || "Estimation de valeur & projet de vente";
       const propTimeframe = timeframe || leadRecord?.delai_projet || "1-3 mois";
 
@@ -1242,11 +1177,11 @@ Réponds en JSON strict :
         ``,
         `🏡 CARACTÉRISTIQUES DU PROJET :`,
         `• Type de bien : ${propType}`,
-        `• Surface estimée : ${propSurface} m²`,
+        propSurface ? `• Surface estimée : ${propSurface} m²` : null,
         estimated_value ? `• Estimation préliminaire : ${Number(estimated_value).toLocaleString("fr-FR")} €` : null,
         `• Horizon du projet : ${propTimeframe}`,
         `• Motif du projet : ${propMotive}`,
-        `• Score de qualification IA : 95/100 (Lead qualifié et vérifié)`,
+        `• Prospect ayant demandé la visite via Estiméo`,
         ``,
         `📝 NOTES & CONSIGNES DU RDV :`,
         `• ${notes || "Visite d'estimation sur place pour affinage de l'avis de valeur et remise de l'étude comparative."}`,
@@ -1282,13 +1217,23 @@ Réponds en JSON strict :
           };
           const formattedPhone = formatE164(leadPhone);
 
+          const eventTypeId = calProfile.defaultEventTypeId;
+          if (!eventTypeId) {
+            return res.status(503).json({
+              success: false,
+              error: "L'agenda du conseiller n'est pas encore configuré. Merci de réessayer plus tard ou d'appeler directement le conseiller.",
+              details: "CAL_EVENT_TYPE_ID introuvable (définir CAL_EVENT_TYPE_ID ou CAL_EVENT_SLUG)",
+            });
+          }
+
           const bookingPayload: any = {
             start: startIso,
-            eventTypeId: calProfile.defaultEventTypeId || 6851203,
+            eventTypeId,
             attendee: {
               name: leadName,
               email: leadEmail,
               timeZone: "Europe/Paris",
+              language: "fr",
               ...(formattedPhone ? { phoneNumber: formattedPhone } : {}),
             },
             location: {
@@ -1298,43 +1243,69 @@ Réponds en JSON strict :
             bookingFieldsResponses: {
               notes: calendarDescription,
             },
+            metadata: { source: "estimeo", lead_id: String(actualLeadId || "") },
           };
 
-          let calResponse = await fetch("https://api.cal.com/v2/bookings", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${calApiKey}`,
-              "cal-api-version": "2024-08-13",
-            },
-            signal: AbortSignal.timeout(5500),
-            body: JSON.stringify(bookingPayload),
-          });
+          const postBooking = (payload: any) =>
+            fetch(`${CAL_BASE}/v2/bookings`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${calApiKey}`,
+                "cal-api-version": "2024-08-13",
+              },
+              signal: AbortSignal.timeout(12000),
+              body: JSON.stringify(payload),
+            });
 
-          if (calResponse.status === 409) {
-            const errorDetails = await calResponse.text();
-            console.warn(`Cal.com booking slot conflict (Status 409):`, errorDetails);
+          let calResponse = await postBooking(bookingPayload);
 
+          // If the event type does not accept an attendee address, retry once with the
+          // address written into the notes instead of failing the whole booking.
+          if (calResponse.status === 400) {
+            const firstErr = await calResponse.clone().text();
+            if (/location/i.test(firstErr) && !/(already|not available|no_available|busy)/i.test(firstErr)) {
+              console.warn("[Cal.com v2] location rejected, retrying without it:", firstErr.slice(0, 300));
+              const { location: _drop, ...withoutLocation } = bookingPayload;
+              withoutLocation.bookingFieldsResponses = {
+                notes: `${calendarDescription}\n\n📍 Lieu du RDV : ${propertyAddress}`,
+              };
+              calResponse = await postBooking(withoutLocation);
+            }
+          }
+
+          // Cal.com signals "slot taken" with 409, or with a 400 whose message says so
+          const conflictBody = calResponse.ok ? "" : await calResponse.clone().text();
+          const isConflict =
+            calResponse.status === 409 ||
+            (calResponse.status === 400 && /(already has booking|not available|no_available_users|busy|booking_conflict|slot)/i.test(conflictBody));
+          if (isConflict) {
+            console.warn(`Cal.com booking slot conflict (${calResponse.status}):`, conflictBody.slice(0, 300));
+            slotsMemoryCache.clear();
             return res.status(409).json({
               success: false,
-              error: "Ce créneau vient d'être réservé ou est indisponible dans l'agenda de Céline. Merci d'en choisir un autre.",
-              details: errorDetails,
+              error: "Ce créneau vient d'être réservé ou est indisponible dans l'agenda du conseiller. Merci d'en choisir un autre.",
+              details: conflictBody,
             });
           }
 
           if (!calResponse.ok) {
-            const warnText = await calResponse.text();
+            const warnText = conflictBody || (await calResponse.text());
             console.error(`[Cal.com v2] Booking failed (${calResponse.status}): ${warnText}`);
+            const emailRejected = /email/i.test(warnText);
             return res.status(calResponse.status >= 500 ? 502 : 400).json({
               success: false,
-              error: "Erreur lors de la confirmation du rendez-vous dans l'agenda Cal.com. Veuillez réessayer.",
+              error: emailRejected
+                ? "L'adresse e-mail semble invalide. Merci de la vérifier."
+                : "Erreur lors de la confirmation du rendez-vous dans l'agenda. Veuillez réessayer.",
               details: warnText,
             });
           }
 
           const calData = await calResponse.json();
           calBookingUid = calData.data?.uid || calData.uid || null;
-          calBookingId = calData.data?.id ? String(calData.data.id) : (calBookingUid || String(calData.id || ""));
+          calBookingId = calBookingUid || (calData.data?.id ? String(calData.data.id) : String(calData.id || ""));
+          slotsMemoryCache.clear(); // the slot just taken must disappear from the next listing
           console.log(`[Cal.com v2] Booking confirmed with remote Cal.com UID: ${calBookingId} (Address: ${propertyAddress}, Phone: ${leadPhone})`);
         } catch (calErr: any) {
           console.error("[Cal.com v2] API timeout or connection failure:", calErr.message);
@@ -1344,8 +1315,14 @@ Réponds en JSON strict :
             details: calErr.message,
           });
         }
-      } else {
+      } else if (process.env.CAL_DEV_MODE === "true") {
         calBookingId = `dev-booking-${Date.now()}`;
+      } else {
+        return res.status(503).json({
+          success: false,
+          error: "La réservation en ligne est momentanément indisponible. Un conseiller vous recontactera sous peu.",
+          details: "CAL_API_KEY missing",
+        });
       }
 
       // 3. STEP 2: Persist into Supabase rendez_vous table
@@ -1435,12 +1412,9 @@ Réponds en JSON strict :
       });
     } catch (err: any) {
       console.error("Critical error in /api/supabase/book-appointment route:", err);
-      res.json({
-        success: true,
-        message: "Rendez-vous enregistré localement avec succès.",
-        rendez_vous_id: `rdv-${Date.now()}`,
-        creneau: req.body?.creneau || new Date().toISOString(),
-        statut: "confirme",
+      res.status(500).json({
+        success: false,
+        error: "Une erreur est survenue pendant la réservation. Votre créneau n'a pas été confirmé, merci de réessayer.",
       });
     }
   });
@@ -1587,7 +1561,7 @@ Réponds en JSON strict :
         const calProfile = await resolveCalAccount(calApiKey);
         const effectiveUser = (username as string) || (dbAgent?.cal_username && !dbAgent.cal_username.includes("[à compléter") ? dbAgent.cal_username : (calProfile.username || "cel.novea"));
         const effectiveSlug = (eventTypeSlug as string) || (dbAgent?.cal_event_slug && !dbAgent.cal_event_slug.includes("[à compléter") ? dbAgent.cal_event_slug : (calProfile.defaultEventTypeSlug || "visite-d-estimation-a-domicile"));
-        const effectiveTypeId = (eventTypeId as string) || (calProfile.defaultEventTypeId ? String(calProfile.defaultEventTypeId) : "6851203");
+        const effectiveTypeId = (eventTypeId as string) || (calProfile.defaultEventTypeId ? String(calProfile.defaultEventTypeId) : "");
 
         // Cal.com v2 slots API query parameter construction
         if (!effectiveTypeId && (!effectiveUser || !effectiveSlug)) {
@@ -1599,46 +1573,39 @@ Réponds en JSON strict :
           });
         }
 
-        // Helper to format raw slots into Record<string, string[]>
+        // Normalises any Cal.com slot payload to { "YYYY-MM-DD": ["HH:mm"] } in Europe/Paris,
+        // whatever offset (Z, +02:00...) Cal.com used, and drops slots already in the past.
         const extractSlotsMap = (rawSlots: any): Record<string, string[]> => {
           if (!rawSlots || typeof rawSlots !== "object") return {};
-          const formatted: Record<string, string[]> = {};
-
-          for (const [dateKey, slotList] of Object.entries(rawSlots)) {
-            if (Array.isArray(slotList)) {
-              const times: string[] = [];
-              for (const s of slotList) {
-                if (typeof s === "string") {
-                  const match = s.match(/T(\d{2}:\d{2})/);
-                  if (match) {
-                    times.push(match[1]);
-                  } else if (s.includes(":")) {
-                    times.push(s.slice(0, 5));
-                  }
-                } else if (s && typeof s === "object") {
-                  const rawTime = (s as any).start || (s as any).time || (s as any).startTime || (s as any).start_time;
-                  if (typeof rawTime === "string") {
-                    const match = rawTime.match(/T(\d{2}:\d{2})/);
-                    if (match) {
-                      times.push(match[1]);
-                    } else if (rawTime.includes(":")) {
-                      times.push(rawTime.slice(0, 5));
-                    }
-                  }
-                }
-              }
-              if (times.length > 0) {
-                formatted[dateKey] = Array.from(new Set(times)).sort();
+          const formatted: Record<string, Set<string>> = {};
+          const now = Date.now();
+          const pushIso = (iso: unknown) => {
+            if (typeof iso !== "string" || !iso.includes("T")) return;
+            const t = new Date(iso).getTime();
+            if (isNaN(t) || t < now) return;
+            const p = toParisParts(iso);
+            if (!p) return;
+            (formatted[p.date] ||= new Set()).add(p.time);
+          };
+          for (const slotList of Object.values(rawSlots)) {
+            if (!Array.isArray(slotList)) continue;
+            for (const s of slotList) {
+              if (typeof s === "string") pushIso(s);
+              else if (s && typeof s === "object") {
+                const o = s as any;
+                pushIso(o.start ?? o.time ?? o.startTime ?? o.start_time);
               }
             }
           }
-          return formatted;
+          const result: Record<string, string[]> = {};
+          for (const [d, set] of Object.entries(formatted)) result[d] = Array.from(set).sort();
+          return result;
         };
 
         // Strategy 1: Try Cal.com v2 with eventTypeId
         if (effectiveTypeId) {
           try {
-            const v2Url = `https://api.cal.com/v2/slots?eventTypeId=${encodeURIComponent(effectiveTypeId)}&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&timeZone=${encodeURIComponent("Europe/Paris")}`;
+            const v2Url = `${CAL_BASE}/v2/slots?eventTypeId=${encodeURIComponent(effectiveTypeId)}&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&timeZone=${encodeURIComponent("Europe/Paris")}`;
             console.log(`[Cal.com v2] Fetching slots with eventTypeId=${effectiveTypeId}: ${v2Url}`);
             const v2Res = await fetch(v2Url, {
               headers: {
@@ -1672,7 +1639,7 @@ Réponds en JSON strict :
         // Strategy 2: Try Cal.com v2 with username & eventTypeSlug
         if (effectiveUser && effectiveSlug) {
           try {
-            const v2SlugUrl = `https://api.cal.com/v2/slots?username=${encodeURIComponent(effectiveUser)}&eventTypeSlug=${encodeURIComponent(effectiveSlug)}&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&timeZone=${encodeURIComponent("Europe/Paris")}`;
+            const v2SlugUrl = `${CAL_BASE}/v2/slots?username=${encodeURIComponent(effectiveUser)}&eventTypeSlug=${encodeURIComponent(effectiveSlug)}&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&timeZone=${encodeURIComponent("Europe/Paris")}`;
             console.log(`[Cal.com v2] Fetching slots with username/slug: ${v2SlugUrl}`);
             const v2SlugRes = await fetch(v2SlugUrl, {
               headers: {
@@ -1714,7 +1681,7 @@ Réponds en JSON strict :
             v1Params.push(`eventTypeSlug=${encodeURIComponent(effectiveSlug)}`);
           }
 
-          const v1Url = `https://api.cal.com/v1/slots?${v1Params.join("&")}`;
+          const v1Url = `${CAL_BASE}/v1/slots?${v1Params.join("&")}`;
           const v1Res = await fetch(v1Url, { signal: AbortSignal.timeout(3500) });
           if (v1Res.ok) {
             const v1Data = await v1Res.json();
@@ -1735,11 +1702,13 @@ Réponds en JSON strict :
         }
 
         // If no slots found or all strategies failed, return clean informative message
-        return res.status(404).json({
-          success: false,
-          error: "CAL_NO_SLOTS_FOUND",
-          message: "La prise de rendez-vous est momentanément indisponible, un conseiller vous recontactera sous peu.",
+        return res.json({
+          success: true,
           slots: {},
+          source: "cal.com",
+          username: effectiveUser,
+          eventTypeSlug: effectiveSlug,
+          message: "Aucun créneau disponible sur la période. Un conseiller vous recontactera.",
         });
       } catch (calErr: any) {
         console.warn(`[Cal.com] Error executing slot queries: ${calErr.message}`);
@@ -1758,6 +1727,118 @@ Réponds en JSON strict :
         message: "La prise de rendez-vous est momentanément indisponible, un conseiller vous recontactera sous peu.",
         slots: {},
       });
+    }
+  });
+
+  // --- Cal.com -> Estiméo synchronisation (cancellations / reschedules made from Cal.com or the e-mail link) ---
+  async function applyCalBookingChange(
+    client: any,
+    change: { uid?: string; id?: string | number; oldUid?: string; status: "confirme" | "annule"; startIso?: string },
+  ): Promise<{ matched: boolean; rendezVousId?: string }> {
+    const keys = [change.uid, change.oldUid, change.id != null ? String(change.id) : undefined].filter(Boolean) as string[];
+    if (keys.length === 0) return { matched: false };
+
+    const { data: rdv } = await client
+      .from("rendez_vous")
+      .select("id, lead_id, statut, creneau, cal_booking_id")
+      .in("cal_booking_id", keys)
+      .limit(1)
+      .maybeSingle();
+    if (!rdv) return { matched: false };
+
+    const patch: any = { statut: change.status };
+    if (change.startIso) patch.creneau = change.startIso;
+    if (change.uid) patch.cal_booking_id = change.uid;
+    await client.from("rendez_vous").update(patch).eq("id", rdv.id);
+
+    if (change.status === "annule") {
+      const { count } = await client
+        .from("rendez_vous")
+        .select("id", { count: "exact", head: true })
+        .eq("lead_id", rdv.lead_id)
+        .eq("statut", "confirme");
+      if (!count) {
+        await client.from("leads").update({ statut: "qualifie", updated_at: new Date().toISOString() }).eq("id", rdv.lead_id);
+      }
+    } else {
+      await client.from("leads").update({ statut: "rdv_pris", updated_at: new Date().toISOString() }).eq("id", rdv.lead_id);
+    }
+    slotsMemoryCache.clear();
+    return { matched: true, rendezVousId: rdv.id };
+  }
+
+  // Webhook: configure in Cal.com > Settings > Developer > Webhooks
+  // URL = https://<your-domain>/api/webhooks/cal, secret = CAL_WEBHOOK_SECRET,
+  // triggers = BOOKING_CREATED, BOOKING_CANCELLED, BOOKING_RESCHEDULED
+  app.post("/api/webhooks/cal", async (req: any, res: Response) => {
+    const secret = process.env.CAL_WEBHOOK_SECRET;
+    if (!secret) return res.status(503).json({ error: "CAL_WEBHOOK_SECRET not configured" });
+
+    const received = String(req.headers["x-cal-signature-256"] || "");
+    const expected = crypto.createHmac("sha256", secret).update(req.rawBody || Buffer.alloc(0)).digest("hex");
+    const ok =
+      received.length === expected.length &&
+      crypto.timingSafeEqual(Buffer.from(received), Buffer.from(expected));
+    if (!ok) return res.status(401).json({ error: "Invalid signature" });
+
+    const client = getSupabaseAdmin();
+    if (!client) return res.json({ received: true, persisted: false });
+
+    try {
+      const { triggerEvent, payload } = req.body || {};
+      const uid: string | undefined = payload?.uid;
+      const startIso: string | undefined = payload?.startTime;
+      let result: { matched: boolean } = { matched: false };
+
+      if (triggerEvent === "BOOKING_CANCELLED") {
+        result = await applyCalBookingChange(client, { uid, id: payload?.bookingId, status: "annule" });
+      } else if (triggerEvent === "BOOKING_RESCHEDULED") {
+        result = await applyCalBookingChange(client, {
+          uid,
+          oldUid: payload?.rescheduleUid,
+          id: payload?.bookingId,
+          status: "confirme",
+          startIso,
+        });
+      } else if (triggerEvent === "BOOKING_CREATED") {
+        // Bookings made through Estiméo are already stored; just make sure the uid is attached
+        result = await applyCalBookingChange(client, { uid, id: payload?.bookingId, status: "confirme", startIso });
+      }
+      console.log(`[Cal webhook] ${triggerEvent} uid=${uid} matched=${result.matched}`);
+      return res.json({ received: true, matched: result.matched });
+    } catch (e: any) {
+      console.error("[Cal webhook] processing error:", e.message);
+      return res.status(500).json({ error: "processing_error" });
+    }
+  });
+
+  // Pull-based reconciliation (safety net if a webhook was missed). Called by the CRM on load.
+  app.post("/api/cal/sync", async (_req: Request, res: Response) => {
+    const calApiKey = process.env.CAL_API_KEY;
+    const client = getSupabaseAdmin();
+    if (!calApiKey || !client) return res.json({ success: false, synced: 0, reason: "not_configured" });
+    try {
+      const calRes = await fetch(`${CAL_BASE}/v2/bookings?status=upcoming,cancelled&take=100`, {
+        headers: { Authorization: `Bearer ${calApiKey}`, "cal-api-version": "2024-08-13" },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!calRes.ok) return res.status(502).json({ success: false, error: `Cal.com ${calRes.status}` });
+      const body = await calRes.json();
+      const bookings: any[] = Array.isArray(body.data) ? body.data : [];
+      let updated = 0;
+      for (const b of bookings) {
+        const cancelled = /cancel|reject/i.test(String(b.status || ""));
+        const r = await applyCalBookingChange(client, {
+          uid: b.uid,
+          id: b.id,
+          status: cancelled ? "annule" : "confirme",
+          startIso: b.start,
+        });
+        if (r.matched) updated++;
+      }
+      return res.json({ success: true, checked: bookings.length, synced: updated });
+    } catch (e: any) {
+      return res.status(502).json({ success: false, error: e.message });
     }
   });
 

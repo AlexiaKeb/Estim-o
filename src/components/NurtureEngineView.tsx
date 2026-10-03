@@ -321,7 +321,7 @@ export const NurtureEngineView: React.FC<Props> = ({
     setEditDate(d.toISOString().split('T')[0]);
   };
 
-  // AI-powered tailor sequence using Gemini API
+  // AI-powered tailor sequence using Claude API
   const handleGenerateAiSequenceForLead = async () => {
     if (!currentLead) return;
     setGeneratingWithAi(true);
@@ -580,7 +580,7 @@ export const NurtureEngineView: React.FC<Props> = ({
                   onClick={handleGenerateAiSequenceForLead}
                   disabled={generatingWithAi}
                   className="py-1.5 px-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all disabled:opacity-50"
-                  title="Générer 5 messages 100% sur-mesure pour ce vendeur avec Gemini"
+                  title="Générer 5 messages 100% sur-mesure pour ce vendeur avec Claude"
                 >
                   {generatingWithAi ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />

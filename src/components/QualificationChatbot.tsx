@@ -282,9 +282,9 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
       }
     }
 
-    // 2. Fallback to /api/chat-qualify (server-side Gemini 2.5 Flash / Gemini 3.7 Flash)
+    // 2. Fallback to /api/chat-qualify (server-side Claude)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
       const response = await fetch('/api/chat-qualify', {

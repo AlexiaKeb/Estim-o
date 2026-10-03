@@ -2,5 +2,5 @@
   "name": "Estiméo - Estimation & Valorisation Immobilière",
   "description": "Portail d'estimation immobilière, étude personnalisée de marché, qualification bienveillante et visite d'estimation sur place.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

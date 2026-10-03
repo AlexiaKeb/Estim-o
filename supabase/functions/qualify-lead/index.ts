@@ -21,7 +21,8 @@ serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const geminiApiKey = Deno.env.get("GEMINI_API_KEY") ?? "";
+    const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+    const claudeModel = Deno.env.get("ANTHROPIC_MODEL") ?? "claude-opus-5-5";
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables are required.");
@@ -135,9 +136,13 @@ INSTRUCTIONS DE RÉPONSE :
 1. Réponds au prospect en respectant scrupuleusement le ton "${agentTone}".
 2. Si le prospect souhaite échanger par téléphone ou a un doute, rappelle les coordonnées directes de ${agentDisplayName}.
 3. Si le bien se situe hors de la zone d'intervention (${agentZone}), indique avec courtoisie la zone couverte par ${agentDisplayName}.
-4. Analyse les réponses du prospect pour évaluer l'avancement du projet, détecter s'il s'agit d'un lead chaud et extraire les informations clés.`;
+4. Analyse les réponses du prospect pour évaluer l'avancement du projet, détecter s'il s'agit d'un lead chaud et extraire les informations clés.
+5. Réponses courtes (3 à 5 lignes), vouvoiement, UNE seule question à la fois, chaleureuses et humaines.
+6. Mots interdits : "closer", "lead", "qualification", "score", "net vendeur", "visio". Ne révèle jamais le score interne.
+7. Objections : curiosité → "meilleure démarche, sans engagement" ; autre estimation → "excellent de comparer" ; PDF par mail → "un envoi automatique ne voit ni la lumière ni les finitions, la visite sur place est indispensable".
+8. Messages farfelus ou charabia : recadre avec le sourire et repose la question en cours.`;
 
-    // 6. Call Google Gemini API (gemini-2.5-flash) with Native JSON Schema
+    // 6. Call Claude with a JSON schema (structured output)
     let assistantReply = "";
     let qualificationScore = lead.score_qualification || 0;
     let detectedStatus = lead.statut || "en_conversation";
@@ -145,37 +150,42 @@ INSTRUCTIONS DE RÉPONSE :
     let isConversationFinished = false;
     let extractedData: Record<string, any> = {};
 
-    if (geminiApiKey) {
-      // Format messages for Gemini contents API (roles: 'user' / 'model')
-      const geminiContents = messagesList.map((m) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
-      }));
-
-      // If no messages yet, trigger initial greeting
-      if (geminiContents.length === 0) {
-        geminiContents.push({
-          role: "user",
-          parts: [{ text: "Bonjour, je souhaite estimer et qualifier mon bien immobilier." }],
-        });
+    if (anthropicApiKey) {
+      // Claude needs user-first, strictly alternating turns
+      const claudeMessages: Array<{ role: "user" | "assistant"; content: string }> = [];
+      for (const m of messagesList) {
+        const role = m.role === "user" ? "user" : "assistant";
+        if (!m.content?.trim()) continue;
+        if (claudeMessages.length === 0 && role === "assistant") continue;
+        const last = claudeMessages[claudeMessages.length - 1];
+        if (last && last.role === role) last.content += `\n${m.content}`;
+        else claudeMessages.push({ role, content: m.content });
+      }
+      if (claudeMessages.length === 0) {
+        claudeMessages.push({ role: "user", content: "Bonjour, je souhaite estimer et qualifier mon bien immobilier." });
       }
 
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: dynamicSystemPrompt }],
-            },
-            contents: geminiContents,
-            generationConfig: {
-              responseMimeType: "application/json",
-              responseSchema: {
+      const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": anthropicApiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        signal: AbortSignal.timeout(25000),
+        body: JSON.stringify({
+          model: claudeModel,
+          max_tokens: 1500,
+          system: dynamicSystemPrompt,
+          messages: claudeMessages,
+          output_config: {
+            effort: "low",
+            format: {
+              type: "json_schema",
+              schema: {
                 type: "object",
+                additionalProperties: false,
+                required: ["message_a_afficher", "score_qualification", "lead_chaud", "conversation_terminee", "donnees_extraites"],
                 properties: {
                   message_a_afficher: { type: "string" },
                   score_qualification: { type: "integer" },
@@ -183,29 +193,25 @@ INSTRUCTIONS DE RÉPONSE :
                   conversation_terminee: { type: "boolean" },
                   donnees_extraites: {
                     type: "object",
+                    additionalProperties: false,
+                    required: ["motif_vente", "delai", "prix_envisage", "disponibilite"],
                     properties: {
-                      motif_vente: { type: "string", nullable: true },
-                      delai: { type: "string", nullable: true },
-                      prix_envisage: { type: "string", nullable: true },
-                      disponibilite: { type: "string", nullable: true },
+                      motif_vente: { type: ["string", "null"] },
+                      delai: { type: ["string", "null"] },
+                      prix_envisage: { type: ["string", "null"] },
+                      disponibilite: { type: ["string", "null"] },
                     },
                   },
                 },
-                required: [
-                  "message_a_afficher",
-                  "score_qualification",
-                  "lead_chaud",
-                  "conversation_terminee",
-                ],
               },
             },
-          }),
-        }
-      );
+          },
+        }),
+      });
 
-      if (geminiResponse.ok) {
-        const geminiData = await geminiResponse.json();
-        const rawJsonText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      if (claudeResponse.ok) {
+        const claudeData = await claudeResponse.json();
+        const rawJsonText = claudeData.content?.find((b: any) => b.type === "text")?.text || "";
 
         try {
           const parsed = JSON.parse(rawJsonText);
@@ -226,16 +232,16 @@ INSTRUCTIONS DE RÉPONSE :
             detectedStatus = "en_conversation";
           }
         } catch (parseError) {
-          console.error("Error parsing Gemini JSON response:", parseError, rawJsonText);
+          console.error("Error parsing Claude JSON response:", parseError, rawJsonText);
           assistantReply = rawJsonText;
         }
       } else {
-        const errorText = await geminiResponse.text();
-        console.error("Gemini API error:", errorText);
+        const errorText = await claudeResponse.text();
+        console.error("Claude API error:", errorText);
         assistantReply = `Bonjour ! ${agentDisplayName} et son équipe ont bien reçu votre demande concernant votre bien à ${lead.ville_bien || agentCity}. Nous pouvons organiser une visite de découverte sans engagement pour affiner votre estimation.`;
       }
     } else {
-      // Graceful fallback when GEMINI_API_KEY is not yet set in environment
+      // Graceful fallback when ANTHROPIC_API_KEY is not yet set in environment
       assistantReply = scriptConfig.welcome_template || `Bonjour ! Je suis l'assistant de qualification de ${agentDisplayName}. Nous sommes à votre écoute pour valoriser votre bien à ${lead.ville_bien || agentCity}.`;
       qualificationScore = Math.max(lead.score_qualification || 0, 45);
       detectedStatus = "en_conversation";

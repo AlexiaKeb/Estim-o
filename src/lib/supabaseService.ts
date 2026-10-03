@@ -180,7 +180,7 @@ export async function invokeBookAppointmentEdgeFunction(params: {
     const response = await fetch('/api/supabase/book-appointment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
         lead_id: params.lead_id,
         creneau: params.creneau,

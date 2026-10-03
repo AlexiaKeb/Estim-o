@@ -82,7 +82,7 @@ export const MetaAdStudio: React.FC = () => {
         {
           id: 2,
           module: "google-genai:createChatCompletion",
-          name: "Gemini 3.7 Flash Qualification Engine",
+          name: "Claude Qualification Engine",
           description: "Script de qualification en 5 questions, extraction JSON et scoring /100",
         },
         {
@@ -187,7 +187,7 @@ FORMAT DE RÉPONSE JSON :
           <div className="pt-4 border-t border-slate-100 space-y-3">
             <div className="flex items-center gap-1.5 text-xs font-bold text-blue-700">
               <Sparkles className="w-3.5 h-3.5" />
-              Générer un nouvel angle créa avec Gemini IA
+              Générer un nouvel angle créa avec Claude
             </div>
 
             <div className="space-y-2">
@@ -291,7 +291,7 @@ FORMAT DE RÉPONSE JSON :
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
               <Workflow className="w-4 h-4" />
-              Exports Prêts à l'Emploi pour Make.com & Gemini API
+              Exports Prêts à l'Emploi pour Make.com & Claude API
             </span>
             <h3 className="text-xl font-bold text-white mt-1">
               Le Blueprint d'Automatisation & Le System Prompt Métier
@@ -322,10 +322,10 @@ FORMAT DE RÉPONSE JSON :
             </pre>
           </div>
 
-          {/* System Prompt Gemini */}
+          {/* System Prompt Claude */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-mono text-blue-300">2. System Prompt Gemini 3.7 Flash</span>
+              <span className="font-mono text-blue-300">2. System Prompt Claude</span>
               <button
                 type="button"
                 onClick={() => {
