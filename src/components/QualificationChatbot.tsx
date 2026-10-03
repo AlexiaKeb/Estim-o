@@ -1,3 +1,4 @@
+import { renderRichText } from '../utils/richText';
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, Lead, ValuationInputs, ValuationResult, AgentPrivacySettings } from '../types';
 import { syncLeadToSupabase, invokeQualifyLeadEdgeFunction } from '../lib/supabaseService';
@@ -100,8 +101,8 @@ export const QualificationChatbot: React.FC<Props> = ({
     const surfaceLabel = initialValuationInputs?.surface ? `${initialValuationInputs.surface} m²` : '';
 
     const welcomeText = initialValuationResult
-      ? `Bonjour et bienvenue ! J'ai bien reçu votre simulation indicative à hauteur de ${initialValuationResult.lowPrice.toLocaleString('fr-FR')} € – ${initialValuationResult.highPrice.toLocaleString('fr-FR')} € pour votre ${propertyLabel} ${surfaceLabel} à ${cityLabel}.\n\n📍 *Céline intervient exclusivement sur Lyon, Villeurbanne, le Beaujolais et les communes jusqu'à 50 km autour afin de garantir une expertise locale et un accompagnement de grande proximité.*\n\nCette première estimation chiffrée est une **première approche qui peut naturellement varier** selon les caractéristiques uniques de votre bien. C'est précisément pour cela que nous prenons toujours le temps d'échanger avec une **vraie personne** lors d'une simple visite de découverte (aucun document formel nécessaire, évaluation ensuite réalisée en équipe) !\n\nVous pouvez me répondre ici en direct, ou joindre directement notre conseillère **Céline** au **06 03 58 03 16** si vous préférez un échange téléphonique direct.\n\nPour commencer à échanger : quel est le contexte principal de votre démarche ?`
-      : `Bonjour et bienvenue ! Je suis à votre écoute pour vous accompagner dans l'estimation de votre bien immobilier.\n\n📍 *Céline est agent immobilier référente sur Lyon et alentours (50 km autour), Beaujolais et Villeurbanne.*\n\nChaque projet est unique : cette première étape est une phase de découverte pour faire connaissance. Nous prenons le temps d'étudier votre projet avec notre équipe d'experts locaux (vous pouvez aussi joindre directement Céline au 06 03 58 03 16).\n\nPour débuter : quel type de bien souhaitez-vous valoriser et dans quelle commune est-il situé ?`;
+      ? `Bonjour et merci pour votre simulation ! Pour votre ${propertyLabel} ${surfaceLabel} à ${cityLabel}, la fourchette indicative est de **${initialValuationResult.lowPrice.toLocaleString('fr-FR')} € à ${initialValuationResult.highPrice.toLocaleString('fr-FR')} €**.\n\nC'est un repère : seule une visite permet d'affiner. Je prépare la vôtre avec Céline, en quelques questions.\n\nPour commencer, quel est le contexte de votre projet ?`
+      : `Bonjour et bienvenue ! Je prépare votre estimation avec Céline, en quelques questions.\n\nQuel type de bien souhaitez-vous valoriser, et dans quelle commune ?`;
 
     setMessages([
       {
@@ -673,10 +674,12 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
         <div className="bg-stone-50/80 px-4 py-2 border-b border-stone-200/80 flex items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 text-stone-600 font-normal text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>{messages.length} message{messages.length > 1 ? 's' : ''} échangé{messages.length > 1 ? 's' : ''}</span>
+            <span>{isAgentMode ? `${messages.length} message${messages.length > 1 ? 's' : ''} échangé${messages.length > 1 ? 's' : ''}` : 'Céline est en ligne · réponse immédiate'}</span>
           </div>
 
           <div className="flex items-center gap-1.5">
+            {isAgentMode ? (
+              <>
             <button
               type="button"
               id="btn-copy-live-chat"
@@ -711,6 +714,18 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
               <Download className="w-3 h-3 text-stone-400" />
               <span>Télécharger .txt</span>
             </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                id="btn-chat-book-now"
+                onClick={triggerCalendar}
+                className="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-stone-900 text-white hover:bg-stone-800 flex items-center gap-1.5 transition-colors"
+              >
+                Réserver ma visite sans attendre
+                <span aria-hidden>→</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -749,7 +764,7 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
                         : 'bg-stone-900 text-stone-100 shadow-2xs'
                     }`}
                   >
-                    <p className="whitespace-pre-line font-normal">{msg.content}</p>
+                    <p className="whitespace-pre-line font-normal">{renderRichText(msg.content)}</p>
                   </div>
                   <span className={`text-[10px] text-stone-400 block ${isBot ? 'text-left' : 'text-right'}`}>
                     {msg.timestamp}

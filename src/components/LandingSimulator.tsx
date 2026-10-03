@@ -1,3 +1,4 @@
+import { renderRichText } from '../utils/richText';
 import React, { useState, useRef, useEffect } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { syncLeadToSupabase } from '../lib/supabaseService';
@@ -1148,7 +1149,7 @@ export const LandingSimulator: React.FC<Props> = ({
                       <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
                       Estimation Déverrouillée
                     </span>
-                    <span className="text-[11px] text-stone-500 font-medium">Fiabilité certifiée {result.confidenceScore}%</span>
+                    <span className="text-[11px] text-stone-500 font-medium">Fourchette indicative</span>
                   </div>
 
                   <div>
@@ -1225,7 +1226,7 @@ export const LandingSimulator: React.FC<Props> = ({
                                 : 'bg-stone-800/90 text-stone-100 border border-stone-700/70 rounded-tl-xs shadow-inner'
                             }`}
                           >
-                            <p className="whitespace-pre-line">{msg.content}</p>
+                            <p className="whitespace-pre-line">{renderRichText(msg.content)}</p>
                           </div>
 
                           {msg.showBookingBtn && msg.role === 'assistant' && (
@@ -1503,7 +1504,7 @@ export const LandingSimulator: React.FC<Props> = ({
                         : 'bg-stone-800 text-stone-100 border border-stone-700'
                     }`}
                   >
-                    <p className="whitespace-pre-line">{msg.content}</p>
+                    <p className="whitespace-pre-line">{renderRichText(msg.content)}</p>
                     {msg.showBookingBtn && (
                       <button
                         type="button"

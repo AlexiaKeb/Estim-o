@@ -148,7 +148,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
             <div className="flex items-center gap-2 text-stone-400 text-xs">
               <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-              <span>SMS de rappel envoyé au <strong className="text-stone-200">{confirmedLead.phone}</strong></span>
+              <span>Confirmation envoyée par e-mail à <strong className="text-stone-200">{confirmedLead.email}</strong></span>
             </div>
           </div>
 
@@ -157,7 +157,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
               Merci {confirmedLead.name}, votre visite d'expertise est planifiée !
             </h1>
             <p className="text-sm sm:text-base text-stone-300 max-w-2xl leading-relaxed">
-              Votre créneau a bien été réservé avec votre conseillère dédiée. Nous préparons d'ores et déjà l'audit foncier de votre secteur à <strong className="text-amber-300 font-semibold">{confirmedLead.city}</strong>.
+              Votre créneau a bien été réservé avec votre conseillère dédiée. Céline vous attend à l'adresse du bien : <strong className="text-amber-300 font-semibold">{confirmedLead.address || confirmedLead.city}</strong>.
             </p>
           </div>
 
@@ -261,12 +261,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-stone-900">Céline</h3>
-                <p className="text-xs font-medium text-amber-700">Conseillère Référente & Spécialiste {confirmedLead.city}</p>
-                <div className="flex items-center gap-1 text-xs text-stone-500">
-                  <Award className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                  <span className="font-semibold text-stone-800">4.9 / 5</span>
-                  <span className="text-[11px]">(47 avis vendeurs récents)</span>
-                </div>
+                <p className="text-xs font-medium text-amber-700">Conseillère immobilière, NOVEA Immobilier</p>
               </div>
             </div>
 
