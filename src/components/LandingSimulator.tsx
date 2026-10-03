@@ -79,6 +79,7 @@ export const LandingSimulator: React.FC<Props> = ({
   });
 
   const [loading, setLoading] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [result, setResult] = useState<ValuationResult | null>(null);
 
   // Lead Gate State
@@ -664,6 +665,27 @@ export const LandingSimulator: React.FC<Props> = ({
               </div>
             </div>
 
+            {/* Optional refinements: kept out of the way so the first step stays short */}
+            <button
+              type="button"
+              id="btn-toggle-advanced"
+              onClick={() => setShowAdvanced((v) => !v)}
+              aria-expanded={showAdvanced}
+              className="w-full flex items-center justify-between rounded-xl border border-dashed border-stone-300 bg-stone-50 hover:bg-stone-100 px-4 py-3 text-left transition-colors"
+            >
+              <span>
+                <span className="block text-sm font-semibold text-stone-900">
+                  {showAdvanced ? 'Masquer les précisions' : 'Affiner mon estimation (facultatif)'}
+                </span>
+                <span className="block text-xs text-stone-500">
+                  Étage, état, DPE, extérieur… plus vous précisez, plus la fourchette est juste.
+                </span>
+              </span>
+              <span className={`text-stone-500 transition-transform ${showAdvanced ? 'rotate-90' : ''}`}>›</span>
+            </button>
+
+            {showAdvanced && (
+              <div className="space-y-6">
             {/* Étage & Vue */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -903,6 +925,9 @@ export const LandingSimulator: React.FC<Props> = ({
                 </label>
               )}
             </div>
+
+              </div>
+            )}
 
             {/* Submit Button */}
             <button

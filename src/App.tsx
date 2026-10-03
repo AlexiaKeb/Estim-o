@@ -41,14 +41,12 @@ type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'c
 export default function App() {
   // Agent Authentication & View Mode State - Default to authenticated pro mode for immediate dashboard view
   const [isAgentAuthenticated, setIsAgentAuthenticated] = useState<boolean>(() => {
-    const saved = localStorage.getItem('estimeo_agent_session');
-    if (saved === 'false') return false;
-    return true; // Default to authenticated agent mode
+    // Visitors are sellers by default: the agent space only opens with an explicit, remembered login
+    return localStorage.getItem('estimeo_agent_session') === 'true';
   });
   const [isAgentMode, setIsAgentMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('estimeo_agent_session');
-    if (saved === 'false') return false;
-    return true; // Default to agent mode
+    return localStorage.getItem('estimeo_agent_session') === 'true' &&
+      typeof window !== 'undefined' && /^\/(agent|pro|conseiller|admin)\/?$/i.test(window.location.pathname);
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -57,9 +55,10 @@ export default function App() {
 
   // Active view - Default to CRM Pipeline Dashboard
   const [currentView, setCurrentView] = useState<NavView>(() => {
-    const saved = localStorage.getItem('estimeo_agent_session');
-    if (saved === 'false') return 'landing';
-    return 'pipeline';
+    return localStorage.getItem('estimeo_agent_session') === 'true' &&
+      typeof window !== 'undefined' && /^\/(agent|pro|conseiller|admin)\/?$/i.test(window.location.pathname)
+      ? 'pipeline'
+      : 'landing';
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -186,6 +185,13 @@ export default function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [privacySettings.customAgentSlug]);
+
+  // Reconcile with Cal.com whenever the advisor opens the pipeline (cancellations / reschedules)
+  useEffect(() => {
+    if (currentView === 'pipeline' && isAgentMode) {
+      fetch('/api/cal/sync', { method: 'POST' }).catch(() => {});
+    }
+  }, [currentView, isAgentMode]);
 
   // Global Keyboard Shortcut: Ctrl + Shift + P or Cmd + Shift + P
   useEffect(() => {
@@ -638,50 +644,35 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Public Client Funnel Navigation */}
-              <nav className="hidden sm:flex items-center gap-1 bg-stone-100/80 p-1 rounded-xl border border-stone-200/80">
-                <button
-                  type="button"
-                  id="client-nav-simulator"
-                  onClick={() => setCurrentView('landing')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    currentView === 'landing'
-                      ? 'bg-white text-stone-900 shadow-xs'
-                      : 'text-stone-600 hover:text-stone-900'
-                  }`}
-                >
-                  1. Simulation & Estimation
-                </button>
-
-                <button
-                  type="button"
-                  id="client-nav-chat"
-                  onClick={() => setCurrentView('chat')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                    currentView === 'chat'
-                      ? 'bg-white text-stone-900 shadow-xs'
-                      : 'text-stone-600 hover:text-stone-900'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>2. Échanger avec Céline</span>
-                </button>
-
-                {latestConfirmedLead && (
-                  <button
-                    type="button"
-                    id="client-nav-confirmation"
-                    onClick={() => setCurrentView('confirmation')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                      currentView === 'confirmation'
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>3. Mon Espace Rendez-vous</span>
-                  </button>
-                )}
+              {/* Public Client Funnel: linear progress, no jumping ahead */}
+              <nav aria-label="Progression" className="hidden sm:flex items-center gap-2 text-xs font-semibold">
+                {[
+                  { n: 1, label: 'Estimation', active: currentView === 'landing', done: currentView !== 'landing' },
+                  { n: 2, label: 'Échange avec Céline', active: currentView === 'chat', done: currentView === 'confirmation' || !!latestConfirmedLead },
+                  { n: 3, label: 'Rendez-vous', active: currentView === 'confirmation', done: false },
+                ].map((st, idx) => (
+                  <React.Fragment key={st.n}>
+                    {idx > 0 && <span className="w-6 h-px bg-stone-300" />}
+                    <button
+                      type="button"
+                      id={`client-nav-step-${st.n}`}
+                      disabled={!st.active && !st.done}
+                      onClick={() => setCurrentView(st.n === 1 ? 'landing' : st.n === 2 ? 'chat' : 'confirmation')}
+                      className={`flex items-center gap-2 transition-colors ${
+                        st.active ? 'text-stone-900' : st.done ? 'text-emerald-700 hover:text-emerald-800' : 'text-stone-400 cursor-default'
+                      }`}
+                    >
+                      <span
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+                          st.active ? 'bg-stone-900 text-white' : st.done ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-500'
+                        }`}
+                      >
+                        {st.done && !st.active ? '✓' : st.n}
+                      </span>
+                      {st.label}
+                    </button>
+                  </React.Fragment>
+                ))}
               </nav>
 
               {/* Public Right Area: Discreet Reassurance & Optional Pro Login */}
