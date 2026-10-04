@@ -19,7 +19,7 @@ export const AGENT = {
   visitMinutes: 60,
   zone: 'Lyon, Villeurbanne, Beaujolais et jusqu\'à 50 km autour',
   // URL ou data: URI d'une vraie photo de Céline (très fort levier de confiance). Vide = initiales.
-  photoUrl: '',
+  photoUrl: '/celine.jpg',
 };
 
 // Informations légales affichées sur les pages « Mentions légales » et « Confidentialité ».

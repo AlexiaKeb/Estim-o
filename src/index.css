@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Palette de marque : les gris foncés deviennent un bleu nuit, l'ambre reste l'accent doré */
+@theme {
+  --color-stone-950: #0a1530;
+  --color-stone-900: #0f1f3d;
+  --color-stone-800: #1a3060;
+}
