@@ -5,6 +5,7 @@ import { syncLeadToSupabase } from '../lib/supabaseService';
 import confetti from 'canvas-confetti';
 import { AGENT, VISIT_LABEL } from '../data/siteContent';
 import { AddressSearch } from './AddressSearch';
+import { QuickQualification, QuickAnswers } from './QuickQualification';
 import { scrollToSimulator, ValuationEvidence, LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { 
   Building2, 
@@ -109,6 +110,7 @@ export const LandingSimulator: React.FC<Props> = ({
   });
   const [contactError, setContactError] = useState<string | null>(null);
   const [capturedLead, setCapturedLead] = useState<Lead | null>(null);
+  const [quickAnswers, setQuickAnswers] = useState<QuickAnswers>({});
 
   // Interactive Closer Bot State
   const [closerMessages, setCloserMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; content: string; showBookingBtn?: boolean }>>([]);
@@ -357,6 +359,8 @@ export const LandingSimulator: React.FC<Props> = ({
             motive: leadContact.motive,
             timeframe: leadContact.timeframe,
             estimatedAvg: result?.estimatedAvg,
+            // Already answered by tap: the assistant must not ask again
+            reponsesRapides: quickAnswers,
           },
         }),
       });
@@ -1211,6 +1215,9 @@ export const LandingSimulator: React.FC<Props> = ({
                     <ValuationEvidence result={result} />
                   </div>
                 </div>
+
+                {/* Quick qualification: three taps, optional, saved for the advisor */}
+                <QuickQualification leadId={capturedLead?.id} low={result.lowPrice} high={result.highPrice} onSubmitted={setQuickAnswers} />
 
                 {/* 2. PROMINENT ADVISOR CHAT INTERFACE (CÉLINE) */}
                 <div className="bg-stone-900 text-white rounded-2xl border border-stone-800 shadow-xl overflow-hidden">

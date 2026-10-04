@@ -128,6 +128,13 @@ export interface Lead {
   createdAtIso?: string;
   /** E-mails of the follow-up sequence are sent automatically on their dates */
   autoRelances?: boolean;
+  /** Quick answers given by the seller */
+  qualification?: { ownership?: 'seul' | 'plusieurs' | 'pas_encore'; mandate?: 'aucun' | 'estimations' | 'simple' | 'exclusif'; occupancy?: 'occupe' | 'libre' | 'loue'; expectedPrice?: number | null };
+  /** Why the score is what it is (transparent rules) */
+  scoreReasons?: Array<{ label: string; points: number }>;
+  blockers?: string[];
+  /** Pre-visit brief for the advisor */
+  brief?: { summary: string; strengths: string[]; watchouts: string[]; questions: string[]; source?: 'ia' | 'regles'; generatedAt?: string };
   /** How the price shown to the seller was computed (kept for the advisor) */
   valuation?: {
     dataSource?: 'dvf' | 'baseline';

@@ -1,3 +1,4 @@
+import { PreVisitBrief } from './PreVisitBrief';
 import React, { useState } from 'react';
 import { Lead, LeadTask, LeadActivity, MandateDetails, MandateType, MandateStatus } from '../types';
 import { 
@@ -1323,6 +1324,15 @@ export const CrmPipelineView: React.FC<Props> = ({
             {/* Modal Body */}
             <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1 bg-slate-50/50">
               
+              <PreVisitBrief
+                lead={selectedLeadDrawer}
+                onBrief={(brief) => {
+                  const updated = { ...selectedLeadDrawer, brief };
+                  onUpdateLead?.(updated);
+                  setSelectedLeadDrawer(updated);
+                }}
+              />
+
               {/* DEDICATED QUICK-COPY BAR FOR EXTERNAL TOOLS (CRM, WHATSAPP, PHONE) */}
               <div className="bg-white rounded-2xl border-2 border-blue-500/30 p-4 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">

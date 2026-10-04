@@ -16,7 +16,8 @@ import {
   clearLoginFailures,
 } from "./server/auth";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
-import { toLead, pickCrm, isUuid as isUuidStr } from "./server/crm";
+import { toLead, pickCrm, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
+import { computeScore, sanitizeQualification, type Qualification } from "./server/scoring";
 import { estimateFromDvf, prewarm, type DvfEstimate } from "./server/dvf";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
@@ -523,6 +524,105 @@ async function startServer() {
   });
 
   // AI Qualification & Closer Chatbot endpoint using Claude
+  // Recomputes the transparent score of one lead from everything we know (form, quick answers, booking)
+  async function rescoreLead(
+    client: any,
+    leadId: string,
+    opts: { qualification?: Qualification; booked?: boolean; timeframe?: string; motive?: string } = {},
+  ) {
+    try {
+      const { data: row } = await client.from("leads").select("*").eq("id", leadId).maybeSingle();
+      if (!row) return null;
+      const crm = row.crm && typeof row.crm === "object" ? row.crm : {};
+      const qualification: Qualification = { ...(crm.qualification || {}), ...(opts.qualification || {}) };
+      let booked = opts.booked;
+      if (booked === undefined) {
+        const { count } = await client.from("rendez_vous").select("id", { count: "exact", head: true }).eq("lead_id", leadId).eq("statut", "confirme");
+        booked = (count || 0) > 0;
+      }
+      const result = computeScore({
+        timeframe: mapTimeframe(opts.timeframe ?? row.delai_projet),
+        motive: mapMotive(opts.motive ?? row.motif),
+        ...qualification,
+        estimateLow: crm.valuation?.lowPrice,
+        estimateHigh: crm.valuation?.highPrice,
+        booked,
+      });
+      const update: Record<string, any> = { score_qualification: result.score, updated_at: new Date().toISOString() };
+      if (row.statut !== "rdv_pris" && row.statut !== "perdu") update.statut = booked ? "rdv_pris" : result.status === "HOT" ? "qualifie" : "en_conversation";
+      if (booked) update.statut = "rdv_pris";
+      let { error } = await client.from("leads").update({ ...update, crm: { ...crm, qualification, scoreReasons: result.reasons, blockers: result.blockers } }).eq("id", leadId);
+      if (error) {
+        // Older database without the crm column: keep at least the score and status
+        await client.from("leads").update(update).eq("id", leadId);
+      }
+      return result;
+    } catch (e: any) {
+      console.warn("[CRM] rescore failed:", e.message);
+      return null;
+    }
+  }
+
+  // Pre-visit brief for the advisor: what the seller wants, what to watch, what to ask. Never invents facts.
+  async function generateBrief(client: any, leadId: string) {
+    const { data: row } = await client.from("leads").select("*").eq("id", leadId).maybeSingle();
+    if (!row) return null;
+    const crm = row.crm && typeof row.crm === "object" ? row.crm : {};
+    const { data: conv } = await client.from("conversations").select("messages").eq("lead_id", leadId).maybeSingle();
+    const { data: rdvs } = await client.from("rendez_vous").select("creneau, statut").eq("lead_id", leadId).eq("statut", "confirme");
+    const facts = {
+      nom: row.nom,
+      bien: { type: row.type_bien, surface_m2: row.surface, ville: row.ville_bien, adresse: row.adresse },
+      estimation: crm.valuation ? { fourchette: [crm.valuation.lowPrice, crm.valuation.highPrice], source: crm.valuation.dataSource === "dvf" ? `${crm.valuation.sampleSize} ventes réelles (DVF)` : "prix moyen de secteur (indicatif)" } : null,
+      projet: { delai: row.delai_projet, motif: row.motif },
+      reponses_rapides: crm.qualification || {},
+      score: { valeur: row.score_qualification, raisons: crm.scoreReasons || [], points_de_vigilance: crm.blockers || [] },
+      visite: (rdvs || []).map((r: any) => r.creneau),
+      echange_avec_assistant: (conv?.messages || []).slice(-12).map((m: any) => `${m.role === "user" ? "Client" : "Assistant"} : ${m.content}`),
+    };
+
+    const fallback = {
+      summary: `${row.nom} souhaite faire estimer ${row.type_bien ? `un ${String(row.type_bien).toLowerCase()}` : "un bien"}${row.ville_bien ? ` à ${row.ville_bien}` : ""}. Délai : ${row.delai_projet || "non renseigné"}. Motif : ${row.motif || "non renseigné"}.`,
+      strengths: (crm.scoreReasons || []).filter((r: any) => r.points > 0).map((r: any) => r.label),
+      watchouts: crm.blockers || [],
+      questions: ["Qu'est-ce qui motive la vente maintenant ?", "Quel prix avez-vous en tête, et pourquoi ?", "Y a-t-il des travaux récents ou à prévoir ?", "Qui décide de la vente ?"],
+    };
+
+    let brief: any = fallback;
+    let source = "regles";
+    if (isClaudeConfigured()) {
+      try {
+        const ai = await claudeJson<any>({
+          system: "Tu prépares la fiche de pré-visite d'une conseillère immobilière à partir des seules données fournies. N'invente RIEN : si une information manque, écris « non renseigné ». Français, concis, utile sur le terrain. summary : 3 phrases maximum. strengths : ce qui est favorable à un mandat. watchouts : risques ou points sensibles (indivision, mandat ailleurs, attentes de prix, locataire...). questions : 4 à 6 questions précises à poser pendant la visite.",
+          messages: [{ role: "user", content: JSON.stringify(facts) }],
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["summary", "strengths", "watchouts", "questions"],
+            properties: {
+              summary: { type: "string" },
+              strengths: { type: "array", items: { type: "string" } },
+              watchouts: { type: "array", items: { type: "string" } },
+              questions: { type: "array", items: { type: "string" } },
+            },
+          },
+          maxTokens: 1500,
+          timeoutMs: 30000,
+          effort: "low",
+        });
+        if (ai?.summary) {
+          brief = ai;
+          source = "ia";
+        }
+      } catch (e: any) {
+        console.warn("[CRM] brief generation fallback:", e.message);
+      }
+    }
+    const stored = { ...brief, source, generatedAt: new Date().toISOString() };
+    await client.from("leads").update({ crm: { ...crm, brief: stored } }).eq("id", leadId);
+    return stored;
+  }
+
   // Keeps the transcript and the qualification in Supabase so the advisor sees them in the CRM
   async function persistChat(leadId: unknown, messages: any, result: any) {
     const client = getSupabaseAdmin();
@@ -535,16 +635,11 @@ async function startServer() {
       ];
       await client.from("conversations").upsert({ lead_id: leadId, messages: history, updated_at: now }, { onConflict: "lead_id" });
 
-      const score = Math.max(0, Math.min(100, Number(result.qualificationScore) || 0));
-      const { data: current } = await client.from("leads").select("statut").eq("id", leadId).maybeSingle();
-      const update: Record<string, any> = { score_qualification: score, updated_at: now };
-      if (current?.statut !== "rdv_pris") update.statut = score >= 75 || result.recommendedAction === "BOOK_MEETING" ? "qualifie" : "en_conversation";
       const x = result.extractedData || {};
-      const { error } = await client.from("leads").update(update).eq("id", leadId);
-      if (error) console.warn("[CRM] lead update after chat failed:", error.message);
       // Optional columns: a missing column must never block the main update above
       if (x.motive) await client.from("leads").update({ motif: String(x.motive) }).eq("id", leadId);
       if (x.timeframe) await client.from("leads").update({ delai_projet: String(x.timeframe) }).eq("id", leadId);
+      await rescoreLead(client, leadId);
     } catch (e: any) {
       console.warn("[CRM] chat persistence failed:", e.message);
     }
@@ -1201,8 +1296,7 @@ async function startServer() {
         type_bien: leadData.propertyType || leadData.type_bien || null,
         ville_bien: leadData.city || leadData.ville_bien || null,
         surface: leadData.surface ? Number(leadData.surface) : null,
-        statut: leadData.meetingBooked ? "rdv_pris" : leadData.status === "HOT" ? "qualifie" : "en_conversation",
-        score_qualification: leadData.score || leadData.score_qualification || 35,
+        statut: leadData.meetingBooked ? "rdv_pris" : "en_conversation",
         updated_at: new Date().toISOString(),
       };
       if (leadData.postalCode) base.code_postal = String(leadData.postalCode);
@@ -1222,12 +1316,12 @@ async function startServer() {
         const { data: existing } = await client.from("leads").select("statut, score_qualification").eq("id", leadData.id).maybeSingle();
         if (existing?.statut === "rdv_pris") {
           base.statut = "rdv_pris";
-          base.score_qualification = Math.max(existing.score_qualification || 0, base.score_qualification);
         }
         const { data, error } = await runWithOptionalColumns<{ id: string }>(base, optional, (p) =>
           client.from("leads").update(p).eq("id", leadData.id).select("id").maybeSingle(),
         );
         if (!error && data) {
+          await rescoreLead(client, data.id, { timeframe: leadData.timeframe, motive: leadData.motive });
           return res.json({ success: true, lead_id: data.id, persisted: true });
         }
       }
@@ -1244,6 +1338,7 @@ async function startServer() {
         return res.json({ success: true, lead_id: leadData.id || `lead-${Date.now()}`, persisted: false });
       }
 
+      await rescoreLead(client, inserted.id, { timeframe: leadData.timeframe, motive: leadData.motive });
       return res.json({ success: true, lead_id: inserted.id, persisted: true });
     } catch (err) {
       console.error("Sync lead API error:", err);
@@ -1278,9 +1373,11 @@ async function startServer() {
     const client = getSupabaseAdmin();
     if (!client) return res.status(503).json({ error: "Supabase non configuré" });
     if (!isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const { data: row } = await client.from("leads").select("crm").eq("id", req.params.id).maybeSingle();
+    const existing = row?.crm && typeof row.crm === "object" ? row.crm : {};
     const { error } = await client
       .from("leads")
-      .update({ crm: pickCrm(req.body || {}), updated_at: new Date().toISOString() })
+      .update({ crm: { ...existing, ...pickCrm(req.body || {}) }, updated_at: new Date().toISOString() })
       .eq("id", req.params.id);
     if (error) {
       const missing = error.code === "PGRST204" || /column/i.test(error.message || "");
@@ -1289,6 +1386,25 @@ async function startServer() {
       });
     }
     res.json({ success: true });
+  });
+
+  // Quick answers from the seller (3 taps + optional price): public, protected by the unguessable lead id
+  app.post("/api/supabase/qualification", rateLimit("qualification", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    const leadId = req.body?.lead_id;
+    if (!client || !isUuidStr(leadId)) return res.json({ success: true, persisted: false });
+    const qualification = { ...sanitizeQualification(req.body), answeredAt: new Date().toISOString() };
+    const result = await rescoreLead(client, leadId, { qualification });
+    res.json({ success: true, persisted: Boolean(result) });
+  });
+
+  // Pre-visit brief (advisor only): generated on demand, and automatically when a visit is booked
+  app.post("/api/crm/leads/:id/brief", requireAgent, rateLimit("brief", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(req.params.id)) return res.status(400).json({ error: "Fiche introuvable" });
+    const brief = await generateBrief(client, req.params.id);
+    if (!brief) return res.status(404).json({ error: "Fiche introuvable" });
+    res.json({ brief });
   });
 
   // 2. Qualify Lead Route (Attempts Edge Function or runs backend Claude with Service Role DB updates)
@@ -1358,11 +1474,7 @@ async function startServer() {
             updated_at: new Date().toISOString()
           }, { onConflict: "lead_id" });
 
-          await client.from("leads").update({
-            score_qualification: qualifyResult.qualificationScore,
-            statut: newStatus,
-            updated_at: new Date().toISOString()
-          }).eq("id", lead_id);
+          await rescoreLead(client, lead_id);
         } catch (e) {
           console.warn("Error persisting conversation/lead updates in fallback:", e);
         }
@@ -1445,7 +1557,7 @@ async function startServer() {
                 type_bien: property_type || "Appartement",
                 surface: surface || 80,
                 statut: "qualifie",
-                score_qualification: 95,
+                score_qualification: 0,
               })
               .select()
               .single();
@@ -1718,11 +1830,9 @@ async function startServer() {
             console.error(`[Supabase] RendezVous insertion error:`, rdvError.message);
           }
 
-          await client.from("leads").update({
-            statut: "rdv_pris",
-            score_qualification: 95,
-            updated_at: new Date().toISOString(),
-          }).eq("id", actualLeadId);
+          await client.from("leads").update({ statut: "rdv_pris", updated_at: new Date().toISOString() }).eq("id", actualLeadId);
+          await rescoreLead(client, actualLeadId, { booked: true });
+          if (isClaudeConfigured()) void generateBrief(client, actualLeadId).catch(() => {}); // ready before the visit
 
           // Update/record conversation entry
           try {

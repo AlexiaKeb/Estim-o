@@ -1,5 +1,7 @@
 // Maps Supabase rows (leads + conversations + rendez_vous) to the Lead shape used by the CRM screens.
 
+// Keys the advisor's screen may write (PATCH). Everything else in `crm` (valuation, qualification,
+// score reasons, brief) belongs to the server and is never overwritten by a stale browser copy.
 export const CRM_KEYS = [
   "notes",
   "tasks",
@@ -10,7 +12,6 @@ export const CRM_KEYS = [
   "lastAction",
   "status",
   "meetingType",
-  "valuation",
   "autoRelances",
 ] as const;
 
@@ -23,7 +24,7 @@ export function pickCrm(body: Record<string, any>): Record<string, any> {
   return out;
 }
 
-function mapTimeframe(raw?: string | null): string {
+export function mapTimeframe(raw?: string | null): string {
   const t = (raw || "").toLowerCase();
   if (!t) return "Curiosité";
   if (/(imm[ée]diat|urgent|<\s*1|moins d.un mois)/.test(t)) return "< 1 mois";
@@ -41,7 +42,7 @@ function mapTimeframe(raw?: string | null): string {
   return "> 6 mois";
 }
 
-function mapMotive(raw?: string | null): string {
+export function mapMotive(raw?: string | null): string {
   const t = (raw || "").toLowerCase();
   if (/success|h[ée]ritage/.test(t)) return "Succession";
   if (/mutation/.test(t)) return "Mutation pro";
@@ -74,8 +75,8 @@ function relative(iso: string): string {
 export function toLead(row: any, conv?: any, rdvs: any[] = []) {
   const crm = row.crm && typeof row.crm === "object" ? row.crm : {};
   const score = Number(row.score_qualification) || 0;
-  const derivedStatus =
-    row.statut === "perdu" ? "COLD" : score >= 75 || row.statut === "qualifie" || row.statut === "rdv_pris" ? "HOT" : score >= 50 ? "WARM" : "COLD";
+  // Same thresholds as server/scoring.ts
+  const derivedStatus = row.statut === "perdu" ? "COLD" : score >= 65 ? "HOT" : score >= 35 ? "WARM" : "COLD";
 
   const confirmed = rdvs.filter((r) => r.statut === "confirme").sort((a, b) => a.creneau.localeCompare(b.creneau));
   const upcoming = confirmed.find((r) => new Date(r.creneau).getTime() >= Date.now()) || confirmed[confirmed.length - 1];
@@ -121,6 +122,10 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     mandate: crm.mandate,
     valuation: crm.valuation,
     autoRelances: crm.autoRelances,
+    qualification: crm.qualification,
+    scoreReasons: crm.scoreReasons,
+    blockers: crm.blockers,
+    brief: crm.brief,
     calBookingId: upcoming?.cal_booking_id,
   };
 }
