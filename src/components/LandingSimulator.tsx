@@ -4,7 +4,8 @@ import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { syncLeadToSupabase } from '../lib/supabaseService';
 import confetti from 'canvas-confetti';
 import { AGENT, VISIT_LABEL } from '../data/siteContent';
-import { ValuationEvidence, LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
+import { AddressSearch } from './AddressSearch';
+import { scrollToSimulator, ValuationEvidence, LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { 
   Building2, 
   Home, 
@@ -65,8 +66,8 @@ export const LandingSimulator: React.FC<Props> = ({
     address: '',
     surface: 78,
     rooms: 3,
-    city: 'Lyon',
-    postalCode: '69006',
+    city: '',
+    postalCode: '',
     condition: 'good',
     outdoor: 'balcony',
     dpe: 'C',
@@ -80,6 +81,17 @@ export const LandingSimulator: React.FC<Props> = ({
     constructionPeriod: '1975_1999',
     yearBuilt: 1995,
   });
+
+  // Hero search: carries the address into the form, then lands the visitor on the next thing to fill
+  const handleHeroStart = (a: { address: string; postalCode?: string; city?: string }) => {
+    setInputs((prev) => ({
+      ...prev,
+      address: a.address || prev.address,
+      postalCode: a.postalCode || prev.postalCode,
+      city: a.city || prev.city,
+    }));
+    scrollToSimulator();
+  };
 
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -401,7 +413,7 @@ export const LandingSimulator: React.FC<Props> = ({
 
   return (
     <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto space-y-8">
-      <LandingHero />
+      <LandingHero onStart={handleHeroStart} />
 
       {/* Main Grid: Form + Result / Lead Gate Card */}
       <div id="simulateur" className="scroll-mt-20 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -409,11 +421,11 @@ export const LandingSimulator: React.FC<Props> = ({
         <div className="lg:col-span-7 bg-white rounded-xl border border-stone-200/80 shadow-2xs p-6 md:p-8 space-y-6">
           <div className="flex items-center justify-between border-b border-stone-100 pb-4">
             <div>
-              <h2 className="text-lg font-semibold text-stone-900">1. Caractéristiques de votre bien</h2>
-              <p className="text-xs text-stone-500 font-normal">Renseignez ces critères pour calibrer l'estimation ou solliciter l'étude sur-mesure de Céline</p>
+              <h2 className="text-lg font-semibold text-stone-900">Votre bien</h2>
+              <p className="text-xs text-stone-500 font-normal">Quelques informations suffisent. Vous pourrez affiner ensuite si vous le souhaitez.</p>
             </div>
             <span className="px-2.5 py-1 bg-stone-100 text-stone-700 text-xs font-medium rounded-lg border border-stone-200">
-              Formulaire d'estimation
+              Étape 1 sur 2
             </span>
           </div>
 
@@ -528,17 +540,13 @@ export const LandingSimulator: React.FC<Props> = ({
                 <label className="block text-xs font-medium text-stone-700 uppercase tracking-wider mb-1.5">
                   Adresse précise du bien (N° et Rue)
                 </label>
-                <div className="relative">
-                  <MapPin className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
-                  <input
-                    type="text"
-                    id="input-address"
-                    value={inputs.address || ''}
-                    onChange={(e) => setInputs({ ...inputs, address: e.target.value })}
-                    placeholder="Ex: 14 Rue de la République (ou avenue, boulevard...)"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-200 text-sm font-normal text-stone-900 focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 bg-white"
-                  />
-                </div>
+                <AddressSearch
+                  id="input-address"
+                  value={inputs.address || ''}
+                  onChange={(text) => setInputs({ ...inputs, address: text })}
+                  onSelect={(s) => setInputs({ ...inputs, address: s.street, postalCode: s.postalCode, city: s.city })}
+                  placeholder="Commencez à saisir l'adresse"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

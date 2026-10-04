@@ -469,13 +469,13 @@ export default function App() {
                       Conseil Pro
                     </span>
                   </div>
-                  <div className="text-[11px] text-stone-400 font-normal">Dossiers Vendeurs & Estimations</div>
+                  <div className="text-[11px] text-stone-400 font-normal">Espace conseiller</div>
                 </div>
               </button>
             </div>
 
             {/* Desktop Agent Nav Items */}
-            <nav className="hidden lg:flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800">
+            <nav className="hidden lg:flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 whitespace-nowrap">
               <button
                 type="button"
                 id="agent-nav-pipeline"
@@ -486,9 +486,9 @@ export default function App() {
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
               >
-                <span>Dossiers & Mandats</span>
+                <span>Dossiers</span>
                 <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
-                  {leads.filter(l => l.status === 'HOT').length} prioritaires
+                  {leads.filter(l => l.status === 'HOT').length}
                 </span>
               </button>
 
@@ -503,7 +503,7 @@ export default function App() {
                 }`}
               >
                 <MailCheck className="w-3.5 h-3.5" />
-                <span>Accompagnement & Relances</span>
+                <span>Relances</span>
               </button>
 
               <button
@@ -517,7 +517,7 @@ export default function App() {
                 }`}
               >
                 <Calculator className="w-3.5 h-3.5" />
-                <span>Honoraires & Barème</span>
+                <span>Honoraires</span>
               </button>
 
               <button
@@ -529,10 +529,10 @@ export default function App() {
                     ? 'bg-zinc-800 text-white shadow-xs'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
-                title="Tester le simulateur d'estimation et l'agent de qualification côté client"
+                title="Essayer le parcours client"
               >
                 <Building2 className="w-3.5 h-3.5" />
-                <span>Simulateur Vendeur (Test)</span>
+                <span>Tester le site</span>
               </button>
             </nav>
 
@@ -587,9 +587,9 @@ export default function App() {
             <div className="lg:hidden bg-zinc-900 border-b border-zinc-800 px-4 py-3 space-y-1">
               {[
                 { key: 'pipeline', label: `Dossiers & Mandats (${leads.length})` },
-                { key: 'nurture', label: 'Accompagnement & Relances' },
-                { key: 'calculator', label: 'Honoraires & Barème' },
-                { key: 'landing', label: 'Simulateur Vendeur (Test)' },
+                { key: 'nurture', label: 'Relances' },
+                { key: 'calculator', label: 'Honoraires' },
+                { key: 'landing', label: 'Tester le site' },
               ].map((item) => (
                 <button
                   key={item.key}

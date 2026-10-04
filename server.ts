@@ -302,6 +302,34 @@ async function startServer() {
     res.json({ authenticated: false });
   });
 
+  // Address autocomplete (French national address base). Proxied to keep limits and caching on our side.
+  const addressCache = new Map<string, { t: number; data: any[] }>();
+  app.get("/api/address/suggest", rateLimit("address", 240, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const q = String(req.query.q || "").trim().slice(0, 120);
+    if (q.length < 3) return res.json({ suggestions: [] });
+    const hit = addressCache.get(q.toLowerCase());
+    if (hit && Date.now() - hit.t < 10 * 60 * 1000) return res.json({ suggestions: hit.data });
+    try {
+      const url = `${process.env.BAN_API_URL || "https://api-adresse.data.gouv.fr"}/search/?q=${encodeURIComponent(q)}&limit=5&autocomplete=1`;
+      const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
+      if (!r.ok) return res.json({ suggestions: [] });
+      const features: any[] = (await r.json())?.features || [];
+      const data = features
+        .filter((f) => f?.properties?.label && f.properties.postcode && f.properties.city)
+        .map((f) => ({
+          label: f.properties.label as string,
+          street: (f.properties.name as string) || "",
+          postalCode: f.properties.postcode as string,
+          city: f.properties.city as string,
+        }));
+      if (addressCache.size > 500) addressCache.clear();
+      addressCache.set(q.toLowerCase(), { t: Date.now(), data });
+      res.json({ suggestions: data });
+    } catch {
+      res.json({ suggestions: [] }); // typing must never be blocked by the service being down
+    }
+  });
+
   // Health check
   app.get("/api/health", (_req: Request, res: Response) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

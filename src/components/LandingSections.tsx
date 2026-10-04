@@ -11,11 +11,12 @@ import {
   Quote,
   ShieldCheck,
 } from 'lucide-react';
+import { AddressSearch, AddressSuggestion } from './AddressSearch';
 import { AGENT, FAQ, KEY_FIGURES, TESTIMONIALS, VISIT_LABEL } from '../data/siteContent';
 
-const scrollToSimulator = () => {
+export const scrollToSimulator = () => {
   document.getElementById('simulateur')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  window.setTimeout(() => document.getElementById('input-address')?.focus({ preventScroll: true }), 450);
+  window.setTimeout(() => document.getElementById('input-surface-range')?.focus({ preventScroll: true }), 450);
 };
 
 const AgentAvatar: React.FC<{ size?: number }> = ({ size = 56 }) =>
@@ -39,82 +40,109 @@ const AgentAvatar: React.FC<{ size?: number }> = ({ size = 56 }) =>
     </div>
   );
 
-/** Above the fold: one promise, one action, proof of who is behind it. */
-export const LandingHero: React.FC = () => (
-  <section className="relative overflow-hidden rounded-2xl bg-stone-900 text-stone-100 border border-stone-800">
-    <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
-    <div className="relative grid lg:grid-cols-[1.35fr_1fr] gap-8 p-6 sm:p-9 lg:p-12 items-center">
-      <div className="space-y-6 min-w-0">
-        <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-amber-300">
-          <MapPin className="w-3.5 h-3.5" />
-          Estimation immobilière à Lyon, Villeurbanne et Beaujolais
-        </p>
+/** Above the fold: one promise, one field to start, proof of who is behind it. */
+export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?: string; city?: string }) => void }> = ({ onStart }) => {
+  const [text, setText] = useState('');
+  const [picked, setPicked] = useState<AddressSuggestion | null>(null);
 
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.1] text-white [text-wrap:balance]">
-          Combien vaut vraiment votre bien à {AGENT.city}&nbsp;?
-        </h1>
+  const start = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (picked && picked.label === text) onStart({ address: picked.street, postalCode: picked.postalCode, city: picked.city });
+    else onStart({ address: text.trim() });
+  };
 
-        <p className="text-base sm:text-lg text-stone-300 leading-relaxed max-w-xl">
-          Obtenez une fourchette de prix en 2 minutes, puis faites-la confirmer sur place par {AGENT.firstName}, conseillère locale. Sans frais, sans engagement.
-        </p>
+  return (
+    <section className="relative rounded-3xl border border-stone-200 bg-gradient-to-br from-white via-stone-50 to-amber-50/60 shadow-sm">
+      <div className="grid lg:grid-cols-[1.4fr_1fr] gap-8 lg:gap-12 p-6 sm:p-10 lg:p-14 items-center">
+        <div className="space-y-6 min-w-0">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-amber-800 bg-amber-100/70 rounded-full px-3 py-1">
+            <MapPin className="w-3.5 h-3.5" />
+            Lyon, Villeurbanne, Beaujolais et 50 km autour
+          </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-          <button
-            type="button"
-            id="btn-hero-start"
-            onClick={scrollToSimulator}
-            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-semibold px-6 py-3.5 text-base transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900"
-          >
-            Estimer mon bien gratuitement
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </button>
-          <a
-            href={AGENT.phoneHref}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-600 hover:border-stone-400 px-5 py-3.5 text-sm font-medium text-stone-100 transition-colors"
-          >
-            <Phone className="w-4 h-4 text-amber-300" />
-            {AGENT.phone}
-          </a>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.1] text-stone-900 [text-wrap:balance]">
+            Combien vaut vraiment votre bien&nbsp;?
+          </h1>
+
+          <p className="text-base sm:text-lg text-stone-600 leading-relaxed max-w-xl">
+            Une estimation appuyée sur les ventes réelles de votre quartier, confirmée sur place par {AGENT.firstName}, conseillère locale. Gratuit et sans engagement.
+          </p>
+
+          <form onSubmit={start} className="rounded-2xl bg-white border border-stone-200 shadow-lg p-2 sm:p-3 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-2xl" aria-label="Démarrer l'estimation">
+            <label htmlFor="hero-address" className="sr-only">Adresse du bien</label>
+            <AddressSearch
+              id="hero-address"
+              size="lg"
+              value={text}
+              onChange={(t) => {
+                setText(t);
+                setPicked(null);
+              }}
+              onSelect={(s) => {
+                setPicked(s);
+                setText(s.label);
+              }}
+              placeholder="Saisissez l'adresse de votre bien"
+              className="flex-1 min-w-0"
+            />
+            <button
+              type="submit"
+              id="btn-hero-start"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold px-6 py-4 text-base transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
+            >
+              Estimer
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          </form>
+
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-600">
+            {['Résultat en 2 minutes', '100 % gratuit', 'Sans engagement'].map((t) => (
+              <li key={t} className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                {t}
+              </li>
+            ))}
+          </ul>
+          <p className="flex items-start gap-2 text-xs text-stone-500 max-w-xl">
+            <ShieldCheck className="w-4 h-4 text-stone-400 shrink-0 mt-px" />
+            Appuyée sur les prix de vente enregistrés par l'État (base DVF), pas sur des prix d'annonces.
+          </p>
         </div>
 
-        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-300">
-          {['2 minutes', '100 % gratuit', 'Sans engagement', 'Sans document à fournir'].map((t) => (
-            <li key={t} className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              {t}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Who you will talk to */}
-      <aside className="rounded-2xl bg-stone-800/70 border border-stone-700 p-6 space-y-4 min-w-0">
-        <div className="flex items-center gap-4">
-          <AgentAvatar size={64} />
-          <div className="min-w-0">
-            <div className="font-semibold text-white">{AGENT.name}</div>
-            <div className="text-sm text-stone-300">
-              Conseillère immobilière, {AGENT.agency}
+        {/* Who you will talk to */}
+        <aside className="rounded-2xl bg-white border border-stone-200 shadow-md p-6 space-y-4 min-w-0">
+          <div className="flex items-center gap-4">
+            <AgentAvatar size={64} />
+            <div className="min-w-0">
+              <div className="font-semibold text-stone-900">{AGENT.name}</div>
+              <div className="text-sm text-stone-600">Conseillère immobilière, {AGENT.agency}</div>
             </div>
           </div>
-        </div>
-        <p className="text-sm text-stone-300 leading-relaxed">
-          C'est {AGENT.firstName} qui vous accompagne, de l'estimation jusqu'à la visite. Vous n'êtes pas rappelé par un call center.
-        </p>
-        <dl className="text-sm space-y-2 border-t border-stone-700 pt-4">
-          <div className="flex gap-2">
-            <MapPin className="w-4 h-4 text-amber-300 mt-0.5 shrink-0" />
-            <dd className="text-stone-300">{AGENT.zone}</dd>
-          </div>
-          <div className="flex gap-2">
-            <Clock className="w-4 h-4 text-amber-300 mt-0.5 shrink-0" />
-            <dd className="text-stone-300">Visite de découverte : environ {VISIT_LABEL}</dd>
-          </div>
-        </dl>
-      </aside>
-    </div>
-  </section>
-);
+          <p className="text-sm text-stone-600 leading-relaxed">
+            C'est {AGENT.firstName} qui vous accompagne, de l'estimation jusqu'à la visite. Pas de centre d'appels.
+          </p>
+          <dl className="text-sm space-y-2 border-t border-stone-200 pt-4">
+            <div className="flex gap-2">
+              <MapPin className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+              <dd className="text-stone-700">{AGENT.zone}</dd>
+            </div>
+            <div className="flex gap-2">
+              <Clock className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+              <dd className="text-stone-700">Visite de découverte : environ {VISIT_LABEL}</dd>
+            </div>
+          </dl>
+          <a
+            href={AGENT.phoneHref}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-stone-300 hover:border-stone-500 px-4 py-3 text-sm font-semibold text-stone-900 transition-colors"
+          >
+            <Phone className="w-4 h-4 text-amber-700" />
+            {AGENT.phone}
+          </a>
+        </aside>
+      </div>
+    </section>
+  );
+};
 
 const STEPS = [
   {
