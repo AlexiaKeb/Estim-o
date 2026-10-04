@@ -23,6 +23,7 @@ import {
   isClaudeConfigured,
   toClaudeMessages,
   buildQualificationSystemPrompt,
+  formatDuration,
   QUALIFICATION_SCHEMA,
   NURTURE_SCHEMA,
   AD_SCHEMA,
@@ -254,7 +255,7 @@ const AGENT_PROFILE = {
   phone: process.env.AGENT_PHONE || "06 03 58 03 16",
   city: process.env.AGENT_CITY || "Lyon",
   // Must equal the duration of the Cal.com event
-  visitMinutes: Number(process.env.VISIT_MINUTES) || 30,
+  visitMinutes: Number(process.env.VISIT_MINUTES) || 60,
 };
 
 async function startServer() {
@@ -679,7 +680,7 @@ async function startServer() {
 
       try {
         const parsed = await claudeJson<{ sequence: any[] }>({
-          system: `Tu rédiges des relances immobilières pour une conseillère de NOVEA Immobilier (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. SMS: 300 caractères max. Email: objet court + 4 à 6 lignes. Chaque message propose un pas simple vers une visite de découverte offerte de ${AGENT_PROFILE.visitMinutes} min.`,
+          system: `Tu rédiges des relances immobilières pour une conseillère de NOVEA Immobilier (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. SMS: 300 caractères max. Email: objet court + 4 à 6 lignes. Chaque message propose un pas simple vers une visite de découverte offerte d'environ ${formatDuration(AGENT_PROFILE.visitMinutes)}.`,
           messages: [{
             role: "user",
             content: `Génère une séquence de 5 relances (J+1, J+7, J+15, J+30, J+60) pour ce propriétaire pas encore mûr.\nProfil :\n${JSON.stringify(leadProfile, null, 2)}\nLe champ step doit être de la forme "J+1 (SMS)".`,
@@ -1828,6 +1829,14 @@ async function startServer() {
         } else {
           const len = d.lengthInMinutes ?? d.length;
           add("event", "Événement de visite", "ok", `« ${d.title || d.slug} » (n°${typeId}), durée ${len ?? "?"} min.`);
+          add(
+            "duration",
+            "Durée annoncée aux clients",
+            Number(len) === AGENT_PROFILE.visitMinutes ? "ok" : "warn",
+            Number(len) === AGENT_PROFILE.visitMinutes
+              ? `Le site annonce ${formatDuration(AGENT_PROFILE.visitMinutes)}, comme l'événement Cal.com.`
+              : `Le site annonce ${formatDuration(AGENT_PROFILE.visitMinutes)} mais l'événement Cal.com dure ${len ?? "?"} min. Alignez les deux (variable VISIT_MINUTES et durée dans Cal.com).`,
+          );
           const before = Number(d.beforeEventBuffer ?? 0);
           const after = Number(d.afterEventBuffer ?? 0);
           add(

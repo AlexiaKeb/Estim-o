@@ -11,7 +11,7 @@ import {
   Quote,
   ShieldCheck,
 } from 'lucide-react';
-import { AGENT, FAQ, KEY_FIGURES, TESTIMONIALS } from '../data/siteContent';
+import { AGENT, FAQ, KEY_FIGURES, TESTIMONIALS, VISIT_LABEL } from '../data/siteContent';
 
 const scrollToSimulator = () => {
   document.getElementById('simulateur')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -108,7 +108,7 @@ export const LandingHero: React.FC = () => (
           </div>
           <div className="flex gap-2">
             <Clock className="w-4 h-4 text-amber-300 mt-0.5 shrink-0" />
-            <dd className="text-stone-300">Visite de découverte : environ {AGENT.visitMinutes} minutes</dd>
+            <dd className="text-stone-300">Visite de découverte : environ {VISIT_LABEL}</dd>
           </div>
         </dl>
       </aside>
@@ -130,7 +130,7 @@ const STEPS = [
   {
     icon: CheckCircle2,
     title: 'Faites confirmer sur place',
-    text: `Une visite de ${AGENT.visitMinutes} minutes, offerte. Vous repartez avec un avis de valeur argumenté.`,
+    text: `Une visite de ${VISIT_LABEL}, offerte. Vous repartez avec un avis de valeur argumenté.`,
   },
 ];
 
@@ -264,7 +264,7 @@ export const FinalCta: React.FC = () => (
     <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight [text-wrap:balance]">
       Prêt à connaître la valeur de votre bien&nbsp;?
     </h2>
-    <p className="text-stone-300 max-w-xl mx-auto">Deux minutes pour la simulation, {AGENT.visitMinutes} minutes pour la visite. Le reste est entre vos mains.</p>
+    <p className="text-stone-300 max-w-xl mx-auto">Deux minutes pour la simulation, {VISIT_LABEL} pour la visite. Le reste est entre vos mains.</p>
     <button
       type="button"
       onClick={scrollToSimulator}
