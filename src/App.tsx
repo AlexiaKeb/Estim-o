@@ -843,6 +843,7 @@ export default function App() {
             <span>•</span>
             <span>Estimation gratuite et sans engagement</span>
             <span>•</span>
+            <a href="/estimation-immobiliere" className="hover:text-stone-800 underline-offset-2 hover:underline">Prix par secteur</a>
             <a href="/blog" className="hover:text-stone-800 underline-offset-2 hover:underline">Conseils</a>
             <a href="/mentions-legales" className="hover:text-stone-800 underline-offset-2 hover:underline">Mentions légales</a>
             <a href="/confidentialite" className="hover:text-stone-800 underline-offset-2 hover:underline">Confidentialité</a>

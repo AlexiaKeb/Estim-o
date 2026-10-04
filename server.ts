@@ -1,7 +1,9 @@
 import express, { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
-import { seoHead, seoBody, pageStatus, robotsTxt, sitemapXml, siteBase } from "./server/seo";
+import { renderSeo, robotsTxt, sitemapXml, siteBase } from "./server/seo";
+import { warmAreas } from "./server/market";
+import { AREAS } from "./src/data/areas";
 import crypto from "crypto";
 import {
   requireAgent,
@@ -2344,9 +2346,10 @@ async function startServer() {
   // HTML pages get their own title, description, canonical and structured data (same for dev and production)
   const sendPage = async (req: Request, res: Response, load: () => Promise<string>) => {
     try {
-      const html = (await load()).replace("<!--SEO_HEAD-->", seoHead(req)).replace('<div id="root"></div>', `<div id="root">${seoBody(req)}</div>`);
-      const page = seoBody(req) ? html.replace(/<noscript>[\s\S]*?<\/noscript>/, "") : html;
-      res.status(pageStatus(req)).set("Content-Type", "text/html; charset=utf-8").set("Cache-Control", "no-cache").send(page);
+      const seo = await renderSeo(req);
+      let html = (await load()).replace("<!--SEO_HEAD-->", () => seo.head).replace('<div id="root"></div>', () => `<div id="root">${seo.body}</div>`);
+      if (seo.body) html = html.replace(/<noscript>[\s\S]*?<\/noscript>/, () => "");
+      res.status(seo.status).set("Content-Type", "text/html; charset=utf-8").set("Cache-Control", "no-cache").send(html);
     } catch (e) {
       console.error("page render error:", e);
       res.status(500).send("Erreur de chargement");
@@ -2374,6 +2377,7 @@ async function startServer() {
     );
   }
 
+  if (process.env.DVF_PREWARM !== "") warmAreas(AREAS);
   prewarm((process.env.DVF_PREWARM || "69381,69382,69383,69384,69385,69386,69387,69388,69389,69266").split(",").filter(Boolean));
 
   app.listen(PORT, "0.0.0.0", () => {

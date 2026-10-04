@@ -141,7 +141,7 @@ export function salesFromCsv(text: string): DvfSale[] {
 // ---------- Loading with cache ----------
 const mem = new Map<string, { t: number; sales: DvfSale[] | null }>();
 
-async function loadCommuneYear(citycode: string, year: number): Promise<DvfSale[] | null> {
+export async function loadCommuneYear(citycode: string, year: number): Promise<DvfSale[] | null> {
   const key = `${citycode}-${year}`;
   const hit = mem.get(key);
   if (hit && Date.now() - hit.t < (hit.sales ? MEM_TTL_MS : 15 * 60 * 1000)) return hit.sales;

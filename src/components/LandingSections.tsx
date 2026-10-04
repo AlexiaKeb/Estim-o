@@ -429,9 +429,17 @@ export const ZoneSection: React.FC = () => (
       {AGENT.name} accompagne les propriétaires de la métropole lyonnaise et du Beaujolais, jusqu'à 50 km autour de Lyon. Votre estimation en ligne s'appuie sur les ventes réellement enregistrées par l'État (base DVF) autour de votre adresse. La visite permet ensuite de tenir compte de ce qu'aucune base de données ne voit : l'état du bien, la luminosité, l'étage, la vue, les travaux réalisés.
     </p>
     <ul className="flex flex-wrap gap-2 text-sm text-stone-700">
-      {['Lyon', 'Villeurbanne', 'Caluire-et-Cuire', 'Bron', 'Écully', 'Villefranche-sur-Saône', 'Beaujolais', 'Communes alentour'].map((c) => (
-        <li key={c} className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1">{c}</li>
+      {[
+        ['Lyon', '/estimation-immobiliere'],
+        ['Villeurbanne', '/estimation-immobiliere/villeurbanne'],
+        ['Caluire-et-Cuire', '/estimation-immobiliere/caluire-et-cuire'],
+        ['Bron', '/estimation-immobiliere/bron'],
+        ['Écully', '/estimation-immobiliere/ecully'],
+        ['Villefranche-sur-Saône', '/estimation-immobiliere/villefranche-sur-saone'],
+      ].map(([c, href]) => (
+        <li key={c}><a href={href} className="inline-block rounded-full border border-stone-200 bg-stone-50 px-3 py-1 hover:border-stone-400">{c}</a></li>
       ))}
+      <li className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1">Beaujolais et communes alentour</li>
     </ul>
   </section>
 );

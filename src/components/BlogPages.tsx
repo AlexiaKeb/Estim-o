@@ -14,12 +14,13 @@ export function renderInline(text: string): React.ReactNode[] {
   });
 }
 
-const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="min-h-screen bg-stone-50 text-stone-800">
     <header className="bg-white border-b border-stone-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
         <a href="/" className="font-bold text-stone-900">{BRAND.name}</a>
         <nav aria-label="Navigation principale" className="flex items-center gap-4 text-sm">
+          <a href="/estimation-immobiliere" className="hidden sm:inline text-stone-600 hover:text-stone-900">Prix par secteur</a>
           <a href="/blog" className="text-stone-600 hover:text-stone-900">Conseils</a>
           <a href="/#simulateur" className="rounded-lg bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-semibold px-3.5 py-2">Estimer mon bien</a>
         </nav>
@@ -31,6 +32,7 @@ const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
         <span>{BRAND.name} · Estimation immobilière à Lyon</span>
         <span className="flex gap-4">
           <a href="/" className="hover:text-stone-800">Accueil</a>
+          <a href="/estimation-immobiliere" className="hover:text-stone-800">Prix par secteur</a>
           <a href="/mentions-legales" className="hover:text-stone-800">Mentions légales</a>
           <a href="/confidentialite" className="hover:text-stone-800">Confidentialité</a>
         </span>
