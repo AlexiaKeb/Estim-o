@@ -435,3 +435,29 @@ export const ZoneSection: React.FC = () => (
     </ul>
   </section>
 );
+
+const TEASER = [
+  ['estimer-appartement-lyon-criteres-prix', 'Estimer son appartement à Lyon : les 8 critères qui font varier le prix'],
+  ['prix-immobilier-dvf-ventes-reelles-quartier', 'Comment lire les ventes réelles de son quartier (base DVF)'],
+  ['documents-vendre-appartement-maison', 'Vendre son bien : la liste des documents à rassembler'],
+];
+
+/** Internal links to the blog: help visitors and search engines find the guides. */
+export const BlogTeaser: React.FC = () => (
+  <section aria-labelledby="blog-teaser-title" className="space-y-4">
+    <div className="flex items-end justify-between gap-4">
+      <h2 id="blog-teaser-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">Nos conseils pour préparer votre vente</h2>
+      <a href="/blog" className="text-sm font-semibold text-stone-900 underline underline-offset-4 whitespace-nowrap">Tous les conseils</a>
+    </div>
+    <ul className="grid md:grid-cols-3 gap-4">
+      {TEASER.map(([slug, title]) => (
+        <li key={slug}>
+          <a href={`/blog/${slug}`} className="block h-full rounded-xl bg-white border border-stone-200 p-5 font-semibold text-stone-900 leading-snug hover:shadow-md transition-shadow">
+            {title}
+            <span className="mt-3 flex items-center gap-1 text-sm font-medium text-amber-700">Lire l'article <ArrowRight className="w-4 h-4" /></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+);

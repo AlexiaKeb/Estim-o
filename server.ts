@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
-import { seoHead, robotsTxt, sitemapXml, siteBase } from "./server/seo";
+import { seoHead, seoBody, pageStatus, robotsTxt, sitemapXml, siteBase } from "./server/seo";
 import crypto from "crypto";
 import {
   requireAgent,
@@ -2344,8 +2344,9 @@ async function startServer() {
   // HTML pages get their own title, description, canonical and structured data (same for dev and production)
   const sendPage = async (req: Request, res: Response, load: () => Promise<string>) => {
     try {
-      const html = (await load()).replace("<!--SEO_HEAD-->", seoHead(req));
-      res.status(200).set("Content-Type", "text/html; charset=utf-8").set("Cache-Control", "no-cache").send(html);
+      const html = (await load()).replace("<!--SEO_HEAD-->", seoHead(req)).replace('<div id="root"></div>', `<div id="root">${seoBody(req)}</div>`);
+      const page = seoBody(req) ? html.replace(/<noscript>[\s\S]*?<\/noscript>/, "") : html;
+      res.status(pageStatus(req)).set("Content-Type", "text/html; charset=utf-8").set("Cache-Control", "no-cache").send(page);
     } catch (e) {
       console.error("page render error:", e);
       res.status(500).send("Erreur de chargement");

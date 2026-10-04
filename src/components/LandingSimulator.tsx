@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
-import { scrollToSimulator, LandingHero, HowItWorks, WhyOnSite, SocialProof, ZoneSection, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
+import { scrollToSimulator, LandingHero, HowItWorks, WhyOnSite, SocialProof, ZoneSection, BlogTeaser, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { GuidedAssistant, AssistantSeed } from './GuidedAssistant';
 
 interface Props {
@@ -17,6 +17,11 @@ interface Props {
 export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBooking }) => {
   const [seed, setSeed] = useState<AssistantSeed | null>(null);
   const [leadInfo, setLeadInfo] = useState<Partial<Lead> | null>(null);
+
+  // Links from the blog (/#simulateur) land directly on the assistant
+  useEffect(() => {
+    if (window.location.hash === '#simulateur') window.setTimeout(() => document.getElementById('simulateur')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+  }, []);
 
   const handleHeroStart = (a: { address: string; postalCode?: string; city?: string }) => {
     setSeed({ ...a, nonce: Date.now() });
@@ -40,6 +45,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
         <WhyOnSite />
         <SocialProof />
         <ZoneSection />
+        <BlogTeaser />
         <FaqSection />
         <FinalCta />
       </div>
