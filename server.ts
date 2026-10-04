@@ -429,15 +429,25 @@ async function startServer() {
 
       const numSurface = Math.max(15, Number(surface) || 75);
       if (dvf) {
+        // The DVF median already mixes every condition, parking and period of construction.
+        // Only the factors a buyer really prices in are applied, and kept small and bounded.
         baseM2 = dvf.medianM2;
-        // The DVF median mixes all conditions: keep our adjustments, but bounded
-        multiplier = Math.min(1.25, Math.max(0.8, multiplier));
+        let m = 1;
+        m *= ({ to_renovate: 0.85, refresh_needed: 0.93, good: 1, renovated: 1.06, new: 1.1 } as Record<string, number>)[condition] ?? 1;
+        m *= ({ A: 1.04, B: 1.04, E: 0.96, F: 0.9, G: 0.9 } as Record<string, number>)[dpe] ?? 1;
+        m *= ({ exceptional: 1.06, open: 1.03, street: 0.98, vis_a_vis: 0.95 } as Record<string, number>)[viewType] ?? 1;
+        if (propertyType === "apartment") {
+          m *= ({ rdc: 0.94, high_floor: 1.02, top_floor: 1.05 } as Record<string, number>)[floor] ?? 1;
+          m *= ({ balcony: 1.02, terrace: 1.05, garden: 1.08 } as Record<string, number>)[outdoor] ?? 1;
+        }
+        multiplier = Math.min(1.15, Math.max(0.85, m));
+        extraValue = 0;
       }
       const estimatedAvg = Math.round(numSurface * baseM2 * multiplier + extraValue);
       // Range width follows the real dispersion of nearby sales (5 % to 12 %); flat 6 % for the sector table
       const halfWidth = dvf
-        ? Math.min(0.12, Math.max(0.05, ((dvf.p75M2 - dvf.p25M2) / (2 * dvf.medianM2)) * 0.6))
-        : 0.06;
+        ? Math.min(0.12, Math.max(0.06, ((dvf.p75M2 - dvf.p25M2) / (2 * dvf.medianM2)) * 0.6))
+        : 0.12; // no sales data: honest, wider range
       const lowPrice = Math.round((estimatedAvg * (1 - halfWidth)) / 1000) * 1000;
       const highPrice = Math.round((estimatedAvg * (1 + halfWidth)) / 1000) * 1000;
       const avgM2 = Math.round(estimatedAvg / numSurface);
@@ -1030,6 +1040,9 @@ async function startServer() {
         motif: leadData.motive || null,
         delai_projet: leadData.timeframe ? String(leadData.timeframe) : null,
       };
+      // Seller-journey context for the CRM, written once when the lead is created (never overwrites the advisor's edits)
+      const initialCrm: Record<string, any> = {};
+      for (const k of ["notes", "tasks", "activities", "valuation"]) if (leadData[k]) initialCrm[k] = leadData[k];
 
       if (idIsUuid) {
         // A lead that already has a confirmed appointment must never fall back to an earlier stage
@@ -1046,7 +1059,10 @@ async function startServer() {
         }
       }
 
-      const { data: inserted, error: insertError } = await runWithOptionalColumns<{ id: string }>(base, optional, (p) =>
+      const { data: inserted, error: insertError } = await runWithOptionalColumns<{ id: string }>(
+        base,
+        { ...optional, ...(Object.keys(initialCrm).length ? { crm: initialCrm } : {}) },
+        (p) =>
         client.from("leads").insert(p).select("id").single(),
       );
 

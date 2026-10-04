@@ -249,12 +249,12 @@ const monthLabel = (iso: string) => `${MONTHS[parseInt(iso.slice(5, 7), 10) - 1]
 
 export function computeEstimate(
   sales: DvfSale[],
-  q: { type: "apartment" | "house"; surface: number; geo: Geo; now?: Date },
+  q: { type: "apartment" | "house"; surface: number; geo: Geo; now?: Date; months?: number; wide?: boolean },
 ): DvfEstimate | null {
   const now = q.now || new Date();
-  const since = new Date(now.getTime() - 36 * 30.44 * 86400000).toISOString().slice(0, 10);
-  const lo = q.type === "house" ? 0.6 : 0.65;
-  const hi = q.type === "house" ? 1.6 : 1.5;
+  const since = new Date(now.getTime() - (q.months || 36) * 30.44 * 86400000).toISOString().slice(0, 10);
+  const lo = q.wide ? 0.5 : q.type === "house" ? 0.6 : 0.65;
+  const hi = q.wide ? 1.9 : q.type === "house" ? 1.6 : 1.5;
 
   let pool = sales
     .filter((s) => s.t === q.type && s.d >= since && s.s >= q.surface * lo && s.s <= q.surface * hi)
@@ -329,7 +329,12 @@ export async function estimateFromDvf(q: {
     return true;
   });
   if (sales.length === 0) return null;
-  return computeEstimate(sales, { type: q.type, surface: q.surface, geo });
+  // The market moves: use the freshest window that still gives a trustworthy sample, then widen
+  return (
+    computeEstimate(sales, { type: q.type, surface: q.surface, geo, months: 24 }) ||
+    computeEstimate(sales, { type: q.type, surface: q.surface, geo, months: 36 }) ||
+    computeEstimate(sales, { type: q.type, surface: q.surface, geo, months: 36, wide: true })
+  );
 }
 
 /** Warm the cache for the commune in the background (called at server start for the home market). */

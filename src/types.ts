@@ -126,6 +126,17 @@ export interface Lead {
   customSequence?: ScheduledMessage[];
   createdAt: string;
   createdAtIso?: string;
+  /** How the price shown to the seller was computed (kept for the advisor) */
+  valuation?: {
+    dataSource?: 'dvf' | 'baseline';
+    lowPrice: number;
+    highPrice: number;
+    medianM2?: number;
+    sampleSize?: number;
+    radiusM?: number | null;
+    periodFrom?: string;
+    periodTo?: string;
+  };
   calBookingId?: string;
   conversationHistory?: ChatMessage[];
   notes?: string;

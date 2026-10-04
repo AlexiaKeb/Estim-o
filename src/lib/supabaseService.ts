@@ -116,6 +116,10 @@ export async function syncLeadToSupabase(lead: Partial<Lead>): Promise<string | 
         score: lead.score,
         status: lead.status,
         meetingBooked: lead.meetingBooked,
+        notes: lead.notes,
+        tasks: lead.tasks,
+        activities: lead.activities,
+        valuation: lead.valuation,
       }),
     });
 

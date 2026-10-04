@@ -232,7 +232,21 @@ export const LandingSimulator: React.FC<Props> = ({
       score: isHot ? 92 : 78,
       meetingBooked: false,
       createdAt: 'À l\'instant',
-      notes: `Lead capturé via simulateur d'estimation. Projet : ${leadContact.motive} (${leadContact.timeframe}). Bien : ${inputs.propertyType === 'apartment' ? 'Appartement' : 'Maison'} ${inputs.surface} m² à ${inputs.city}. Fourchette : ${result.lowPrice.toLocaleString('fr-FR')} € - ${result.highPrice.toLocaleString('fr-FR')} €.`,
+      valuation: {
+        dataSource: result.dataSource,
+        lowPrice: result.lowPrice,
+        highPrice: result.highPrice,
+        medianM2: result.medianM2,
+        sampleSize: result.sampleSize,
+        radiusM: result.radiusM,
+        periodFrom: result.periodFrom,
+        periodTo: result.periodTo,
+      },
+      notes: `Lead capturé via simulateur d'estimation. Source du prix : ${
+        result.dataSource === 'dvf'
+          ? `${result.sampleSize} ventes réelles DVF${result.radiusM ? ` dans ${result.radiusM} m` : ' de la commune'} (médiane ${result.medianM2?.toLocaleString('fr-FR')} €/m²)`
+          : 'prix moyen de secteur, ventes comparables indisponibles (fourchette large, à affiner en visite)'
+      }. Projet : ${leadContact.motive} (${leadContact.timeframe}). Bien : ${inputs.propertyType === 'apartment' ? 'Appartement' : 'Maison'} ${inputs.surface} m² à ${inputs.city}. Fourchette : ${result.lowPrice.toLocaleString('fr-FR')} € - ${result.highPrice.toLocaleString('fr-FR')} €.`,
       tasks: [
         { id: `t-${Date.now()}-1`, label: 'Coordonnées capturées avant affichage du prix', done: true, category: 'qualification' },
         { id: `t-${Date.now()}-2`, label: 'Rappeler le vendeur sous 2h (Priorité)', done: false, category: 'qualification' },
