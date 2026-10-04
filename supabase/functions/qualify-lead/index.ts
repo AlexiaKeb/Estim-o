@@ -106,7 +106,7 @@ serve(async (req: Request) => {
     }
 
     // 5. Construct Dynamic System Prompt (No hardcoded agent identity)
-    const dynamicSystemPrompt = `Tu es l'assistant de qualification conversationnelle d'Estiméo, agissant pour le compte de ${agentDisplayName}${agencyName ? ` (${agencyName})` : ""}.
+    const dynamicSystemPrompt = `Tu es l'assistant d'Agent Estimation, agissant pour le compte de ${agentDisplayName}${agencyName ? ` (${agencyName})` : ""}.
 
 CONTEXTE ET IDENTITÉ DE L'AGENT :
 - Conseiller référent : ${agentDisplayName}

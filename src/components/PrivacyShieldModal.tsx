@@ -45,7 +45,7 @@ export const PrivacyShieldModal: React.FC<Props> = ({
 
   const currentSlug = settings.customAgentSlug || 'agent';
   const currentToken = settings.stealthLoginToken || 'pro-conseil-2026';
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://estimeo.fr';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://agent-estimation.fr';
   const directAgentUrl = `${origin}/${currentSlug}`;
   const stealthUrl = `${origin}/?pro=${currentToken}`;
 
@@ -333,7 +333,7 @@ export const PrivacyShieldModal: React.FC<Props> = ({
                   Triple-Clic Logo
                 </div>
                 <p className="text-[11px] text-stone-500">
-                  Cliquez 3 fois rapidement sur le logo Estiméo.
+                  Cliquez 3 fois rapidement sur le logo.
                 </p>
               </div>
             </div>
@@ -356,7 +356,7 @@ export const PrivacyShieldModal: React.FC<Props> = ({
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, publicBrandName: e.target.value })
                 }
-                placeholder="Estiméo • Estimation & Valorisation Sur-Mesure"
+                placeholder="Agent Estimation"
                 className="w-full px-3 py-2 rounded-lg border border-stone-200 text-xs font-normal text-stone-900 bg-white focus:outline-none focus:ring-1 focus:ring-stone-400"
               />
               <p className="text-[10px] text-stone-400">

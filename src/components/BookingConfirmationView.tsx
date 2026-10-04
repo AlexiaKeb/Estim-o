@@ -65,9 +65,9 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
   // Generate Google Calendar Link
   const handleAddToGoogleCalendar = () => {
-    const title = encodeURIComponent(`Visite de découverte Estiméo - ${confirmedLead.name}`);
+    const title = encodeURIComponent(`Visite de découverte Agent Estimation - ${confirmedLead.name}`);
     const details = encodeURIComponent(
-      `Rendez-vous de découverte et estimation avec Céline (Conseillère Référente Estiméo).\n\nBien : ${confirmedLead.propertyType} (${confirmedLead.surface} m²)\nLieu : ${confirmedLead.address || confirmedLead.city}\nObjectif : Faire connaissance, découvrir votre projet et échanger sur les spécificités du bien pour notre évaluation en équipe.\nPour modifier votre créneau, contactez directement Céline au 06 03 58 03 16`
+      `Rendez-vous de découverte et estimation avec Céline (Agent Estimation).\n\nBien : ${confirmedLead.propertyType} (${confirmedLead.surface} m²)\nLieu : ${confirmedLead.address || confirmedLead.city}\nObjectif : Faire connaissance, découvrir votre projet et échanger sur les spécificités du bien pour notre évaluation en équipe.\nPour modifier votre créneau, contactez directement Céline au 06 03 58 03 16`
     );
     const location = encodeURIComponent(confirmedLead.address || `${confirmedLead.city}, France`);
     
@@ -89,9 +89,9 @@ export const BookingConfirmationView: React.FC<Props> = ({
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Estimeo//RDV Decouverte//FR',
+      'PRODID:-//Agent Estimation//RDV Decouverte//FR',
       'BEGIN:VEVENT',
-      `SUMMARY:Visite découverte & estimation Estiméo - ${confirmedLead.name}`,
+      `SUMMARY:Visite découverte & estimation - ${confirmedLead.name}`,
       `DESCRIPTION:Visite de découverte avec Céline. Découvrir votre projet et analyser le bien pour l'évaluation en équipe. Tél Céline: 06 03 58 03 16`,
       `LOCATION:${confirmedLead.address || confirmedLead.city}`,
       `DTSTART:${dateStr}T${timeStr}`,
@@ -104,7 +104,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.setAttribute('download', `rdv-decouverte-estimeo-${confirmedLead.meetingDate}.ics`);
+    link.setAttribute('download', `rdv-decouverte-agent-estimation-${confirmedLead.meetingDate}.ics`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

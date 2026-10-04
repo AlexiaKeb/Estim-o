@@ -3,6 +3,11 @@
 // en France : pratiques commerciales trompeuses). Tant que ces listes sont vides, les blocs
 // correspondants ne s'affichent pas.
 
+export const BRAND = {
+  name: 'Agent Estimation',
+  tagline: 'Estimation immobilière à Lyon',
+};
+
 export const AGENT = {
   name: 'Céline Levrat',
   firstName: 'Céline',

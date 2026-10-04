@@ -128,14 +128,14 @@ serve(async (req: Request) => {
     const leadEmail = lead.email && lead.email.includes("@")
       ? lead.email
       : `prospect.${(lead.telephone || "0600000000").replace(/\s+/g, "")}@estimeo-lyon.fr`;
-    const leadName = lead.nom || "Prospect Estiméo";
+    const leadName = lead.nom || "Client";
     const leadPhone = lead.telephone || "06 03 58 03 16";
     const propertyAddress = body.address || lead.ville_bien || "Lyon et agglomération";
 
     const calendarDescription = [
-      `📍 DOSSIER D'ESTIMATION ESTIMÉO - NOVEA IMMOBILIER`,
+      `📍 VISITE D'ESTIMATION - NOVEA IMMOBILIER`,
       `--------------------------------------------------`,
-      `👤 COORDONNÉES DU PROSPECT :`,
+      `👤 COORDONNÉES :`,
       `• Nom complet : ${leadName}`,
       `• Téléphone : ${leadPhone}`,
       `• Email : ${leadEmail}`,
@@ -153,7 +153,7 @@ serve(async (req: Request) => {
       `📝 NOTES & CONSIGNES :`,
       `• ${notes || "Visite d'estimation immobilière sur place avec étude comparative."}`,
       ``,
-      `⚡ Généré automatiquement par Estiméo Lyon pour Céline Levrat (NOVEA Immobilier)`,
+      `Réservé via Agent Estimation`,
     ].filter(Boolean).join("\n");
 
     let calBookingId: string | null = null;

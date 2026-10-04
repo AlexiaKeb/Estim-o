@@ -1024,7 +1024,7 @@ async function startServer() {
 
       const base: Record<string, any> = {
         agent_id: agentId,
-        nom: leadData.name || leadData.nom || "Prospect Estiméo",
+        nom: leadData.name || leadData.nom || "Client",
         telephone: leadData.phone || leadData.telephone || "06 00 00 00 00",
         email: leadData.email || null,
         type_bien: leadData.propertyType || leadData.type_bien || null,
@@ -1267,7 +1267,7 @@ async function startServer() {
               .from("leads")
               .insert({
                 agent_id: agentId,
-                nom: name || "Prospect Estiméo",
+                nom: name || "Client",
                 telephone: phone || "06 00 00 00 00",
                 email: email || null,
                 ville_bien: address || "Lyon",
@@ -1325,7 +1325,7 @@ async function startServer() {
       }
 
       console.log(`[Timezone Align] Selected slot '${creneau}' (Paris local) converted to Cal.com UTC start: ${startIso}`);
-      const leadName = leadRecord?.nom || name || "Prospect Estiméo";
+      const leadName = leadRecord?.nom || name || "Client";
       const leadEmail = rawEmail;
       const leadPhone = leadRecord?.telephone || phone || "06 03 58 03 16";
       const propertyAddress = address || leadRecord?.ville_bien || "Lyon et agglomération";
@@ -1336,9 +1336,9 @@ async function startServer() {
 
       // Formater un dossier complet synchronisé directement dans l'événement de calendrier (Google Calendar / Cal.com) pour Céline
       const calendarDescription = [
-        `📍 DOSSIER D'ESTIMATION ESTIMÉO - NOVEA IMMOBILIER`,
+        `📍 VISITE D'ESTIMATION - ${AGENT_PROFILE.agency.toUpperCase()}`,
         `--------------------------------------------------`,
-        `👤 COORDONNÉES DU PROSPECT :`,
+        `👤 COORDONNÉES :`,
         `• Nom complet : ${leadName}`,
         `• Téléphone : ${leadPhone}`,
         `• Email : ${leadEmail}`,
@@ -1346,18 +1346,17 @@ async function startServer() {
         `📍 ADRESSE DU BIEN (LIEU DU RENDEZ-VOUS) :`,
         `• ${propertyAddress}`,
         ``,
-        `🏡 CARACTÉRISTIQUES DU PROJET :`,
+        `🏡 LE BIEN ET LE PROJET :`,
         `• Type de bien : ${propType}`,
         propSurface ? `• Surface estimée : ${propSurface} m²` : null,
         estimated_value ? `• Estimation préliminaire : ${Number(estimated_value).toLocaleString("fr-FR")} €` : null,
         `• Horizon du projet : ${propTimeframe}`,
         `• Motif du projet : ${propMotive}`,
-        `• Prospect ayant demandé la visite via Estiméo`,
         ``,
-        `📝 NOTES & CONSIGNES DU RDV :`,
+        `📝 NOTES :`,
         `• ${notes || "Visite d'estimation sur place pour affinage de l'avis de valeur et remise de l'étude comparative."}`,
         ``,
-        `⚡ Généré automatiquement par Estiméo Lyon pour Céline Levrat (NOVEA Immobilier)`,
+        `Réservé via Agent Estimation`,
       ].filter(Boolean).join("\n");
 
       let calBookingId: string | null = null;
@@ -1427,7 +1426,7 @@ async function startServer() {
             bookingFieldsResponses: {
               notes: calendarDescription,
             },
-            metadata: { source: "estimeo", lead_id: String(actualLeadId || "") },
+            metadata: { source: "agent-estimation", lead_id: String(actualLeadId || "") },
           };
 
           const postBooking = (payload: any) =>
@@ -1906,7 +1905,7 @@ async function startServer() {
     res.json({ overall, checks });
   });
 
-  // --- Cal.com -> Estiméo synchronisation (cancellations / reschedules made from Cal.com or the e-mail link) ---
+  // --- Cal.com -> Agent Estimation synchronisation (cancellations / reschedules made from Cal.com or the e-mail link) ---
   async function applyCalBookingChange(
     client: any,
     change: { uid?: string; id?: string | number; oldUid?: string; status: "confirme" | "annule"; startIso?: string },
@@ -1977,7 +1976,7 @@ async function startServer() {
           startIso,
         });
       } else if (triggerEvent === "BOOKING_CREATED") {
-        // Bookings made through Estiméo are already stored; just make sure the uid is attached
+        // Bookings made through Agent Estimation are already stored; just make sure the uid is attached
         result = await applyCalBookingChange(client, { uid, id: payload?.bookingId, status: "confirme", startIso });
       }
       console.log(`[Cal webhook] ${triggerEvent} uid=${uid} matched=${result.matched}`);

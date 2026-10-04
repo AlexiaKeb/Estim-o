@@ -85,7 +85,7 @@ export const CrmPipelineView: React.FC<Props> = ({
       ? `Mandat en cours de négociation (${lead.mandate.type})`
       : 'Aucun mandat signé pour le moment';
 
-    const text = `📋 FICHE PROSPECT - ESTIMÉO IMMOBILIER
+    const text = `📋 FICHE PROSPECT - AGENT ESTIMATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 👤 NOM : ${lead.name}
 📞 TÉL : ${lead.phone}
@@ -1910,7 +1910,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                               }`}
                             >
                               <div className="flex items-center justify-between gap-4 mb-1 text-[10px] font-semibold opacity-75">
-                                <span>{isAssistant ? 'Conseillère Céline • Estiméo' : selectedLeadDrawer.name}</span>
+                                <span>{isAssistant ? 'Conseillère Céline • Agent Estimation' : selectedLeadDrawer.name}</span>
                                 <span>{msg.timestamp || 'Enregistré'}</span>
                               </div>
                               <p className="whitespace-pre-wrap">{msg.content}</p>

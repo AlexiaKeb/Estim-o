@@ -130,7 +130,7 @@ export const QualificationChatbot: React.FC<Props> = ({
 
   const getChatTranscript = () => {
     const header = `=====================================================
-SYNTHÈSE DE L'ÉTUDE D'ESTIMATION - ESTIMÉO IMMOBILIER
+SYNTHÈSE DE L'ÉTUDE D'ESTIMATION - AGENT ESTIMATION
 Date : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
 Bien : ${collectedData.propertyType || 'Bien'} ${collectedData.surface ? `• ${collectedData.surface} m²` : ''} à ${collectedData.city || 'Secteur'}
 Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.estimatedValue).toLocaleString('fr-FR') + ' €' : 'En cours'}
@@ -159,7 +159,7 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Synthese_Estimation_Estimeo_${Date.now()}.txt`;
+    a.download = `Synthese_Estimation_${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

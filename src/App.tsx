@@ -37,6 +37,7 @@ import { BookingConfirmationView } from './components/BookingConfirmationView';
 import { PrivacyShieldModal } from './components/PrivacyShieldModal';
 import { AgentAuthModal } from './components/AgentAuthModal';
 import { CalendarHealth } from './components/CalendarHealth';
+import { BRAND } from './data/siteContent';
 
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator';
 
@@ -63,8 +64,8 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.publicBrandName && (parsed.publicBrandName.includes('MandatFlow') || parsed.publicBrandName.includes('EstiVal') || parsed.publicBrandName.includes('Valoria'))) {
-          parsed.publicBrandName = "Estiméo • Estimation & Valorisation Sur-Mesure";
+        if (parsed.publicBrandName && /MandatFlow|EstiVal|Valoria|Estiméo|Estimeo/i.test(parsed.publicBrandName)) {
+          parsed.publicBrandName = "Agent Estimation";
         }
         if (parsed.hidePublicLoginButton === undefined) {
           parsed.hidePublicLoginButton = true;
@@ -79,8 +80,8 @@ export default function App() {
     }
     return {
       hidePersonalIdentity: true,
-      publicBrandName: "Estiméo • Estimation & Valorisation Sur-Mesure",
-      publicContactEmail: "contact@estimeo-immobilier.fr",
+      publicBrandName: "Agent Estimation",
+      publicContactEmail: "",
       publicContactPhone: "06 03 58 03 16 (Céline - Conseillère référente)",
       hideInternalScoringFromProspect: true,
       stealthModeEnabled: true,
@@ -410,7 +411,7 @@ export default function App() {
   const handleSimulatorLeadCaptured = (newLead: Lead, replacesId?: string) => {
     setActiveLead(newLead);
     setLeads((prev) => [newLead, ...prev.filter((l) => l.id !== newLead.id && l.id !== replacesId)]);
-    if (!replacesId) showToast(`🔒 Estimation déverrouillée pour ${newLead.name} ! Dossier enregistré dans le CRM.`);
+    if (!replacesId) showToast(`Merci ${newLead.name.split(' ')[0]}, votre estimation est prête.`);
   };
 
 
@@ -422,7 +423,7 @@ export default function App() {
       showToast('Lead enregistré ! Séquence de nurture 6 semaines activée.');
       setCurrentView('pipeline');
     } else {
-      showToast('✅ Votre dossier d\'estimation a été transmis pour étude personnalisée.');
+      showToast('Votre demande a bien été transmise.');
       setCurrentView('landing');
     }
   };
@@ -463,7 +464,7 @@ export default function App() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-white tracking-tight">Estiméo</span>
+                    <span className="text-sm font-bold text-white tracking-tight">{BRAND.name}</span>
                     <span className="px-1.5 py-0.5 rounded-md bg-stone-800 text-stone-300 font-semibold text-[10px] uppercase border border-stone-700">
                       Conseil Pro
                     </span>
@@ -542,24 +543,20 @@ export default function App() {
                 id="btn-agent-privacy-shield"
                 onClick={() => setIsPrivacyModalOpen(true)}
                 className="py-1.5 px-3 rounded-lg border border-stone-700 bg-stone-800/80 hover:bg-stone-800 text-stone-200 text-xs font-medium transition-all flex items-center gap-1.5"
-                title="Gérer votre anonymat, nom de marque et code PIN"
+                title="Gérer la confidentialité et l'identité affichée aux clients"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-stone-400" />
-                <span>Confidentialité & PIN</span>
+                <span>Confidentialité</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  setIsAgentMode(false);
-                  setCurrentView('landing');
-                  showToast('Mode aperçu vendeur activé. Les onglets agent sont masqués.');
-                }}
+                onClick={() => window.open('/', '_blank', 'noopener')}
                 className="py-1.5 px-3 rounded-lg border border-stone-700 bg-stone-800/50 hover:bg-stone-800 text-stone-300 text-xs font-medium transition-all flex items-center gap-1.5"
-                title="Voir ce que voit un vendeur lorsqu'il arrive sur le site"
+                title="Ouvre le site tel que le voient vos clients, dans un nouvel onglet"
               >
                 <Eye className="w-3.5 h-3.5 text-stone-400" />
-                <span>Vue Vendeur</span>
+                <span>Voir le site client</span>
               </button>
 
               <button
@@ -614,7 +611,7 @@ export default function App() {
                   className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-stone-200 bg-stone-800/50 border border-stone-700 flex items-center gap-2"
                 >
                   <ShieldCheck className="w-4 h-4 text-stone-400" />
-                  <span>Confidentialité & Code PIN</span>
+                  <span>Confidentialité</span>
                 </button>
                 <button
                   type="button"
@@ -631,39 +628,6 @@ export default function App() {
       ) : (
         /* =================== PUBLIC CLIENT HEADER (Warm SaaS Editorial) =================== */
         <>
-          {/* If authenticated agent is previewing the client view, show subtle floating banner */}
-          {isAgentAuthenticated && (
-            <div className="bg-stone-900 text-stone-200 px-4 py-2 text-xs flex items-center justify-between border-b border-stone-800 z-50">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="font-medium text-stone-200">
-                  Aperçu Public Vendeur actif : Vos prospects profitent d'un portail clair et sans distractions techniques.
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAgentMode(true);
-                    setCurrentView('pipeline');
-                  }}
-                  className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-white font-medium text-[11px] flex items-center gap-1 transition-all border border-stone-700"
-                >
-                  <span>Retour Espace Pro</span>
-                  <ArrowRight className="w-3 h-3 text-stone-300" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLockAgentMode}
-                  className="px-2.5 py-1 rounded-lg bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 font-medium text-[11px] flex items-center gap-1 border border-rose-900/50"
-                >
-                  <Lock className="w-3 h-3 text-rose-400" />
-                  <span>Verrouiller</span>
-                </button>
-              </div>
-            </div>
-          )}
-
           <header className="sticky top-0 z-40 bg-[#fbfbfa]/95 backdrop-blur-md border-b border-stone-200/80 shadow-2xs">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               {/* Public Brand Logo with subtle triple-click detection */}
@@ -683,14 +647,11 @@ export default function App() {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-bold text-stone-900 tracking-tight">
-                        {privacySettings.publicBrandName.split('•')[0].trim() || 'Estiméo'}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-700 font-semibold text-[10px] uppercase border border-stone-200">
-                        Estimation offerte
+                        {BRAND.name}
                       </span>
                     </div>
                     <div className="text-[11px] text-stone-500 font-normal">
-                      Estimation & Valorisation Immobilière
+                      {BRAND.tagline}
                     </div>
                   </div>
                 </button>
@@ -867,7 +828,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-stone-800">
-              {isAgentMode ? 'Estiméo • Suite Conseiller Expert' : privacySettings.publicBrandName}
+              {BRAND.name}
             </span>
             <span>•</span>
             <span>Conformité RGPD & Secret Professionnel</span>
