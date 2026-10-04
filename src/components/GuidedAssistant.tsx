@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Bot, CalendarDays, CheckCircle2, Loader2, Send, ShieldCheck, TrendingUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Lead, ValuationInputs, ValuationResult } from '../types';
-import { AGENT, VISIT_LABEL } from '../data/siteContent';
+import { AGENT } from '../data/siteContent';
 import { fetchCalSlotsDetailed, syncLeadToSupabase } from '../lib/supabaseService';
 import { getAttribution, trackConversion } from '../utils/tracking';
 import { renderRichText } from '../utils/richText';
@@ -526,7 +526,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         {
           id: nextId(),
           role: 'assistant',
-          text: data.reply || `Bonne question. ${AGENT.firstName} y répondra précisément lors de la visite de ${VISIT_LABEL}.`,
+          text: data.reply || `Bonne question. ${AGENT.firstName} y répondra précisément lors de la visite.`,
         },
       ]);
     } catch {
@@ -543,7 +543,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1.5">À savoir avant de partir</p>
       <p className="text-[15px] sm:text-base leading-relaxed">
         <strong className="text-white">C'est un repère :</strong> seule une visite tient compte de l'état réel, de la lumière, de l'étage ou de la vue.{' '}
-        {AGENT.firstName} vous propose une visite de <strong className="text-amber-300">{VISIT_LABEL}</strong>, gratuite et sans engagement.
+        {AGENT.firstName} vous propose une <strong className="text-amber-300">visite gratuite et sans engagement</strong>.
+      </p>
+      <p className="mt-2 text-[15px] sm:text-base leading-relaxed">
+        <strong className="text-white">{AGENT.firstName} vous contactera personnellement</strong> pour tout organiser et répondre à vos questions.
       </p>
       <p className="mt-1.5 text-sm font-semibold text-amber-200">Choisissez un créneau ci-dessous ↓</p>
     </div>
@@ -725,7 +728,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               <div className="rounded-2xl border border-amber-300 bg-amber-50/60 p-3 sm:p-4 space-y-3">
                 <p className="text-sm font-semibold text-[#0f1f3d] flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-amber-600" />
-                  Prochains créneaux de {AGENT.firstName} (visite de {VISIT_LABEL})
+                  Prochains créneaux de {AGENT.firstName}
                 </p>
                 {days.map((d) => (
                   <div key={d.date} className="space-y-1.5">
@@ -748,7 +751,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             )}
             <div className="flex flex-wrap gap-2">
               <Chip strong disabled={slots === null && !slotsFailed} onClick={() => onOpenBooking?.(bookingInfo())}>
-                {days.length > 0 ? 'Voir tous les créneaux' : `Réserver ma visite gratuite (${VISIT_LABEL})`}
+                {days.length > 0 ? 'Voir tous les créneaux' : 'Réserver ma visite gratuite'}
               </Chip>
               {!qAnswers.ownership && <Chip onClick={startQuestions}>Préparer ma visite en 3 questions</Chip>}
             </div>

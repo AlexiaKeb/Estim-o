@@ -946,7 +946,7 @@ async function startServer() {
 
       try {
         const parsed = await claudeJson<{ sequence: any[] }>({
-          system: `Tu rédiges des relances par e-mail pour une conseillère immobilière indépendante (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. Canal : Email uniquement. Objet court, 4 à 6 lignes. RÈGLES STRICTES : n'invente aucun fait (aucune vente précise, aucun délai de vente, aucun acquéreur ou « acheteur qualifié », aucune statistique, aucun partenaire ni tarif négocié, aucune urgence artificielle) ; n'utilise que les données du profil fournies ; n'écris jamais « net vendeur ». Chaque message propose un pas simple vers une visite de découverte offerte d'environ ${formatDuration(AGENT_PROFILE.visitMinutes)}.`,
+          system: `Tu rédiges des relances par e-mail pour une conseillère immobilière indépendante (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. Canal : Email uniquement. Objet court, 4 à 6 lignes. RÈGLES STRICTES : n'invente aucun fait (aucune vente précise, aucun délai de vente, aucun acquéreur ou « acheteur qualifié », aucune statistique, aucun partenaire ni tarif négocié, aucune urgence artificielle) ; n'utilise que les données du profil fournies ; n'écris jamais « net vendeur ». Chaque message propose un pas simple vers une visite de découverte offerte, sans mentionner sa durée.`,
           messages: [{
             role: "user",
             content: `Génère une séquence de 5 relances (J+1, J+7, J+15, J+30, J+60) pour ce propriétaire pas encore mûr.\nProfil :\n${JSON.stringify(leadProfile, null, 2)}\nLe champ step doit être de la forme "J+1 (SMS)".`,

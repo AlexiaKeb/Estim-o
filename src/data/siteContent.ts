@@ -68,7 +68,7 @@ export const KEY_FIGURES: KeyFigure[] = [];
 export const FAQ: Array<{ q: string; a: string }> = [
   {
     q: 'La visite est-elle vraiment gratuite et sans engagement ?',
-    a: `Oui. La visite de découverte dure environ ${VISIT_LABEL}, elle est offerte et ne vous engage à rien. Aucun document n'est à préparer.`,
+    a: `Oui. La visite de découverte est offerte et ne vous engage à rien. Aucun document n'est à préparer.`,
   },
   {
     q: 'Pourquoi une visite, alors que je peux avoir un prix en ligne ?',
