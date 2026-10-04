@@ -29,7 +29,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
   };
 
   return (
-    <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto space-y-10">
+    <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto space-y-10 -mb-8">
       <LandingHero onStart={handleHeroStart} />
 
       <section id="simulateur" aria-label="Votre estimation avec l'assistant" className="scroll-mt-20 space-y-4">
@@ -40,7 +40,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
         <GuidedAssistant seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={onOpenBooking} onLeadReady={setLeadInfo} />
       </section>
 
-      <div className="space-y-14 pt-2 pb-24 sm:pb-0">
+      <div className="pt-2 pb-0">
         <HowItWorks />
         <WhyOnSite />
         <SocialProof />

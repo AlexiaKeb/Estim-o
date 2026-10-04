@@ -834,7 +834,7 @@ export default function App() {
       </Suspense>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-stone-200/80 py-6 mt-12">
+      <footer className="bg-white border-t border-stone-200/80 pt-6 pb-24 sm:pb-6 mt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-stone-800">

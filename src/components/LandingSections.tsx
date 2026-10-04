@@ -152,6 +152,31 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
   );
 };
 
+type Tone = 'white' | 'cream' | 'navy' | 'gold';
+const TONES: Record<Tone, string> = {
+  white: 'bg-white',
+  cream: 'bg-[#f7f2e8]',
+  navy: 'bg-[#0f1f3d] text-white',
+  gold: 'bg-gradient-to-br from-amber-400 to-amber-300 text-[#0f1f3d]',
+};
+
+/** Full-width horizontal band: gives each part of the page its own background and rhythm. */
+const Band: React.FC<{ tone: Tone; children: React.ReactNode; id?: string }> = ({ tone, children, id }) => (
+  <div id={id} className={`relative left-1/2 -translate-x-1/2 w-screen ${TONES[tone]}`}>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">{children}</div>
+  </div>
+);
+
+const Eyebrow: React.FC<{ children: React.ReactNode; light?: boolean }> = ({ children, light }) => (
+  <p className={`text-xs font-bold uppercase tracking-[0.18em] ${light ? 'text-amber-300' : 'text-amber-600'}`}>{children}</p>
+);
+
+const H2: React.FC<{ id: string; children: React.ReactNode; light?: boolean }> = ({ id, children, light }) => (
+  <h2 id={id} className={`mt-2 text-3xl sm:text-4xl font-bold tracking-tight [text-wrap:balance] ${light ? 'text-white' : 'text-[#0f1f3d]'}`}>
+    {children}
+  </h2>
+);
+
 const STEPS = [
   {
     icon: Home,
@@ -171,63 +196,71 @@ const STEPS = [
 ];
 
 export const HowItWorks: React.FC = () => (
-  <section aria-labelledby="how-title" className="space-y-6">
-    <h2 id="how-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900 [text-wrap:balance]">
-      Comment ça se passe
-    </h2>
-    <ol className="grid md:grid-cols-3 gap-4">
-      {STEPS.map((s, i) => (
-        <li key={s.title} className="rounded-xl bg-white border border-stone-200 p-6 space-y-3">
-          <div className="flex items-center gap-3">
-            <span className="w-9 h-9 rounded-full bg-stone-900 text-white text-sm font-semibold flex items-center justify-center">
-              {i + 1}
-            </span>
-            <s.icon className="w-5 h-5 text-amber-600" />
-          </div>
-          <h3 className="font-semibold text-stone-900">{s.title}</h3>
-          <p className="text-sm text-stone-600 leading-relaxed">{s.text}</p>
-        </li>
-      ))}
-    </ol>
-  </section>
+  <Band tone="white">
+    <section aria-labelledby="how-title">
+      <div className="text-center max-w-2xl mx-auto">
+        <Eyebrow>Simple et rapide</Eyebrow>
+        <H2 id="how-title">Comment ça se passe</H2>
+      </div>
+      <ol className="mt-12 grid md:grid-cols-3 gap-10 md:gap-8 relative">
+        <div aria-hidden className="hidden md:block absolute top-8 left-[16%] right-[16%] border-t-2 border-dashed border-amber-300" />
+        {STEPS.map((st, i) => (
+          <li key={st.title} className="relative text-center px-2">
+            <div className="relative mx-auto w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-sm ring-4 ring-white">
+              <st.icon className="w-7 h-7" />
+              <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-[#0f1f3d] text-white text-sm font-bold flex items-center justify-center">{i + 1}</span>
+            </div>
+            <h3 className="mt-5 text-lg font-bold text-[#0f1f3d]">{st.title}</h3>
+            <p className="mt-2 text-stone-600 leading-relaxed">{st.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  </Band>
 );
 
 export const WhyOnSite: React.FC = () => (
-  <section aria-labelledby="why-title" className="rounded-2xl bg-stone-100 border border-stone-200 p-6 sm:p-10 grid md:grid-cols-2 gap-8">
-    <div className="space-y-3 min-w-0">
-      <h2 id="why-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900 [text-wrap:balance]">
-        Pourquoi une simulation ne suffit pas
-      </h2>
-      <p className="text-stone-600 leading-relaxed">
-        Un algorithme compare des mètres carrés. Il ne voit pas la lumière de votre séjour, la qualité de la rénovation, le calme de la rue ou la vue. Ce sont ces détails qui font la différence au moment de négocier.
-      </p>
-    </div>
-    <ul className="space-y-3 min-w-0">
-      {[
-        ['Simulation en ligne', 'Un repère indicatif, en 2 minutes.'],
-        ['Visite sur place', 'Un avis de valeur qui tient compte de votre bien réel.'],
-        ['Un avis argumenté', 'Chaque chiffre est expliqué, vous gardez la décision.'],
-      ].map(([t, d]) => (
-        <li key={t} className="flex gap-3">
-          <ShieldCheck className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
-          <div>
-            <div className="font-semibold text-stone-900">{t}</div>
-            <div className="text-sm text-stone-600">{d}</div>
-          </div>
-        </li>
-      ))}
-    </ul>
-  </section>
+  <Band tone="navy">
+    <section aria-labelledby="why-title" className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+      <div className="min-w-0">
+        <Eyebrow light>Simulation ou visite ?</Eyebrow>
+        <H2 id="why-title" light>Pourquoi une simulation ne suffit pas</H2>
+        <p className="mt-4 text-lg text-slate-300 leading-relaxed">
+          Un algorithme compare des mètres carrés. Il ne voit pas la lumière de votre séjour, la qualité de la rénovation, le calme de la rue ou la vue. Ce sont ces détails qui font la différence au moment de négocier.
+        </p>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-4 min-w-0">
+        <div className="rounded-2xl bg-white/5 border border-white/15 p-5">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">En ligne · 2 minutes</p>
+          <h3 className="mt-1 text-lg font-bold text-white">La simulation</h3>
+          <ul className="mt-3 space-y-2 text-sm text-slate-300">
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />Fondée sur les ventes réelles</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />Un repère indicatif</li>
+            <li className="flex gap-2 text-slate-400"><span className="w-4 text-center shrink-0">–</span>Ne voit pas l'état réel du bien</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl bg-white text-stone-800 border-2 border-amber-400 p-5 shadow-xl sm:-translate-y-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Gratuite · sans engagement</p>
+          <h3 className="mt-1 text-lg font-bold text-[#0f1f3d]">La visite sur place</h3>
+          <ul className="mt-3 space-y-2 text-sm text-stone-700">
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Tient compte de votre bien réel</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Un avis argumenté, chiffre par chiffre</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Vous gardez la décision</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </Band>
 );
 
 /** Renders only with real data (see src/data/siteContent.ts). */
 export const SocialProof: React.FC = () => {
   if (TESTIMONIALS.length === 0 && KEY_FIGURES.length === 0) return null;
   return (
+    <Band tone="white">
     <section aria-labelledby="proof-title" className="space-y-6">
-      <h2 id="proof-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">
-        Ils ont confié leur bien à {AGENT.firstName}
-      </h2>
+      <Eyebrow>Témoignages</Eyebrow>
+      <H2 id="proof-title">Ils ont confié leur bien à {AGENT.firstName}</H2>
       {KEY_FIGURES.length > 0 && (
         <dl className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {KEY_FIGURES.map((k) => (
@@ -254,62 +287,76 @@ export const SocialProof: React.FC = () => {
         </div>
       )}
     </section>
+    </Band>
   );
 };
 
 export const FaqSection: React.FC = () => {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section aria-labelledby="faq-title" className="space-y-6">
-      <h2 id="faq-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">
-        Vos questions
-      </h2>
-      <div className="rounded-xl bg-white border border-stone-200 divide-y divide-stone-200">
-        {FAQ.map((item, i) => {
-          const isOpen = open === i;
-          return (
-            <div key={item.q}>
-              <h3>
-                <button
-                  type="button"
-                  id={`faq-btn-${i}`}
-                  aria-expanded={isOpen}
-                  aria-controls={`faq-panel-${i}`}
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="w-full flex items-center justify-between gap-4 text-left px-5 py-4 font-semibold text-stone-900 hover:bg-stone-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-inset"
-                >
-                  <span>{item.q}</span>
-                  <ChevronDown className={`w-4 h-4 shrink-0 text-stone-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-              </h3>
-              {isOpen && (
-                <div id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-btn-${i}`} className="px-5 pb-5 text-stone-600 leading-relaxed">
-                  {item.a}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </section>
+    <Band tone="cream">
+      <section aria-labelledby="faq-title" className="grid lg:grid-cols-[1fr_1.7fr] gap-10 lg:gap-14">
+        <div>
+          <Eyebrow>FAQ</Eyebrow>
+          <H2 id="faq-title">Vos questions</H2>
+          <p className="mt-4 text-stone-600 leading-relaxed">Une autre question ? {AGENT.firstName} vous répond directement.</p>
+          <a href={AGENT.phoneHref} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0f1f3d] hover:bg-[#1a3060] text-white font-semibold px-5 py-3 transition-colors">
+            <Phone className="w-4 h-4 text-amber-300" />
+            {AGENT.phone}
+          </a>
+        </div>
+        <div className="space-y-3">
+          {FAQ.map((item, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={item.q} className={`rounded-2xl bg-white border transition-shadow ${isOpen ? 'border-amber-300 shadow-md' : 'border-stone-200'}`}>
+                <h3>
+                  <button
+                    type="button"
+                    id={`faq-btn-${i}`}
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-panel-${i}`}
+                    onClick={() => setOpen(isOpen ? null : i)}
+                    className="w-full flex items-center justify-between gap-4 text-left px-5 py-4 font-semibold text-[#0f1f3d] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-2xl"
+                  >
+                    <span>{item.q}</span>
+                    <ChevronDown className={`w-5 h-5 shrink-0 text-amber-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </h3>
+                {isOpen && (
+                  <div id={`faq-panel-${i}`} role="region" aria-labelledby={`faq-btn-${i}`} className="px-5 pb-5 text-stone-600 leading-relaxed">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </Band>
   );
 };
 
 export const FinalCta: React.FC = () => (
-  <section className="rounded-2xl bg-stone-900 text-white p-8 sm:p-12 text-center space-y-5">
-    <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight [text-wrap:balance]">
-      Prêt à connaître la valeur de votre bien&nbsp;?
-    </h2>
-    <p className="text-stone-300 max-w-xl mx-auto">Deux minutes pour la simulation, une visite pour affiner. Le reste est entre vos mains.</p>
-    <button
-      type="button"
-      onClick={scrollToSimulator}
-      className="inline-flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-semibold px-6 py-3.5 transition-colors"
-    >
-      Estimer mon bien gratuitement
-      <ArrowRight className="w-4 h-4" />
-    </button>
-  </section>
+  <Band tone="gold">
+    <section className="flex flex-col md:flex-row items-center gap-8 md:gap-12 text-center md:text-left">
+      {AGENT.photoUrl && (
+        <img src={AGENT.photoUrl} alt={AGENT.name} width={160} height={160} loading="lazy" className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white shadow-xl shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight [text-wrap:balance]">Prêt à connaître la valeur de votre bien&nbsp;?</h2>
+        <p className="mt-3 text-lg text-[#0f1f3d]/80 max-w-xl">Deux minutes pour la simulation, une visite gratuite pour affiner. {AGENT.firstName} s'occupe du reste.</p>
+      </div>
+      <button
+        type="button"
+        onClick={scrollToSimulator}
+        className="inline-flex items-center gap-2 rounded-xl bg-[#0f1f3d] hover:bg-[#1a3060] text-white font-bold px-7 py-4 text-base shadow-xl transition-colors shrink-0"
+      >
+        Estimer mon bien gratuitement
+        <ArrowRight className="w-5 h-5" />
+      </button>
+    </section>
+  </Band>
 );
 
 /** Mobile only: the action stays one tap away while the visitor reads. */
@@ -421,51 +468,68 @@ export const ValuationEvidence: React.FC<{ result: import('../types').ValuationR
 
 /** Local context for visitors and search engines: who is served, and where the numbers come from. */
 export const ZoneSection: React.FC = () => (
-  <section aria-labelledby="zone-title" className="rounded-2xl bg-white border border-stone-200 p-6 sm:p-10 space-y-4">
-    <h2 id="zone-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900 [text-wrap:balance]">
-      Estimation immobilière à Lyon, Villeurbanne et en Beaujolais
-    </h2>
-    <p className="text-stone-600 leading-relaxed max-w-3xl">
-      {AGENT.name} accompagne les propriétaires de la métropole lyonnaise et du Beaujolais, jusqu'à 50 km autour de Lyon. Votre estimation en ligne s'appuie sur les ventes réellement enregistrées par l'État (base DVF) autour de votre adresse. La visite permet ensuite de tenir compte de ce qu'aucune base de données ne voit : l'état du bien, la luminosité, l'étage, la vue, les travaux réalisés.
-    </p>
-    <ul className="flex flex-wrap gap-2 text-sm text-stone-700">
-      {[
-        ['Lyon', '/estimation-immobiliere'],
-        ['Villeurbanne', '/estimation-immobiliere/villeurbanne'],
-        ['Caluire-et-Cuire', '/estimation-immobiliere/caluire-et-cuire'],
-        ['Bron', '/estimation-immobiliere/bron'],
-        ['Écully', '/estimation-immobiliere/ecully'],
-        ['Villefranche-sur-Saône', '/estimation-immobiliere/villefranche-sur-saone'],
-      ].map(([c, href]) => (
-        <li key={c}><a href={href} className="inline-block rounded-full border border-stone-200 bg-stone-50 px-3 py-1 hover:border-stone-400">{c}</a></li>
-      ))}
-      <li className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1">Beaujolais et communes alentour</li>
-    </ul>
-  </section>
+  <Band tone="cream">
+    <section aria-labelledby="zone-title" className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-14 items-center">
+      <div>
+        <Eyebrow>Zone d'intervention</Eyebrow>
+        <H2 id="zone-title">Estimation immobilière à Lyon, Villeurbanne et en Beaujolais</H2>
+        <p className="mt-4 text-stone-600 leading-relaxed">
+          {AGENT.name} accompagne les propriétaires de la métropole lyonnaise et du Beaujolais, jusqu'à 50 km autour de Lyon. Votre estimation en ligne s'appuie sur les ventes réellement enregistrées par l'État (base DVF) autour de votre adresse. La visite permet ensuite de tenir compte de ce qu'aucune base de données ne voit : l'état du bien, la luminosité, l'étage, la vue, les travaux réalisés.
+        </p>
+        <a href="/estimation-immobiliere" className="mt-5 inline-flex items-center gap-2 font-semibold text-[#0f1f3d] underline underline-offset-4">
+          Voir les prix par secteur <ArrowRight className="w-4 h-4" />
+        </a>
+      </div>
+      <ul className="grid grid-cols-2 gap-3">
+        {[
+          ['Lyon', '/estimation-immobiliere'],
+          ['Villeurbanne', '/estimation-immobiliere/villeurbanne'],
+          ['Caluire-et-Cuire', '/estimation-immobiliere/caluire-et-cuire'],
+          ['Bron', '/estimation-immobiliere/bron'],
+          ['Écully', '/estimation-immobiliere/ecully'],
+          ['Villefranche-sur-Saône', '/estimation-immobiliere/villefranche-sur-saone'],
+        ].map(([c, href]) => (
+          <li key={c}>
+            <a href={href} className="flex items-center gap-2 rounded-xl bg-white border border-stone-200 px-4 py-3.5 font-semibold text-[#0f1f3d] hover:border-amber-400 hover:shadow-md transition">
+              <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+              {c}
+            </a>
+          </li>
+        ))}
+        <li className="col-span-2 rounded-xl border border-dashed border-stone-300 px-4 py-3 text-sm text-stone-600">Beaujolais et communes alentour</li>
+      </ul>
+    </section>
+  </Band>
 );
 
 const TEASER = [
-  ['estimer-appartement-lyon-criteres-prix', 'Estimer son appartement à Lyon : les 8 critères qui font varier le prix'],
-  ['prix-immobilier-dvf-ventes-reelles-quartier', 'Comment lire les ventes réelles de son quartier (base DVF)'],
-  ['documents-vendre-appartement-maison', 'Vendre son bien : la liste des documents à rassembler'],
+  ['estimer-appartement-lyon-criteres-prix', 'Estimation', 'Estimer son appartement à Lyon : les 8 critères qui font varier le prix'],
+  ['prix-immobilier-dvf-ventes-reelles-quartier', 'Marché', 'Comment lire les ventes réelles de son quartier (base DVF)'],
+  ['documents-vendre-appartement-maison', 'Préparer sa vente', 'Vendre son bien : la liste des documents à rassembler'],
 ];
 
 /** Internal links to the blog: help visitors and search engines find the guides. */
 export const BlogTeaser: React.FC = () => (
-  <section aria-labelledby="blog-teaser-title" className="space-y-4">
-    <div className="flex items-end justify-between gap-4">
-      <h2 id="blog-teaser-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">Nos conseils pour préparer votre vente</h2>
-      <a href="/blog" className="text-sm font-semibold text-stone-900 underline underline-offset-4 whitespace-nowrap">Tous les conseils</a>
-    </div>
-    <ul className="grid md:grid-cols-3 gap-4">
-      {TEASER.map(([slug, title]) => (
-        <li key={slug}>
-          <a href={`/blog/${slug}`} className="block h-full rounded-xl bg-white border border-stone-200 p-5 font-semibold text-stone-900 leading-snug hover:shadow-md transition-shadow">
-            {title}
-            <span className="mt-3 flex items-center gap-1 text-sm font-medium text-amber-700">Lire l'article <ArrowRight className="w-4 h-4" /></span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </section>
+  <Band tone="white">
+    <section aria-labelledby="blog-teaser-title">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <Eyebrow>Conseils</Eyebrow>
+          <H2 id="blog-teaser-title">Préparer votre vente</H2>
+        </div>
+        <a href="/blog" className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0f1f3d] underline underline-offset-4">Tous les conseils <ArrowRight className="w-4 h-4" /></a>
+      </div>
+      <ul className="mt-8 grid md:grid-cols-3 gap-5">
+        {TEASER.map(([slug, cat, title]) => (
+          <li key={slug}>
+            <a href={`/blog/${slug}`} className="group flex h-full flex-col rounded-2xl bg-[#f7f2e8] border border-transparent p-6 hover:border-amber-300 hover:shadow-lg transition">
+              <span className="self-start rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-700">{cat}</span>
+              <span className="mt-4 flex-1 text-lg font-bold leading-snug text-[#0f1f3d]">{title}</span>
+              <span className="mt-5 flex items-center gap-1.5 text-sm font-semibold text-amber-700">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </Band>
 );

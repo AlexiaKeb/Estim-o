@@ -6,3 +6,5 @@
   --color-stone-900: #0f1f3d;
   --color-stone-800: #1a3060;
 }
+
+html, body { overflow-x: clip; }
