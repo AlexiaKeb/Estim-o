@@ -32,6 +32,7 @@ interface Msg {
   role: 'assistant' | 'user';
   text?: string;
   result?: boolean; // renders the estimate card
+  rewind?: Step; // answer the visitor can change: going back re-asks this step
 }
 
 export interface AssistantSeed {
@@ -170,7 +171,19 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       }, opts?.delay ?? 550);
     });
   }, []);
-  const userSays = (text: string) => setMessages((m) => [...m, { id: nextId(), role: 'user', text }]);
+  const userSays = (text: string, rewind?: Step) => setMessages((m) => [...m, { id: nextId(), role: 'user', text, rewind }]);
+
+  // Let the visitor correct an earlier answer: drop everything after it and ask that question again
+  const goBack = (msg: Msg) => {
+    if (!msg.rewind || typing || step === 'computing') return;
+    setMessages((m) => {
+      const i = m.findIndex((x) => x.id === msg.id);
+      return i < 0 ? m : m.slice(0, i);
+    });
+    const early: Step[] = ['address', 'type', 'surface', 'rooms', 'timeframe', 'motive', 'contact'];
+    if (early.includes(msg.rewind)) setResult(null);
+    setStep(msg.rewind);
+  };
 
   // Opening message
   useEffect(() => {
@@ -199,7 +212,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
 
   const confirmAddress = async (street: string, postalCode: string, city: string) => {
     setInputs((p) => ({ ...p, address: street, postalCode, city }));
-    userSays(`${street}, ${postalCode} ${city}`);
+    userSays(`${street}, ${postalCode} ${city}`, 'address');
     setStep('type');
     await say(`Merci. S'agit-il d'un appartement ou d'une maison ?`);
   };
@@ -224,7 +237,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       return;
     }
     setInputs((p) => ({ ...p, propertyType: kind }));
-    userSays(kind === 'apartment' ? 'Un appartement' : 'Une maison');
+    userSays(kind === 'apartment' ? 'Un appartement' : 'Une maison', 'type');
     setStep('surface');
     await say('Quelle est sa surface habitable, en m² (approximativement) ?');
   };
@@ -233,28 +246,28 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     const s = Number(surfaceText.replace(/[^\d]/g, ''));
     if (!s || s < 8 || s > 1000) return;
     setInputs((p) => ({ ...p, surface: s }));
-    userSays(`${s} m²`);
+    userSays(`${s} m²`, 'surface');
     setStep('rooms');
     await say('Et combien de pièces principales ?');
   };
 
   const chooseRooms = async (n: number) => {
     setInputs((p) => ({ ...p, rooms: n }));
-    userSays(n >= 6 ? '6 pièces ou plus' : `${n} pièce${n > 1 ? 's' : ''}`);
+    userSays(n >= 6 ? '6 pièces ou plus' : `${n} pièce${n > 1 ? 's' : ''}`, 'rooms');
     setStep('timeframe');
     await say('Où en êtes-vous de votre projet ? Cela aide à adapter la suite, sans engagement.');
   };
 
   const chooseTimeframe = async (v: Timeframe, label: string) => {
     setTimeframe(v);
-    userSays(label);
+    userSays(label, 'timeframe');
     setStep('motive');
     await say(v === 'Curiosité' ? "Très bien, c'est un bon moment pour connaître la valeur de son bien. Qu'est-ce qui vous amène ?" : 'Merci. Qu\'est-ce qui motive ce projet ?');
   };
 
   const chooseMotive = async (v: Motive, label: string) => {
     setMotive(v);
-    userSays(label);
+    userSays(label, 'motive');
     setStep('contact');
     await say(
       `Votre estimation est prête à être calculée à partir des ventes réelles autour de chez vous. Où puis-je vous l'envoyer, et à qui ${AGENT.firstName} peut-elle s'adresser ?`,
@@ -287,16 +300,17 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (!contact.consent) return setContactError('Merci de cocher la case de consentement pour continuer.');
     setContactError(null);
 
-    userSays(`${name} · ${phone} · ${email}`);
+    userSays(`${name} · ${phone} · ${email}`, 'contact');
     setStep('computing');
     setTyping(true);
     const [res] = await Promise.all([requestValuation(), new Promise((r) => window.setTimeout(r, 1400))]);
     setTyping(false);
 
+    const hadLead = Boolean(leadRef.current);
     const typeLabel = inputs.propertyType === 'apartment' ? 'Appartement' : 'Maison';
     const hot = timeframe === '< 1 mois' || timeframe === '1-3 mois';
     const newLead: Lead = {
-      id: `lead-${Date.now()}`,
+      id: leadRef.current?.id || `lead-${Date.now()}`,
       name,
       phone,
       email,
@@ -341,7 +355,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     setLead(newLead);
     leadRef.current = newLead;
     onLeadCaptured?.(newLead);
-    trackConversion('lead');
+    if (!hadLead) trackConversion('lead');
     try {
       confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } });
     } catch {
@@ -447,7 +461,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
 
   const answerQ = async (key: 'ownership' | 'mandate' | 'occupancy', value: string, label: string) => {
     sendQualification({ [key]: value });
-    userSays(label);
+    userSays(label, key === 'ownership' ? 'q_ownership' : key === 'mandate' ? 'q_mandate' : 'q_occupancy');
     if (key === 'ownership') {
       setStep('q_mandate');
       await say('Un mandat de vente est-il déjà signé pour ce bien ?');
@@ -469,7 +483,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       const price = Number(priceText.replace(/[^\d]/g, ''));
       if (price >= 20000) {
         sendQualification({ expectedPrice: price });
-        userSays(`${fmt(price)} €`);
+        userSays(`${fmt(price)} €`, 'q_price');
       }
     } else userSays('Pas de prix en tête');
     setStep('offer');
@@ -788,6 +802,17 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
                 }
               >
                 {renderRichText(m.text || '')}
+                {m.role === 'user' && m.rewind && (
+                  <button
+                    type="button"
+                    onClick={() => goBack(m)}
+                    disabled={typing || step === 'computing'}
+                    className="ml-2 text-[11px] underline underline-offset-2 text-slate-300 hover:text-white disabled:opacity-40"
+                    aria-label={`Modifier ma réponse : ${m.text}`}
+                  >
+                    Modifier
+                  </button>
+                )}
               </div>
             </div>
           ),
