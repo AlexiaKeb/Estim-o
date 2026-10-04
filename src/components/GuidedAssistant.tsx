@@ -378,14 +378,9 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (res) {
       await say(`Merci ${name.split(' ')[0]} ! Voici l'estimation de votre ${typeLabel.toLowerCase()} de ${inputs.surface} m² à ${inputs.city}.`, { delay: 300 });
       setMessages((m) => [...m, { id: nextId(), role: 'assistant', result: true }]);
-      await say(
-        `C'est un repère : seule une visite tient compte de l'état réel, de la lumière, de l'étage ou de la vue. ${AGENT.firstName} vous propose une visite de **${VISIT_LABEL}**, gratuite et sans engagement. Choisissez un créneau ci-dessous.`,
-        { delay: 900 },
-      );
     } else {
-      await say(
-        `Merci ${name.split(' ')[0]}. Je n'arrive pas à consulter les ventes de votre secteur pour l'instant, je préfère ne pas vous donner un chiffre approximatif. ${AGENT.firstName} peut établir l'estimation lors d'une visite de **${VISIT_LABEL}**, gratuite et sans engagement.`,
-      );
+      await say(`Merci ${name.split(' ')[0]}. Je n'arrive pas à consulter les ventes de votre secteur pour l'instant, et je préfère ne pas vous donner un chiffre approximatif.`);
+      setMessages((m) => [...m, { id: nextId(), role: 'assistant', result: true }]);
     }
   };
 
@@ -422,7 +417,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     return Object.keys(slots)
       .filter((d) => (slots[d] || []).length > 0)
       .sort()
-      .slice(0, 3)
+      .slice(0, 2)
       .map((d) => ({
         date: d,
         label: new Date(`${d}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }),
@@ -528,6 +523,17 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       ]);
     }
   };
+
+  const pitchCard = (
+    <div className="rounded-2xl bg-[#0f1f3d] text-white p-4 sm:p-5 shadow-lg border-l-4 border-amber-400 w-full">
+      <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1.5">À savoir avant de partir</p>
+      <p className="text-[15px] sm:text-base leading-relaxed">
+        <strong className="text-white">C'est un repère :</strong> seule une visite tient compte de l'état réel, de la lumière, de l'étage ou de la vue.{' '}
+        {AGENT.firstName} vous propose une visite de <strong className="text-amber-300">{VISIT_LABEL}</strong>, gratuite et sans engagement.
+      </p>
+      <p className="mt-1.5 text-sm font-semibold text-amber-200">Choisissez un créneau ci-dessous ↓</p>
+    </div>
+  );
 
   // Rendering --------------------------------------------------------------------------------------------
   const resultCard =
@@ -695,6 +701,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       case 'offer':
         return (
           <div className="space-y-3">
+            {pitchCard}
             {slots === null && !slotsFailed && (
               <div className="flex items-center gap-2 text-sm text-stone-600" role="status">
                 <Loader2 className="w-4 h-4 animate-spin" /> Je regarde les disponibilités de {AGENT.firstName}…
@@ -746,7 +753,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     <div
       id="assistant-panel"
       className="rounded-3xl border border-stone-200 bg-white shadow-xl overflow-hidden flex flex-col max-w-3xl mx-auto w-full"
-      style={{ height: 'min(82vh, 760px)', minHeight: 520 }}
+      style={{ height: 'min(90vh, 880px)', minHeight: 560 }}
     >
       <header className="bg-[#0f1f3d] text-white px-4 sm:px-5 py-3.5 flex items-center gap-3">
         <div className="relative">
@@ -767,10 +774,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         </a>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-3 bg-stone-50" aria-live="polite">
+      <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-3 bg-stone-50" aria-live="polite">
         {messages.map((m) =>
           m.result ? (
-            <div key={m.id} id="assistant-result" className="max-w-[92%]">{resultCard}</div>
+            <div key={m.id} id="assistant-result" className="max-w-[96%] space-y-3">{resultCard}</div>
           ) : (
             <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : 'flex'}>
               <div
@@ -796,7 +803,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         )}
       </div>
 
-      <div className="border-t border-stone-200 bg-white px-4 sm:px-5 py-4 space-y-3 max-h-[60%] overflow-y-auto">
+      <div className="border-t border-stone-200 bg-white px-4 sm:px-5 py-4 space-y-3 max-h-[68%] overflow-y-auto">
         {!typing || step === 'computing' ? composer : <div className="h-10" />}
         {contactDone && step !== 'computing' && (
           <form
