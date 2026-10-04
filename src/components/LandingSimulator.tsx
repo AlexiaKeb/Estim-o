@@ -49,7 +49,7 @@ import {
 interface Props {
   onValuationComplete: (inputs: ValuationInputs, result: ValuationResult) => void;
   onOpenChatDirect: () => void;
-  onLeadCaptured?: (lead: Lead) => void;
+  onLeadCaptured?: (lead: Lead, replacesId?: string) => void;
   onOpenBooking?: (leadInfo: Partial<Lead>) => void;
 }
 
@@ -254,10 +254,18 @@ export const LandingSimulator: React.FC<Props> = ({
       onLeadCaptured(newLead);
     }
 
-    // Persist to Supabase asynchronously
-    syncLeadToSupabase(newLead).catch((err) => {
-      console.warn('Simulator lead Supabase sync error:', err);
-    });
+    // Persist to Supabase, then adopt the database id so every later step (chat, booking) reuses this one lead
+    syncLeadToSupabase(newLead)
+      .then((realId) => {
+        if (realId && realId !== newLead.id) {
+          const synced = { ...newLead, id: realId };
+          setCapturedLead(synced);
+          onLeadCaptured?.(synced, newLead.id);
+        }
+      })
+      .catch((err) => {
+        console.warn('Simulator lead Supabase sync error:', err);
+      });
 
     // Trigger celebration & unlock
     try {

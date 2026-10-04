@@ -289,6 +289,8 @@ export default function App() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingLeadInfo, setBookingLeadInfo] = useState<Partial<Lead> | null>(null);
   const [latestConfirmedLead, setLatestConfirmedLead] = useState<Lead | null>(null);
+  // The one lead of the current seller journey: created once by the simulator, reused by chat and booking
+  const [activeLead, setActiveLead] = useState<Lead | null>(null);
 
   // Notification toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -378,9 +380,15 @@ export default function App() {
 
   // Handler when lead qualifies for booking
   const handleOpenBooking = (leadInfo: Partial<Lead>) => {
-    setBookingLeadInfo(leadInfo);
+    // Bookings started from the seller journey carry no id: attach the lead already created for this seller
+    const info =
+      !leadInfo.id && activeLead
+        ? { ...leadInfo, id: activeLead.id, name: activeLead.name, phone: activeLead.phone, email: activeLead.email }
+        : leadInfo;
+    setBookingLeadInfo(info);
     setIsBookingOpen(true);
   };
+
 
   // Handler when meeting is confirmed
   const handleConfirmBooking = (newLead: Lead) => {
@@ -398,10 +406,12 @@ export default function App() {
   };
 
   // Handler when lead is captured in simulator before showing price
-  const handleSimulatorLeadCaptured = (newLead: Lead) => {
-    setLeads((prev) => [newLead, ...prev.filter((l) => l.id !== newLead.id)]);
-    showToast(`🔒 Estimation déverrouillée pour ${newLead.name} ! Dossier enregistré dans le CRM.`);
+  const handleSimulatorLeadCaptured = (newLead: Lead, replacesId?: string) => {
+    setActiveLead(newLead);
+    setLeads((prev) => [newLead, ...prev.filter((l) => l.id !== newLead.id && l.id !== replacesId)]);
+    if (!replacesId) showToast(`🔒 Estimation déverrouillée pour ${newLead.name} ! Dossier enregistré dans le CRM.`);
   };
+
 
   // Handler when non-mature lead is saved to nurture
   const handleSaveLead = (newLead: Lead) => {
@@ -764,6 +774,7 @@ export default function App() {
             initialValuationInputs={valuationInputs}
             initialValuationResult={valuationResult}
             privacySettings={privacySettings}
+            existingLeadId={activeLead?.id}
             isAgentMode={isAgentMode}
             onBookMeeting={handleOpenBooking}
             onSaveLead={handleSaveLead}

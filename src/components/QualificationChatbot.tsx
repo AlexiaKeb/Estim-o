@@ -34,6 +34,7 @@ interface Props {
   initialValuationInputs?: ValuationInputs | null;
   initialValuationResult?: ValuationResult | null;
   privacySettings?: AgentPrivacySettings;
+  existingLeadId?: string;
   isAgentMode?: boolean;
   onBookMeeting: (leadInfo: Partial<Lead>) => void;
   onSaveLead: (lead: Lead) => void;
@@ -45,6 +46,7 @@ export const QualificationChatbot: React.FC<Props> = ({
   initialValuationInputs,
   initialValuationResult,
   privacySettings,
+  existingLeadId,
   isAgentMode = false,
   onBookMeeting,
   onSaveLead,
@@ -73,26 +75,28 @@ export const QualificationChatbot: React.FC<Props> = ({
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize lead in Supabase & welcome message
+  // One seller = one lead: reuse the lead created by the simulator. Only a visitor who opens the chat
+  // directly (no simulation yet) gets a new lead, and only once.
+  const createdOwnLead = useRef(false);
   useEffect(() => {
-    const initLead = async () => {
-      const createdLeadId = await syncLeadToSupabase({
-        name: 'Visiteur Simulateur',
-        propertyType: initialValuationInputs?.propertyType === 'apartment' ? 'Appartement' : 'Maison',
-        surface: initialValuationInputs?.surface || 75,
-        city: initialValuationInputs?.city || 'Lyon',
-        score: 35,
-        status: 'WARM',
-        estimatedValue: initialValuationResult?.estimatedAvg || 350000,
-      });
-
-      if (createdLeadId) {
-        setSupabaseLeadId(createdLeadId);
-      }
-    };
-
-    initLead();
-  }, [initialValuationInputs, initialValuationResult]);
+    if (existingLeadId) {
+      setSupabaseLeadId(existingLeadId);
+      return;
+    }
+    if (createdOwnLead.current) return;
+    createdOwnLead.current = true;
+    syncLeadToSupabase({
+      name: 'Visiteur Simulateur',
+      propertyType: initialValuationInputs?.propertyType === 'apartment' ? 'Appartement' : 'Maison',
+      surface: initialValuationInputs?.surface || 75,
+      city: initialValuationInputs?.city || 'Lyon',
+      score: 35,
+      status: 'WARM',
+      estimatedValue: initialValuationResult?.estimatedAvg,
+    }).then((createdLeadId) => {
+      if (createdLeadId) setSupabaseLeadId(createdLeadId);
+    });
+  }, [existingLeadId]);
 
   // Initialize conversation with warm human tone
   useEffect(() => {

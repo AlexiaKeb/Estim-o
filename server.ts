@@ -1270,10 +1270,10 @@ async function startServer() {
             }
           } else {
             // Update lead with latest details if provided
+            // Keep what the seller already gave us; only fill gaps (never overwrite the city with the street address)
             await client.from("leads").update({
-              ville_bien: address || leadRecord.ville_bien || "Lyon",
-              type_bien: property_type || leadRecord.type_bien || "Appartement",
-              surface: surface || leadRecord.surface || 80,
+              type_bien: leadRecord.type_bien || property_type || "Appartement",
+              surface: leadRecord.surface || surface || null,
               updated_at: new Date().toISOString(),
             }).eq("id", actualLeadId);
           }
