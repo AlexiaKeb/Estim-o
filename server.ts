@@ -253,6 +253,8 @@ const AGENT_PROFILE = {
   agency: process.env.AGENT_AGENCY || "NOVEA Immobilier",
   phone: process.env.AGENT_PHONE || "06 03 58 03 16",
   city: process.env.AGENT_CITY || "Lyon",
+  // Must equal the duration of the Cal.com event
+  visitMinutes: Number(process.env.VISIT_MINUTES) || 30,
 };
 
 async function startServer() {
@@ -677,7 +679,7 @@ async function startServer() {
 
       try {
         const parsed = await claudeJson<{ sequence: any[] }>({
-          system: "Tu rédiges des relances immobilières pour une conseillère de NOVEA Immobilier (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. SMS: 300 caractères max. Email: objet court + 4 à 6 lignes. Chaque message propose un pas simple vers une visite de découverte offerte de 20 min.",
+          system: `Tu rédiges des relances immobilières pour une conseillère de NOVEA Immobilier (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. SMS: 300 caractères max. Email: objet court + 4 à 6 lignes. Chaque message propose un pas simple vers une visite de découverte offerte de ${AGENT_PROFILE.visitMinutes} min.`,
           messages: [{
             role: "user",
             content: `Génère une séquence de 5 relances (J+1, J+7, J+15, J+30, J+60) pour ce propriétaire pas encore mûr.\nProfil :\n${JSON.stringify(leadProfile, null, 2)}\nLe champ step doit être de la forme "J+1 (SMS)".`,

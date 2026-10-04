@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { syncLeadToSupabase } from '../lib/supabaseService';
 import confetti from 'canvas-confetti';
+import { AGENT } from '../data/siteContent';
 import { ValuationEvidence, LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { 
   Building2, 
@@ -295,7 +296,7 @@ export const LandingSimulator: React.FC<Props> = ({
     setIsUnlocked(true);
 
     // Initialize Advisor Bot with a direct personalized pitch
-    const initialCloserPitch = `Bonjour ${cleanName} ! J'ai bien calculé votre première valorisation de **${result.lowPrice.toLocaleString('fr-FR')} € à ${result.highPrice.toLocaleString('fr-FR')} €** pour votre ${inputs.propertyType === 'apartment' ? 'appartement' : 'maison'} de ${inputs.surface} m² à ${inputs.city}.\n\n🎯 **Mon engagement d'experte** : vous aider à obtenir l'offre d'achat la plus haute sans négociation des acquéreurs.\n\nPour cela, un algorithme ne peut pas voir votre vraie luminosité, le cachet de vos pièces et vos aménagements soignés. Avez-vous 20 minutes cette semaine pour que nous venions visiter votre bien sur place (100% offert et sans aucun engagement) ?`;
+    const initialCloserPitch = `Bonjour ${cleanName} ! J'ai bien calculé votre première valorisation de **${result.lowPrice.toLocaleString('fr-FR')} € à ${result.highPrice.toLocaleString('fr-FR')} €** pour votre ${inputs.propertyType === 'apartment' ? 'appartement' : 'maison'} de ${inputs.surface} m² à ${inputs.city}.\n\n🎯 **Mon engagement d'experte** : vous aider à obtenir l'offre d'achat la plus haute sans négociation des acquéreurs.\n\nPour cela, un algorithme ne peut pas voir votre vraie luminosité, le cachet de vos pièces et vos aménagements soignés. Avez-vous ${AGENT.visitMinutes} minutes cette semaine pour que nous venions visiter votre bien sur place (100% offert et sans aucun engagement) ?`;
 
     setCloserMessages([
       {
@@ -343,7 +344,7 @@ export const LandingSimulator: React.FC<Props> = ({
       });
 
       const data = await response.json();
-      const reply = data.reply || "C'est une excellente décision d'anticiper ! Une visite sur place de 20 min permet de fixer votre valeur exacte sans aucun engagement.";
+      const reply = data.reply || `C'est une excellente décision d'anticiper ! Une visite sur place de ${AGENT.visitMinutes} min permet de fixer votre valeur exacte sans aucun engagement.`;
       const isBookingTime = data.recommendedAction === 'BOOK_MEETING' || data.qualificationScore >= 70 || text.toLowerCase().includes('créneau') || text.toLowerCase().includes('visite') || text.toLowerCase().includes('rdv') || text.toLowerCase().includes('oui') || text.toLowerCase().includes('bloqu');
 
       setCloserMessages((prev) => [

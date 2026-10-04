@@ -10,6 +10,8 @@ export const AGENT = {
   city: 'Lyon',
   phone: '06 03 58 03 16',
   phoneHref: 'tel:+33603580316',
+  // Durée de la visite : DOIT être identique à la durée de l'événement dans Cal.com
+  visitMinutes: 30,
   zone: 'Lyon, Villeurbanne, Beaujolais et jusqu\'à 50 km autour',
   // URL ou data: URI d'une vraie photo de Céline (très fort levier de confiance). Vide = initiales.
   photoUrl: '',
@@ -33,7 +35,7 @@ export const KEY_FIGURES: KeyFigure[] = [];
 export const FAQ: Array<{ q: string; a: string }> = [
   {
     q: 'La visite est-elle vraiment gratuite et sans engagement ?',
-    a: 'Oui. La visite de découverte dure environ 20 minutes, elle est offerte et ne vous engage à rien. Aucun document n\'est à préparer.',
+    a: `Oui. La visite de découverte dure environ ${AGENT.visitMinutes} minutes, elle est offerte et ne vous engage à rien. Aucun document n'est à préparer.`,
   },
   {
     q: 'Pourquoi une visite, alors que je peux avoir un prix en ligne ?',

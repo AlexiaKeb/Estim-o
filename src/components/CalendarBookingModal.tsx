@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Lead } from '../types';
 import { syncLeadToSupabase, invokeBookAppointmentEdgeFunction, fetchCalSlotsDetailed } from '../lib/supabaseService';
+import { AGENT } from '../data/siteContent';
 import confetti from 'canvas-confetti';
 import { 
   Calendar, 
@@ -617,7 +618,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-sm text-stone-800">
               <Home className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
               <div>
-                <div className="font-semibold">Visite de votre bien sur place · environ 20 minutes · offerte</div>
+                <div className="font-semibold">Visite de votre bien sur place · environ {AGENT.visitMinutes} minutes · offerte</div>
                 <div className="text-xs text-stone-600">Céline se déplace à l'adresse du bien. Aucun document à préparer.</div>
               </div>
             </div>
