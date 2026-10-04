@@ -858,8 +858,9 @@ async function startServer() {
     }
 
     // 2. Resolve Event Types via v2 /v2/event-types?username=... (version 2024-06-14)
-    const usernameForQuery = profile.username || process.env.CAL_USERNAME || "cel.novea";
+    const usernameForQuery = profile.username || process.env.CAL_USERNAME || "";
     try {
+      if (!usernameForQuery) throw new Error("no Cal.com username");
       const eventRes = await fetch(`${CAL_BASE}/v2/event-types?username=${encodeURIComponent(usernameForQuery)}`, {
         headers: {
           "Authorization": `Bearer ${calApiKey}`,
@@ -910,18 +911,16 @@ async function startServer() {
       if (profile.eventTypes && profile.eventTypes.length > 0) {
         const envId = Number(process.env.CAL_EVENT_TYPE_ID) || null;
         const envSlug = process.env.CAL_EVENT_SLUG || null;
+        // Exact matches only: a wrong event type would show someone else's availability
         const match =
           (envId && profile.eventTypes.find(et => et.id === envId)) ||
           (envSlug && profile.eventTypes.find(et => et.slug === envSlug)) ||
-          profile.eventTypes.find(et =>
-            et.slug === "visite-d-estimation-a-domicile" || et.id === 6851203 || et.slug.includes("estimation") || et.slug.includes("visite")
-          );
+          profile.eventTypes.find(et => et.slug === "visite-d-estimation-a-domicile");
         if (match) {
           profile.defaultEventTypeId = match.id;
           profile.defaultEventTypeSlug = match.slug;
         } else {
-          profile.defaultEventTypeId = profile.eventTypes[0].id;
-          profile.defaultEventTypeSlug = profile.eventTypes[0].slug;
+          console.warn("[Cal.com] No event type matches CAL_EVENT_TYPE_ID / CAL_EVENT_SLUG / 'visite-d-estimation-a-domicile'. Booking is disabled until configured.");
         }
         console.log(`[Cal.com] Found ${profile.eventTypes.length} event type(s). Default: ${profile.defaultEventTypeSlug} (ID: ${profile.defaultEventTypeId})`);
       }
@@ -1395,6 +1394,19 @@ async function startServer() {
             });
           }
 
+          // Last line of defence: the chosen start must still be one of Céline's real, free slots (fresh call, no cache)
+          const parisStart = toParisParts(startIso);
+          if (parisStart) {
+            const live = await fetchRealSlots(calApiKey, parisStart.date, parisStart.date).catch(() => null);
+            if (live && !("error" in live) && !(live.slots[parisStart.date] || []).includes(parisStart.time)) {
+              slotsMemoryCache.clear();
+              return res.status(409).json({
+                success: false,
+                error: "Ce créneau n'est plus disponible dans l'agenda de Céline. Merci d'en choisir un autre.",
+              });
+            }
+          }
+
           const bookingPayload: any = {
             start: startIso,
             eventTypeId,
@@ -1689,214 +1701,198 @@ async function startServer() {
     }
   });
 
-  // 6. Slots Route (Cal.com v2 Slots API strictly verifying real agent calendar availability)
+  // Normalises any Cal.com slot payload to { "YYYY-MM-DD": ["HH:mm"] } in Europe/Paris,
+  // whatever offset (Z, +02:00...) Cal.com used, and drops slots already in the past.
+  function extractSlotsMap(rawSlots: any): Record<string, string[]> {
+    if (!rawSlots || typeof rawSlots !== "object") return {};
+    const formatted: Record<string, Set<string>> = {};
+    const now = Date.now();
+    const pushIso = (iso: unknown) => {
+      if (typeof iso !== "string" || !iso.includes("T")) return;
+      const t = new Date(iso).getTime();
+      if (isNaN(t) || t < now) return;
+      const p = toParisParts(iso);
+      if (!p) return;
+      (formatted[p.date] ||= new Set()).add(p.time);
+    };
+    for (const slotList of Object.values(rawSlots)) {
+      if (!Array.isArray(slotList)) continue;
+      for (const s of slotList) {
+        if (typeof s === "string") pushIso(s);
+        else if (s && typeof s === "object") {
+          const o = s as any;
+          pushIso(o.start ?? o.time ?? o.startTime ?? o.start_time);
+        }
+      }
+    }
+    const result: Record<string, string[]> = {};
+    for (const [d, set] of Object.entries(formatted)) result[d] = Array.from(set).sort();
+    return result;
+  }
+
+  // The ONLY source of proposed slots: Cal.com availability of the configured event type
+  // (Céline's working hours minus her connected calendars, bookings, buffers and notice).
+  async function fetchRealSlots(calApiKey: string, startDate: string, endDate: string) {
+    const calProfile = await resolveCalAccount(calApiKey);
+    const typeId = calProfile.defaultEventTypeId;
+    if (!typeId) return { error: "CAL_EVENT_TYPE_NOT_FOUND" as const, status: 503 };
+    const url = `${CAL_BASE}/v2/slots?eventTypeId=${encodeURIComponent(String(typeId))}&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&timeZone=${encodeURIComponent("Europe/Paris")}`;
+    const calRes = await fetch(url, {
+      headers: { Authorization: `Bearer ${calApiKey}`, "cal-api-version": "2024-09-04" },
+      signal: AbortSignal.timeout(7000),
+    });
+    if (!calRes.ok) {
+      console.warn(`[Cal.com v2] slots request failed (${calRes.status})`);
+      return { error: "CAL_QUERY_ERROR" as const, status: 502 };
+    }
+    const calData = await calRes.json();
+    return { slots: extractSlotsMap(calData.data?.slots || calData.slots || calData.data), eventTypeId: typeId };
+  }
+
   app.get("/api/cal/slots", rateLimit("slots", 120, 10 * 60 * 1000), async (req: Request, res: Response) => {
-    try {
-      const { start, end, username, eventTypeSlug, eventTypeId, agentId } = req.query;
-      const calApiKey = process.env.CAL_API_KEY;
-      const client = getSupabaseAdmin();
-
-      if (!calApiKey) {
-        return res.status(503).json({
-          success: false,
-          error: "CAL_API_NOT_CONFIGURED",
-          message: "La prise de rendez-vous est momentanément indisponible, un conseiller vous recontactera sous peu.",
-          slots: {},
-        });
-      }
-
-      // Format start and end as YYYY-MM-DD
-      const startDate = (start as string) ? new Date(start as string).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
-      const endDate = (end as string) ? new Date(end as string).toISOString().split("T")[0] : new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
-
-      const cacheKey = `${startDate}_${endDate}_${eventTypeId || eventTypeSlug || username || "default"}`;
-      const cached = slotsMemoryCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < 60000) {
-        return res.json(cached.data);
-      }
-
-      // 1. Resolve agent parameters from Supabase database if specific agent requested
-      let dbAgent: any = null;
-      if (client && agentId) {
-        try {
-          const { data } = await client.from("agents").select("*").eq("id", agentId).maybeSingle();
-          dbAgent = data;
-        } catch (e: any) {
-          console.warn("[Supabase] Agent lookup in /api/cal/slots warning:", e.message);
-        }
-      }
-
-      try {
-        const calProfile = await resolveCalAccount(calApiKey);
-        const effectiveUser = (username as string) || (dbAgent?.cal_username && !dbAgent.cal_username.includes("[à compléter") ? dbAgent.cal_username : (calProfile.username || "cel.novea"));
-        const effectiveSlug = (eventTypeSlug as string) || (dbAgent?.cal_event_slug && !dbAgent.cal_event_slug.includes("[à compléter") ? dbAgent.cal_event_slug : (calProfile.defaultEventTypeSlug || "visite-d-estimation-a-domicile"));
-        const effectiveTypeId = (eventTypeId as string) || (calProfile.defaultEventTypeId ? String(calProfile.defaultEventTypeId) : "");
-
-        // Cal.com v2 slots API query parameter construction
-        if (!effectiveTypeId && (!effectiveUser || !effectiveSlug)) {
-          return res.status(404).json({
-            success: false,
-            error: "CAL_EVENT_TYPE_NOT_FOUND",
-            message: "La prise de rendez-vous est momentanément indisponible, un conseiller vous recontactera sous peu.",
-            slots: {},
-          });
-        }
-
-        // Normalises any Cal.com slot payload to { "YYYY-MM-DD": ["HH:mm"] } in Europe/Paris,
-        // whatever offset (Z, +02:00...) Cal.com used, and drops slots already in the past.
-        const extractSlotsMap = (rawSlots: any): Record<string, string[]> => {
-          if (!rawSlots || typeof rawSlots !== "object") return {};
-          const formatted: Record<string, Set<string>> = {};
-          const now = Date.now();
-          const pushIso = (iso: unknown) => {
-            if (typeof iso !== "string" || !iso.includes("T")) return;
-            const t = new Date(iso).getTime();
-            if (isNaN(t) || t < now) return;
-            const p = toParisParts(iso);
-            if (!p) return;
-            (formatted[p.date] ||= new Set()).add(p.time);
-          };
-          for (const slotList of Object.values(rawSlots)) {
-            if (!Array.isArray(slotList)) continue;
-            for (const s of slotList) {
-              if (typeof s === "string") pushIso(s);
-              else if (s && typeof s === "object") {
-                const o = s as any;
-                pushIso(o.start ?? o.time ?? o.startTime ?? o.start_time);
-              }
-            }
-          }
-          const result: Record<string, string[]> = {};
-          for (const [d, set] of Object.entries(formatted)) result[d] = Array.from(set).sort();
-          return result;
-        };
-
-        // Strategy 1: Try Cal.com v2 with eventTypeId
-        if (effectiveTypeId) {
-          try {
-            const v2Url = `${CAL_BASE}/v2/slots?eventTypeId=${encodeURIComponent(effectiveTypeId)}&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&timeZone=${encodeURIComponent("Europe/Paris")}`;
-            console.log(`[Cal.com v2] Fetching slots with eventTypeId=${effectiveTypeId}: ${v2Url}`);
-            const v2Res = await fetch(v2Url, {
-              headers: {
-                "Authorization": `Bearer ${calApiKey}`,
-                "cal-api-version": "2024-09-04",
-              },
-              signal: AbortSignal.timeout(4000),
-            });
-            if (v2Res.ok) {
-              const calData = await v2Res.json();
-              const rawSlots = calData.data?.slots || calData.slots || calData.data;
-              const formatted = extractSlotsMap(rawSlots);
-              if (Object.keys(formatted).length > 0) {
-                const responseData = {
-                  success: true,
-                  slots: formatted,
-                  source: "cal.com",
-                  eventTypeId: effectiveTypeId,
-                  username: effectiveUser,
-                  eventTypeSlug: effectiveSlug,
-                };
-                slotsMemoryCache.set(cacheKey, { data: responseData, timestamp: Date.now() });
-                return res.json(responseData);
-              }
-            }
-          } catch (e: any) {
-            console.warn(`[Cal.com v2] Strategy 1 (eventTypeId) failed: ${e.message}`);
-          }
-        }
-
-        // Strategy 2: Try Cal.com v2 with username & eventTypeSlug
-        if (effectiveUser && effectiveSlug) {
-          try {
-            const v2SlugUrl = `${CAL_BASE}/v2/slots?username=${encodeURIComponent(effectiveUser)}&eventTypeSlug=${encodeURIComponent(effectiveSlug)}&start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}&timeZone=${encodeURIComponent("Europe/Paris")}`;
-            console.log(`[Cal.com v2] Fetching slots with username/slug: ${v2SlugUrl}`);
-            const v2SlugRes = await fetch(v2SlugUrl, {
-              headers: {
-                "Authorization": `Bearer ${calApiKey}`,
-                "cal-api-version": "2024-09-04",
-              },
-              signal: AbortSignal.timeout(4000),
-            });
-            if (v2SlugRes.ok) {
-              const calData = await v2SlugRes.json();
-              const rawSlots = calData.data?.slots || calData.slots || calData.data;
-              const formatted = extractSlotsMap(rawSlots);
-              if (Object.keys(formatted).length > 0) {
-                return res.json({
-                  success: true,
-                  slots: formatted,
-                  source: "cal.com",
-                  username: effectiveUser,
-                  eventTypeSlug: effectiveSlug,
-                });
-              }
-            }
-          } catch (e: any) {
-            console.warn(`[Cal.com v2] Strategy 2 (username/slug) failed: ${e.message}`);
-          }
-        }
-
-        // Strategy 3: Try Cal.com v1 slots API
-        try {
-          const v1Params: string[] = [
-            `apiKey=${encodeURIComponent(calApiKey)}`,
-            `startTime=${encodeURIComponent(`${startDate}T00:00:00.000Z`)}`,
-            `endTime=${encodeURIComponent(`${endDate}T23:59:59.999Z`)}`,
-            `timeZone=${encodeURIComponent("Europe/Paris")}`,
-          ];
-          if (effectiveTypeId) v1Params.push(`eventTypeId=${encodeURIComponent(effectiveTypeId)}`);
-          if (effectiveUser && effectiveSlug) {
-            v1Params.push(`username=${encodeURIComponent(effectiveUser)}`);
-            v1Params.push(`eventTypeSlug=${encodeURIComponent(effectiveSlug)}`);
-          }
-
-          const v1Url = `${CAL_BASE}/v1/slots?${v1Params.join("&")}`;
-          const v1Res = await fetch(v1Url, { signal: AbortSignal.timeout(3500) });
-          if (v1Res.ok) {
-            const v1Data = await v1Res.json();
-            const rawSlots = v1Data.slots || v1Data.data || v1Data;
-            const formatted = extractSlotsMap(rawSlots);
-            if (Object.keys(formatted).length > 0) {
-              return res.json({
-                success: true,
-                slots: formatted,
-                source: "cal.com",
-                username: effectiveUser,
-                eventTypeSlug: effectiveSlug,
-              });
-            }
-          }
-        } catch (e: any) {
-          console.warn(`[Cal.com v1] Strategy 3 failed: ${e.message}`);
-        }
-
-        // If no slots found or all strategies failed, return clean informative message
-        return res.json({
-          success: true,
-          slots: {},
-          source: "cal.com",
-          username: effectiveUser,
-          eventTypeSlug: effectiveSlug,
-          message: "Aucun créneau disponible sur la période. Un conseiller vous recontactera.",
-        });
-      } catch (calErr: any) {
-        console.warn(`[Cal.com] Error executing slot queries: ${calErr.message}`);
-        return res.status(503).json({
-          success: false,
-          error: "CAL_QUERY_ERROR",
-          message: "La prise de rendez-vous est momentanément indisponible, un conseiller vous recontactera sous peu.",
-          slots: {},
-        });
-      }
-    } catch (err: any) {
-      console.error("Error in /api/cal/slots route:", err);
-      res.status(500).json({
+    const unavailable = (error: string, status: number) =>
+      res.status(status).json({
         success: false,
-        error: "INTERNAL_SERVER_ERROR",
+        error,
         message: "La prise de rendez-vous est momentanément indisponible, un conseiller vous recontactera sous peu.",
         slots: {},
       });
+    try {
+      const calApiKey = process.env.CAL_API_KEY;
+      if (!calApiKey) return unavailable("CAL_API_NOT_CONFIGURED", 503);
+
+      const { start, end } = req.query;
+      const today = new Date().toISOString().split("T")[0];
+      const startDate = start ? new Date(start as string).toISOString().split("T")[0] : today;
+      const endDate = end ? new Date(end as string).toISOString().split("T")[0] : new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+
+      // Short cache only to absorb bursts: a slot taken in Céline's calendar disappears within seconds
+      const cacheKey = `${startDate}_${endDate}`;
+      const cached = slotsMemoryCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < 15000) return res.json(cached.data);
+
+      const result = await fetchRealSlots(calApiKey, startDate, endDate);
+      if ("error" in result) return unavailable(result.error, result.status);
+
+      const body = {
+        success: true,
+        slots: result.slots,
+        source: "cal.com",
+        eventTypeId: result.eventTypeId,
+        fetchedAt: new Date().toISOString(),
+        ...(Object.keys(result.slots).length === 0
+          ? { message: "Aucun créneau disponible sur la période. Un conseiller vous recontactera." }
+          : {}),
+      };
+      slotsMemoryCache.set(cacheKey, { data: body, timestamp: Date.now() });
+      return res.json(body);
+    } catch (err: any) {
+      console.warn("[Cal.com] slots error:", err.message);
+      return unavailable("CAL_QUERY_ERROR", 503);
     }
+  });
+
+  // Plain-language health check of the whole calendar chain (advisor only)
+  app.get("/api/cal/diagnostic", requireAgent, async (_req: Request, res: Response) => {
+    type Check = { id: string; label: string; status: "ok" | "warn" | "error" | "unknown"; detail: string };
+    const checks: Check[] = [];
+    const add = (id: string, label: string, status: Check["status"], detail: string) => checks.push({ id, label, status, detail });
+    const calApiKey = process.env.CAL_API_KEY;
+
+    if (!calApiKey) {
+      add("key", "Clé Cal.com", "error", "CAL_API_KEY n'est pas renseignée sur le serveur : aucun créneau ne peut être proposé.");
+      return res.json({ overall: "error", checks });
+    }
+    const headers = (v: string) => ({ Authorization: `Bearer ${calApiKey}`, "cal-api-version": v });
+    const get = async (path: string, version: string) => {
+      const r = await fetch(`${CAL_BASE}${path}`, { headers: headers(version), signal: AbortSignal.timeout(7000) });
+      return { ok: r.ok, status: r.status, json: r.ok ? await r.json().catch(() => ({})) : null };
+    };
+
+    try {
+      const me = await get("/v2/me", "2024-08-13");
+      if (me.ok) add("account", "Compte Cal.com", "ok", `Connecté en tant que ${me.json?.data?.username || me.json?.data?.email || "?"}.`);
+      else add("account", "Compte Cal.com", "error", `La clé est refusée par Cal.com (code ${me.status}). Créez-en une nouvelle dans Cal.com > Settings > Developer > API keys.`);
+
+      const calProfile = await resolveCalAccount(calApiKey);
+      const typeId = calProfile.defaultEventTypeId;
+      if (!typeId) {
+        add("event", "Événement de visite", "error", "Aucun événement ne correspond. Renseignez CAL_EVENT_TYPE_ID (numéro dans l'adresse de l'événement, sur Cal.com).");
+      } else {
+        const et = await get(`/v2/event-types/${typeId}`, "2024-06-14");
+        const d = et.json?.data || {};
+        if (!et.ok) {
+          add("event", "Événement de visite", "warn", `Événement n°${typeId} utilisé, mais ses réglages n'ont pas pu être lus (code ${et.status}).`);
+        } else {
+          const len = d.lengthInMinutes ?? d.length;
+          add("event", "Événement de visite", "ok", `« ${d.title || d.slug} » (n°${typeId}), durée ${len ?? "?"} min.`);
+          const before = Number(d.beforeEventBuffer ?? 0);
+          const after = Number(d.afterEventBuffer ?? 0);
+          add(
+            "buffer",
+            "Temps de trajet entre deux visites",
+            before + after > 0 ? "ok" : "warn",
+            before + after > 0
+              ? `Marge avant ${before} min, après ${after} min.`
+              : "Aucune marge : deux visites pourraient s'enchaîner sans temps de trajet. Ajoutez une marge (30 à 45 min) dans l'événement, onglet « Limites ».",
+          );
+          const notice = Number(d.minimumBookingNotice ?? 0);
+          add(
+            "notice",
+            "Délai minimum avant une visite",
+            notice >= 120 ? "ok" : "warn",
+            notice >= 120
+              ? `Un client doit réserver au moins ${Math.round(notice / 60)} h à l'avance.`
+              : "Un client peut réserver pour dans moins de 2 h. Fixez un préavis (par exemple 12 h) dans l'onglet « Limites ».",
+          );
+        }
+      }
+
+      const cals = await get("/v2/calendars", "2024-08-13");
+      if (!cals.ok) {
+        add("calendars", "Agenda connecté (Google, Outlook…)", "unknown", `Impossible de lire les agendas connectés (code ${cals.status}). Vérifiez-le à la main dans Cal.com > Settings > Calendars.`);
+      } else {
+        const list: any[] = cals.json?.data?.connectedCalendars || [];
+        if (list.length === 0) {
+          add("calendars", "Agenda connecté (Google, Outlook…)", "error", "Aucun agenda n'est connecté à Cal.com : les rendez-vous déjà inscrits dans l'agenda de Céline ne bloqueront PAS les créneaux. Connectez-le dans Cal.com > Settings > Calendars.");
+        } else {
+          const names = list.map((c) => c.integration?.name || c.integration?.type || "agenda").join(", ");
+          add("calendars", "Agenda connecté (Google, Outlook…)", "ok", `Connecté : ${names}. Vérifiez dans Cal.com que « Vérifier les conflits » est coché pour cet agenda.`);
+        }
+      }
+
+      if (typeId) {
+        const from = new Date().toISOString().split("T")[0];
+        const to = new Date(Date.now() + 14 * 86400000).toISOString().split("T")[0];
+        const r = await fetchRealSlots(calApiKey, from, to);
+        if ("error" in r) add("slots", "Créneaux proposés aux clients", "error", "Cal.com ne répond pas correctement sur les créneaux.");
+        else {
+          const days = Object.keys(r.slots).sort();
+          const total = days.reduce((n, d) => n + r.slots[d].length, 0);
+          add(
+            "slots",
+            "Créneaux proposés aux clients",
+            total > 0 ? "ok" : "warn",
+            total > 0
+              ? `${total} créneaux sur les 14 prochains jours. Premier : ${days[0]} à ${r.slots[days[0]][0]} (heure de Paris).`
+              : "Aucun créneau sur 14 jours. Vérifiez les horaires de disponibilité de Céline dans Cal.com > Availability.",
+          );
+        }
+      }
+    } catch (e: any) {
+      add("network", "Liaison avec Cal.com", "error", `Cal.com injoignable : ${e.message}`);
+    }
+
+    add(
+      "webhook",
+      "Annulations et déplacements (webhook)",
+      process.env.CAL_WEBHOOK_SECRET ? "ok" : "warn",
+      process.env.CAL_WEBHOOK_SECRET
+        ? "Secret configuré. Pensez à vérifier que le webhook existe dans Cal.com > Settings > Developer > Webhooks."
+        : "CAL_WEBHOOK_SECRET manque : une annulation faite depuis Cal.com ne se répercutera pas ici.",
+    );
+    const overall = checks.some((c) => c.status === "error") ? "error" : checks.some((c) => c.status === "warn" || c.status === "unknown") ? "warn" : "ok";
+    res.json({ overall, checks });
   });
 
   // --- Cal.com -> Estiméo synchronisation (cancellations / reschedules made from Cal.com or the e-mail link) ---

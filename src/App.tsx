@@ -36,6 +36,7 @@ import { CalendarBookingModal } from './components/CalendarBookingModal';
 import { BookingConfirmationView } from './components/BookingConfirmationView';
 import { PrivacyShieldModal } from './components/PrivacyShieldModal';
 import { AgentAuthModal } from './components/AgentAuthModal';
+import { CalendarHealth } from './components/CalendarHealth';
 
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator';
 
@@ -795,6 +796,7 @@ export default function App() {
         )}
 
         {/* Protected Views: rendered only when accessed in authenticated agent mode */}
+        {currentView === 'pipeline' && <CalendarHealth />}
         {currentView === 'pipeline' && crmState === 'demo' && (
           <div role="status" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <strong>Données de démonstration.</strong> Supabase n'est pas configuré sur ce serveur : ces prospects sont fictifs. Renseignez SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY pour afficher vos vrais prospects.
