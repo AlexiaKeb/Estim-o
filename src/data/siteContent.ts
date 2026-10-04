@@ -68,7 +68,7 @@ export const KEY_FIGURES: KeyFigure[] = [];
 export const FAQ: Array<{ q: string; a: string }> = [
   {
     q: 'La visite est-elle vraiment gratuite et sans engagement ?',
-    a: `Oui. La visite de découverte est offerte et ne vous engage à rien. Aucun document n'est à préparer.`,
+    a: `Oui. La visite de découverte est offerte et ne vous engage à rien. Céline vous indiquera les quelques documents utiles à avoir sous la main.`,
   },
   {
     q: 'Pourquoi une visite, alors que je peux avoir un prix en ligne ?',

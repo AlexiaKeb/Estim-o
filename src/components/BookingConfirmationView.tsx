@@ -67,7 +67,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
   const handleAddToGoogleCalendar = () => {
     const title = encodeURIComponent(`Visite de découverte Agent Estimation - ${confirmedLead.name}`);
     const details = encodeURIComponent(
-      `Rendez-vous de découverte et estimation avec Céline (Agent Estimation).\n\nBien : ${confirmedLead.propertyType} (${confirmedLead.surface} m²)\nLieu : ${confirmedLead.address || confirmedLead.city}\nObjectif : Faire connaissance, découvrir votre projet et échanger sur les spécificités du bien pour notre évaluation en équipe.\nPour modifier votre créneau, contactez directement Céline au 06 03 58 03 16`
+      `Rendez-vous de découverte et estimation avec Céline (Agent Estimation).\n\nBien : ${confirmedLead.propertyType} (${confirmedLead.surface} m²)\nLieu : ${confirmedLead.address || confirmedLead.city}\nObjectif : Faire connaissance, découvrir votre projet et échanger sur les spécificités du bien pour établir votre avis de valeur.\nPour modifier votre créneau, contactez directement Céline au 06 03 58 03 16`
     );
     const location = encodeURIComponent(confirmedLead.address || `${confirmedLead.city}, France`);
     
@@ -92,7 +92,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
       'PRODID:-//Agent Estimation//RDV Decouverte//FR',
       'BEGIN:VEVENT',
       `SUMMARY:Visite découverte & estimation - ${confirmedLead.name}`,
-      `DESCRIPTION:Visite de découverte avec Céline. Découvrir votre projet et analyser le bien pour l'évaluation en équipe. Tél Céline: 06 03 58 03 16`,
+      `DESCRIPTION:Visite de découverte avec Céline. Découvrir votre projet et analyser le bien pour établir l'avis de valeur. Tél Céline: 06 03 58 03 16`,
       `LOCATION:${confirmedLead.address || confirmedLead.city}`,
       `DTSTART:${dateStr}T${timeStr}`,
       `DTEND:${dateStr}T${(parseInt(timeStr.slice(0, 2)) + 1).toString().padStart(2, '0')}${timeStr.slice(2)}`,
@@ -115,16 +115,16 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
   const faqItems = [
     {
-      q: "Ai-je besoin de préparer des documents pour cette première visite ?",
-      a: "Non, aucun document officiel n'est requis pour cette première rencontre ! C'est avant tout une phase de découverte : Céline vient faire connaissance, visiter votre bien et échanger sur votre projet. Si vous avez un plan sous la main ou si vous connaissez le montant de la taxe foncière, des charges ou d'éventuels travaux votés, c'est un plus, mais rien n'est obligatoire."
+      q: "Que dois-je préparer pour la visite ?",
+      a: "Céline vous précisera les documents utiles. En général : le titre de propriété, la dernière taxe foncière, les diagnostics déjà réalisés (dont le DPE) et, en copropriété, les derniers procès-verbaux d'assemblée et le montant des charges. Les avoir sous la main permet un avis plus précis et plus rapide.",
     },
     {
       q: "Comment se déroule l'évaluation après la visite ?",
-      a: "L'évaluation est réalisée collégialement en équipe. De retour à l'agence, Céline confronte les éléments relevés sur place avec nos experts du secteur et les données des transactions notariales récentes pour calibrer l'avis de valeur le plus juste et le plus solide."
+      a: "Après la visite, Céline confronte les éléments relevés sur place avec les données des transactions récentes de votre secteur pour établir un avis de valeur argumenté, qu'elle vous présente ensuite."
     },
     {
       q: "Combien de temps dure cette visite de découverte ?",
-      a: "Comptez environ 20 à 30 minutes d'échange convivial. Céline découvre les lieux avec vous, écoute vos souhaits, vos échéances et répond en toute transparence à toutes vos questions."
+      a: "Prévoyez environ 1 heure d'échange convivial. Céline découvre les lieux avec vous, écoute vos souhaits, vos échéances et répond en toute transparence à toutes vos questions."
     },
     {
       q: "J'ai un imprévu, comment modifier mon créneau de visite ?",
@@ -266,7 +266,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
             </div>
 
             <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 rounded-2xl p-4 border border-stone-200/70 italic">
-              « Bonjour {confirmedLead.name} ! Cette première visite est avant tout une phase de découverte : nous allons faire connaissance, échanger en toute simplicité sur votre projet et vos attentes. Aucun document formel n'est nécessaire. Après notre échange, notre évaluation sera réalisée en équipe pour vous garantir la vision la plus juste. »
+              « Bonjour {confirmedLead.name} ! Cette première visite est avant tout une phase de découverte : nous allons faire connaissance, échanger en toute simplicité sur votre projet et vos attentes. Après notre échange, j'établirai un avis de valeur argumenté, au plus juste du marché local. »
             </p>
 
             <div className="space-y-2 pt-1">
@@ -296,7 +296,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
             <div>
               <h4 className="text-sm font-bold text-white">Lyon, Villeurbanne & Rayon 50 km (Beaujolais inclus)</h4>
               <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                Céline et son équipe opèrent exclusivement sur la métropole lyonnaise, Villeurbanne et le Beaujolais jusqu'à 50 km autour de Lyon pour garantir une maîtrise parfaite des micromarchés locaux.
+                Céline intervient exclusivement sur la métropole lyonnaise, Villeurbanne et le Beaujolais jusqu'à 50 km autour de Lyon pour garantir une maîtrise parfaite des micromarchés locaux.
               </p>
             </div>
           </div>
@@ -313,7 +313,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
                   Phase découverte : Faire connaissance & échanger sur votre projet
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Aucun document obligatoire pour cette 1ère visite. Voici simplement les informations utiles à évoquer :
+                  Voici les informations et documents utiles à avoir sous la main le jour de la visite :
                 </p>
               </div>
             </div>
@@ -396,7 +396,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 />
                 <div className="text-xs">
                   <div className="font-semibold">4. Avez-vous un plan du bien ? (C'est encore mieux !)</div>
-                  <div className="text-stone-500 text-[11px] mt-0.5">Un plan d'architecte ou même un schéma aide grandement notre équipe à apprécier la distribution des espaces.</div>
+                  <div className="text-stone-500 text-[11px] mt-0.5">Un plan d'architecte ou même un schéma aide grandement Céline à apprécier la distribution des espaces.</div>
                 </div>
               </div>
             </div>
@@ -405,10 +405,10 @@ export const BookingConfirmationView: React.FC<Props> = ({
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-stone-800 space-y-1.5 mt-2">
               <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
                 <Award className="w-4 h-4 text-amber-600" />
-                <span>Une évaluation collégiale réalisée en équipe</span>
+                <span>Un avis de valeur argumenté</span>
               </div>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Après cette visite de découverte, Céline analyse le bien de manière concertée avec toute l'équipe d'experts de l'agence. Cette évaluation croisée garantit une analyse objective, solide et parfaitement corrélée aux réalités du marché local.
+                Après cette visite de découverte, Céline analyse le bien à la lumière des transactions récentes de votre secteur. Vous recevez un avis objectif, argumenté et corrélé aux réalités du marché local.
               </p>
             </div>
           </div>

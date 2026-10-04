@@ -357,7 +357,7 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
       let status: 'HOT' | 'WARM' | 'COLD' = 'WARM';
 
       if (lower.includes('email') || lower.includes('mail') || lower.includes('envoyer') || lower.includes('dossier')) {
-        reply = `Je comprends tout à fait votre souhait de recevoir les éléments rapidement ! Cependant, un simple envoi automatique par e-mail ne refléterait pas la vraie valeur de votre bien.\n\nUne estimation juste ne se résume pas à des algorithmes froids : une simple visite de découverte sans engagement avec Céline (ou joignable au 06 03 58 03 16) permet de faire connaissance, d'évoquer les éventuels travaux, charges ou taxe foncière, et de confier l'analyse à notre équipe d'experts.\n\nCette visite est 100% offerte et sans aucun document requis. Avez-vous déjà consulté une autre agence pour ce bien ?`;
+        reply = `Je comprends tout à fait votre souhait de recevoir les éléments rapidement ! Cependant, un simple envoi automatique par e-mail ne refléterait pas la vraie valeur de votre bien.\n\nUne estimation juste ne se résume pas à des algorithmes froids : une simple visite de découverte sans engagement avec Céline (ou joignable au 06 03 58 03 16) permet de faire connaissance, d'évoquer les éventuels travaux, charges ou taxe foncière, et d'établir une analyse argumentée.\n\nCette visite est 100% offerte et sans engagement. Avez-vous déjà consulté une autre agence pour ce bien ?`;
         score = 80;
         status = 'WARM';
       } else if (count === 1) {
@@ -367,11 +367,11 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
         reply = `C'est très clair et parfaitement noté. Sous quel horizon de temps souhaiteriez-vous idéalement concrétiser cette vente ou avancer dans votre projet (urgent sous 1 mois, 1 à 3 mois, ou simple réflexion) ?`;
         score = 70;
       } else if (count === 3) {
-        reply = `Superbe ! Pour aller au-delà de cette simulation indicative et évaluer la valeur exacte de votre bien en équipe, une visite de découverte sur place permet de faire connaissance et de découvrir les lieux en toute sérénité.\n\nSeriez-vous disponible pour convenir d'une visite de découverte avec Céline (ou la joindre directement au 06 03 58 03 16) ?`;
+        reply = `Superbe ! Pour aller au-delà de cette simulation indicative et évaluer la valeur exacte de votre bien, une visite de découverte sur place permet de faire connaissance et de découvrir les lieux en toute sérénité.\n\nSeriez-vous disponible pour convenir d'une visite de découverte avec Céline (ou la joindre directement au 06 03 58 03 16) ?`;
         score = 85;
         status = 'HOT';
       } else {
-        reply = `Merci pour ces précieux échanges ! Votre bien bénéficie d'une vraie attractivité sur votre secteur. Pour finaliser notre évaluation en équipe, je vous propose de fixer une visite de découverte (100% offerte, sans engagement et sans paperasse) avec Céline (joignable au 06 03 58 03 16).\n\nVous pouvez choisir votre créneau privilégié ci-dessous :`;
+        reply = `Merci pour ces précieux échanges ! Votre bien bénéficie d'une vraie attractivité sur votre secteur. Pour finaliser l'évaluation, je vous propose de fixer une visite de découverte (100% offerte, sans engagement) avec Céline (joignable au 06 03 58 03 16).\n\nVous pouvez choisir votre créneau privilégié ci-dessous :`;
         score = 92;
         status = 'HOT';
       }

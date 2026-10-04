@@ -449,7 +449,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
             </div>
             <div>
               <span className="font-bold text-stone-900">Conseillère dédiée : Céline</span>
-              <span className="text-stone-500 hidden sm:inline"> • Spécialiste Lyon & 50 km (Évaluation en équipe)</span>
+              <span className="text-stone-500 hidden sm:inline"> • Spécialiste Lyon & 50 km</span>
             </div>
           </div>
           <a
@@ -630,7 +630,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
               <Home className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
               <div>
                 <div className="font-semibold">Visite de votre bien sur place · offerte</div>
-                <div className="text-xs text-stone-600">Céline se déplace à l'adresse du bien. Aucun document à préparer.</div>
+                <div className="text-xs text-stone-600">Céline se déplace à l'adresse du bien.</div>
               </div>
             </div>
 

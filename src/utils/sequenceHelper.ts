@@ -58,7 +58,7 @@ export function generateDefaultSequenceForLead(lead: Lead): ScheduledMessage[] {
       scheduledDate: dayAt(10),
       scheduledTime: '14:00',
       subject: `Les documents utiles pour préparer une vente`,
-      message: `${hello}\n\nSi vous envisagez de vendre${lead.timeframe && lead.timeframe !== 'Curiosité' ? ` (${lead.timeframe})` : ''}, il est utile de rassembler dès maintenant quelques documents : le titre de propriété, les dernières taxes foncières, les diagnostics déjà réalisés (dont le DPE) et, en copropriété, les derniers procès-verbaux d'assemblée et le montant des charges.\n\nRien n'est obligatoire pour une première visite : cela permet simplement d'aller plus vite le moment venu.`,
+      message: `${hello}\n\nSi vous envisagez de vendre${lead.timeframe && lead.timeframe !== 'Curiosité' ? ` (${lead.timeframe})` : ''}, il est utile de rassembler dès maintenant quelques documents : le titre de propriété, les dernières taxes foncières, les diagnostics déjà réalisés (dont le DPE) et, en copropriété, les derniers procès-verbaux d'assemblée et le montant des charges.\n\nLes avoir sous la main le jour de la visite permet d'aller plus vite et d'affiner l'avis de valeur.`,
       goal: "Apporter une aide concrète, sans pression.",
       status: 'scheduled',
     },

@@ -117,7 +117,7 @@ function generateIntelligentQualificationReply(
     lastUserMsg.includes("envoi")
   ) {
     return {
-      reply: `Je comprends tout à fait votre demande ! Cependant, un simple envoi automatique par e-mail ne refléterait pas la vraie valeur de votre bien. Une estimation juste nécessite de découvrir le bien et d'échanger en phase de découverte avec Céline (joignable directement au 06 03 58 03 16).\n\nCette visite est 100% offerte, sans document obligatoire et sans engagement : l'évaluation est ensuite réalisée en équipe pour vous livrer un avis de valeur solide.\n\nQuel jour seriez-vous disponible pour convenir d'une visite de découverte ?`,
+      reply: `Je comprends tout à fait votre demande ! Cependant, un simple envoi automatique par e-mail ne refléterait pas la vraie valeur de votre bien. Une estimation juste nécessite de découvrir le bien et d'échanger en phase de découverte avec Céline (joignable directement au 06 03 58 03 16).\n\nCette visite est 100% offerte et sans engagement : Céline vous livre ensuite un avis de valeur solide.\n\nQuel jour seriez-vous disponible pour convenir d'une visite de découverte ?`,
       extractedData: {
         propertyType,
         location,
@@ -197,7 +197,7 @@ function generateIntelligentQualificationReply(
     reply = `C'est très précieux de le savoir, merci ! Votre projet mérite une attention personnalisée. Sous quel horizon de temps souhaiteriez-vous idéalement concrétiser cette vente (dans les 1 à 3 mois, d'ici 3 à 6 mois, ou prenez-vous le temps de la réflexion) ?`;
     score = 70;
   } else if (count === 3) {
-    reply = `C'est très clair ! Pour aller au-delà de cette simulation indicative et réaliser notre évaluation approfondie en équipe, une visite de découverte permet de faire connaissance en toute simplicité (aucun document formel requis).\n\nSeriez-vous disponible pour convenir d'une visite de découverte avec Céline (vous pouvez également la joindre directement au 06 03 58 03 16) ?`;
+    reply = `C'est très clair ! Pour aller au-delà de cette simulation indicative et réaliser une évaluation approfondie, une visite de découverte permet de faire connaissance en toute simplicité.\n\nSeriez-vous disponible pour convenir d'une visite de découverte avec Céline (vous pouvez également la joindre directement au 06 03 58 03 16) ?`;
     score = 84;
     leadStatus = "HOT";
   } else {
@@ -939,7 +939,7 @@ async function startServer() {
       const fallbackSequence = [
         { step: "J+1 (Email)", channel: "Email", subject: `Votre estimation à ${city}`, message: `${hello}\n\nMerci d'avoir demandé l'estimation de votre ${type} à ${city}. La simulation est un repère : une visite permet de tenir compte de l'état réel du bien. Elle est gratuite et sans engagement.` },
         { step: "J+7 (Email)", channel: "Email", subject: `Ce qui fait varier le prix d'un ${type}`, message: `${hello}\n\nL'état général, l'étage, l'exposition, le DPE et les charges font varier le prix d'une vente à l'autre. Y a-t-il un point de votre bien que vous aimeriez voir valorisé ?` },
-        { step: "J+15 (Email)", channel: "Email", subject: "Documents utiles pour préparer une vente", message: `${hello}\n\nTitre de propriété, taxes foncières, diagnostics déjà réalisés, et en copropriété les derniers procès-verbaux d'assemblée : les rassembler à l'avance fait gagner du temps. Rien n'est obligatoire pour une première visite.` },
+        { step: "J+15 (Email)", channel: "Email", subject: "Documents utiles pour préparer une vente", message: `${hello}\n\nTitre de propriété, taxes foncières, diagnostics déjà réalisés, et en copropriété les derniers procès-verbaux d'assemblée : les rassembler à l'avance fait gagner du temps. Les avoir sous la main le jour de la visite permet d'affiner l'avis de valeur.` },
         { step: "J+30 (Email)", channel: "Email", subject: "Où en est votre projet ?", message: `${hello}\n\nOù en est votre réflexion sur votre ${type} à ${city} ? Je reste disponible pour en parler quelques minutes.` },
         { step: "J+60 (Email)", channel: "Email", subject: "Mettre à jour votre estimation", message: `${hello}\n\nVotre estimation date de deux mois. Je peux la mettre à jour gratuitement avec les ventes les plus récentes. Il suffit de répondre à cet e-mail.` },
       ];
