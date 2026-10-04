@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
-import { scrollToSimulator, LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
+import { scrollToSimulator, LandingHero, HowItWorks, WhyOnSite, SocialProof, ZoneSection, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { GuidedAssistant, AssistantSeed } from './GuidedAssistant';
 
 interface Props {
@@ -39,6 +39,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
         <HowItWorks />
         <WhyOnSite />
         <SocialProof />
+        <ZoneSection />
         <FaqSection />
         <FinalCta />
       </div>

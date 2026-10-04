@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { 
   Building2, 
   Sparkles, 
@@ -28,15 +28,15 @@ import { ValuationInputs, ValuationResult, Lead, AgentPrivacySettings } from './
 import { INITIAL_LEADS } from './data/mockLeads';
 import { fetchCrmLeads, saveCrmLead } from './lib/supabaseService';
 import { LandingSimulator } from './components/LandingSimulator';
-import { QualificationChatbot } from './components/QualificationChatbot';
-import { CrmPipelineView } from './components/CrmPipelineView';
-import { NurtureEngineView } from './components/NurtureEngineView';
-import { KpiRoiCalculator } from './components/KpiRoiCalculator';
-import { CalendarBookingModal } from './components/CalendarBookingModal';
-import { BookingConfirmationView } from './components/BookingConfirmationView';
-import { PrivacyShieldModal } from './components/PrivacyShieldModal';
-import { AgentAuthModal } from './components/AgentAuthModal';
-import { CalendarHealth } from './components/CalendarHealth';
+const QualificationChatbot = lazy(() => import('./components/QualificationChatbot').then((m) => ({ default: m.QualificationChatbot })));
+const CrmPipelineView = lazy(() => import('./components/CrmPipelineView').then((m) => ({ default: m.CrmPipelineView })));
+const NurtureEngineView = lazy(() => import('./components/NurtureEngineView').then((m) => ({ default: m.NurtureEngineView })));
+const KpiRoiCalculator = lazy(() => import('./components/KpiRoiCalculator').then((m) => ({ default: m.KpiRoiCalculator })));
+const CalendarBookingModal = lazy(() => import('./components/CalendarBookingModal').then((m) => ({ default: m.CalendarBookingModal })));
+const BookingConfirmationView = lazy(() => import('./components/BookingConfirmationView').then((m) => ({ default: m.BookingConfirmationView })));
+const PrivacyShieldModal = lazy(() => import('./components/PrivacyShieldModal').then((m) => ({ default: m.PrivacyShieldModal })));
+const AgentAuthModal = lazy(() => import('./components/AgentAuthModal').then((m) => ({ default: m.AgentAuthModal })));
+const CalendarHealth = lazy(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
 import { BRAND } from './data/siteContent';
 
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator';
@@ -722,6 +722,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Suspense fallback={<div role="status" className="py-24 text-center text-sm text-stone-500">Chargement…</div>}>
         {currentView === 'landing' && (
           <LandingSimulator
             onValuationComplete={handleValuationComplete}
@@ -797,31 +798,40 @@ export default function App() {
         )}
 
         {currentView === 'calculator' && <KpiRoiCalculator />}
+        </Suspense>
       </main>
 
-      {/* Calendar Booking Modal */}
-      <CalendarBookingModal
-        isOpen={isBookingOpen}
-        initialLeadInfo={bookingLeadInfo}
-        onClose={() => setIsBookingOpen(false)}
-        onConfirmBooking={handleConfirmBooking}
-      />
+      <Suspense fallback={null}>
+        {/* Calendar Booking Modal */}
+        {isBookingOpen && (
+          <CalendarBookingModal
+            isOpen={isBookingOpen}
+            initialLeadInfo={bookingLeadInfo}
+            onClose={() => setIsBookingOpen(false)}
+            onConfirmBooking={handleConfirmBooking}
+          />
+        )}
 
-      {/* Agent Privacy & PIN Configuration Modal */}
-      <PrivacyShieldModal
-        isOpen={isPrivacyModalOpen}
-        onClose={() => setIsPrivacyModalOpen(false)}
-        settings={privacySettings}
-        onUpdateSettings={handleUpdatePrivacySettings}
-      />
+        {/* Agent Privacy & PIN Configuration Modal */}
+        {isPrivacyModalOpen && (
+          <PrivacyShieldModal
+            isOpen={isPrivacyModalOpen}
+            onClose={() => setIsPrivacyModalOpen(false)}
+            settings={privacySettings}
+            onUpdateSettings={handleUpdatePrivacySettings}
+          />
+        )}
 
-      {/* Agent Authentication / PIN Modal */}
-      <AgentAuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={handleAuthSuccess}
-        settings={privacySettings}
-      />
+        {/* Agent Authentication / PIN Modal */}
+        {isAuthModalOpen && (
+          <AgentAuthModal
+            isOpen={isAuthModalOpen}
+            onClose={() => setIsAuthModalOpen(false)}
+            onSuccess={handleAuthSuccess}
+            settings={privacySettings}
+          />
+        )}
+      </Suspense>
 
       {/* Footer */}
       <footer className="bg-white border-t border-stone-200/80 py-6 mt-12">

@@ -75,6 +75,14 @@ export const FAQ: Array<{ q: string; a: string }> = [
     a: 'Une simulation en ligne donne un repère. Elle ne voit ni la luminosité, ni les finitions, ni le calme, ni les travaux réalisés. Ce sont ces détails qui permettent de défendre la valeur haute de votre bien face aux acheteurs.',
   },
   {
+    q: "D'où viennent les prix de l'estimation ?",
+    a: "Des ventes réellement enregistrées par l'État (base Demandes de valeurs foncières, DVF), autour de votre adresse. Quand trop peu de ventes comparables existent, le site l'indique et affiche une fourchette plus large, à affiner en visite.",
+  },
+  {
+    q: 'Combien de temps faut-il pour obtenir une estimation ?',
+    a: "Environ 2 minutes en ligne : quelques questions sur votre bien et votre projet, puis votre fourchette de prix s'affiche.",
+  },
+  {
     q: 'Dois-je avoir décidé de vendre ?',
     a: 'Non. Beaucoup de propriétaires viennent simplement comparer, anticiper ou préparer un projet à plusieurs mois. Connaître la valeur de son bien permet de décider sereinement.',
   },

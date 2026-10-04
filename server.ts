@@ -1,5 +1,7 @@
 import express, { Request, Response } from "express";
 import path from "path";
+import fs from "fs";
+import { seoHead, robotsTxt, sitemapXml, siteBase } from "./server/seo";
 import crypto from "crypto";
 import {
   requireAgent,
@@ -2329,19 +2331,46 @@ async function startServer() {
     }
   });
 
+  app.use("/api", (_req: Request, res: Response) => res.status(404).json({ error: "Not found" }));
+
+  // SEO files
+  app.get("/robots.txt", (req: Request, res: Response) => {
+    res.type("text/plain").send(robotsTxt(siteBase(req)));
+  });
+  app.get("/sitemap.xml", (req: Request, res: Response) => {
+    res.type("application/xml").send(sitemapXml(siteBase(req)));
+  });
+
+  // HTML pages get their own title, description, canonical and structured data (same for dev and production)
+  const sendPage = async (req: Request, res: Response, load: () => Promise<string>) => {
+    try {
+      const html = (await load()).replace("<!--SEO_HEAD-->", seoHead(req));
+      res.status(200).set("Content-Type", "text/html; charset=utf-8").set("Cache-Control", "no-cache").send(html);
+    } catch (e) {
+      console.error("page render error:", e);
+      res.status(500).send("Erreur de chargement");
+    }
+  };
+
   // Vite middleware for development or static file serving for production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: "spa",
+      appType: "custom",
     });
     app.use(vite.middlewares);
+    app.get("*", (req: Request, res: Response) =>
+      sendPage(req, res, async () => vite.transformIndexHtml(req.originalUrl, await fs.promises.readFile(path.join(process.cwd(), "index.html"), "utf-8"))),
+    );
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (_req: Request, res: Response) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+    // Hashed build files never change: cache them for a year; the HTML page itself is always revalidated
+    app.use("/assets", express.static(path.join(distPath, "assets"), { maxAge: "365d", immutable: true }));
+    app.use(express.static(distPath, { index: false, maxAge: "7d" }));
+    let template: string | null = null;
+    app.get("*", (req: Request, res: Response) =>
+      sendPage(req, res, async () => (template ??= await fs.promises.readFile(path.join(distPath, "index.html"), "utf-8"))),
+    );
   }
 
   prewarm((process.env.DVF_PREWARM || "69381,69382,69383,69384,69385,69386,69387,69388,69389,69266").split(",").filter(Boolean));

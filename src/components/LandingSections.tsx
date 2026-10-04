@@ -63,7 +63,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
           </p>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05] [text-wrap:balance]">
-            Combien vaut vraiment <span className="text-amber-300">votre bien</span>&nbsp;?
+            Combien vaut vraiment <span className="text-amber-300">votre bien</span> à&nbsp;Lyon et autour&nbsp;?
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
@@ -114,7 +114,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
         {/* Who you will talk to */}
         <aside className="rounded-3xl bg-white text-stone-900 shadow-2xl shadow-black/30 overflow-hidden min-w-0 max-w-md w-full justify-self-center lg:justify-self-end">
           {AGENT.photoUrl ? (
-            <img src={AGENT.photoUrl} alt={`${AGENT.name}, conseillère immobilière à Lyon`} className="w-full aspect-[4/3] object-cover object-[50%_25%]" />
+            <img src={AGENT.photoUrl} alt={`${AGENT.name}, conseillère immobilière à Lyon`} width={640} height={480} decoding="async" className="w-full aspect-[4/3] object-cover object-[50%_25%]" />
           ) : (
             <div className="w-full aspect-[4/3] bg-gradient-to-br from-amber-200 to-amber-400 flex items-center justify-center">
               <AgentAvatar size={96} />
@@ -418,3 +418,20 @@ export const ValuationEvidence: React.FC<{ result: import('../types').ValuationR
     </div>
   );
 };
+
+/** Local context for visitors and search engines: who is served, and where the numbers come from. */
+export const ZoneSection: React.FC = () => (
+  <section aria-labelledby="zone-title" className="rounded-2xl bg-white border border-stone-200 p-6 sm:p-10 space-y-4">
+    <h2 id="zone-title" className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900 [text-wrap:balance]">
+      Estimation immobilière à Lyon, Villeurbanne et en Beaujolais
+    </h2>
+    <p className="text-stone-600 leading-relaxed max-w-3xl">
+      {AGENT.name} accompagne les propriétaires de la métropole lyonnaise et du Beaujolais, jusqu'à 50 km autour de Lyon. Votre estimation en ligne s'appuie sur les ventes réellement enregistrées par l'État (base DVF) autour de votre adresse. La visite permet ensuite de tenir compte de ce qu'aucune base de données ne voit : l'état du bien, la luminosité, l'étage, la vue, les travaux réalisés.
+    </p>
+    <ul className="flex flex-wrap gap-2 text-sm text-stone-700">
+      {['Lyon', 'Villeurbanne', 'Caluire-et-Cuire', 'Bron', 'Écully', 'Villefranche-sur-Saône', 'Beaujolais', 'Communes alentour'].map((c) => (
+        <li key={c} className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1">{c}</li>
+      ))}
+    </ul>
+  </section>
+);
