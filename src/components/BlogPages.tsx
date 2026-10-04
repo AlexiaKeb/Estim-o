@@ -1,5 +1,6 @@
 import React from 'react';
 import { AGENT, BRAND } from '../data/siteContent';
+import { BrandLogo } from './BrandLogo';
 import { BLOG_POSTS, BlogPost, formatPostDate, getPost } from '../data/blog';
 
 // Pages du blog. Aucun hook ni API navigateur : ces composants sont aussi rendus côté serveur (référencement).
@@ -18,7 +19,7 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   <div className="min-h-screen bg-stone-50 text-stone-800">
     <header className="bg-white border-b border-stone-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-        <a href="/" className="font-bold text-stone-900">{BRAND.name}</a>
+        <BrandLogo />
         <nav aria-label="Navigation principale" className="flex items-center gap-4 text-sm">
           <a href="/estimation-immobiliere" className="hidden sm:inline text-stone-600 hover:text-stone-900">Prix par secteur</a>
           <a href="/blog" className="text-stone-600 hover:text-stone-900">Conseils</a>

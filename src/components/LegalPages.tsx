@@ -1,5 +1,6 @@
 import React from 'react';
 import { AGENT, BRAND, LEGAL } from '../data/siteContent';
+import { BrandLogo } from './BrandLogo';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <section className="mt-8">
@@ -12,7 +13,7 @@ const Shell: React.FC<{ title: string; children: React.ReactNode }> = ({ title, 
   <div className="min-h-screen bg-stone-50">
     <header className="bg-white border-b border-stone-200">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-        <a href="/" className="font-bold text-stone-900">{BRAND.name}</a>
+        <BrandLogo />
         <a href="/" className="text-sm text-stone-500 hover:text-stone-800">← Retour à l'estimation</a>
       </div>
     </header>
