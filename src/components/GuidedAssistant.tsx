@@ -373,6 +373,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       estimatedValue: res?.estimatedAvg,
       motive,
       timeframe,
+      valuation: res ? { lowPrice: res.lowPrice, highPrice: res.highPrice } : undefined,
     });
 
     syncLeadToSupabase(newLead)
@@ -382,7 +383,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
           setLead(synced);
           leadRef.current = synced;
           onLeadCaptured?.(synced, newLead.id);
-          onLeadReady?.({ id: realId, name, phone, email, city: inputs.city, address: inputs.address || inputs.city, surface: inputs.surface, propertyType: typeLabel, estimatedValue: res?.estimatedAvg, motive, timeframe });
+          onLeadReady?.({ id: realId, name, phone, email, city: inputs.city, address: inputs.address || inputs.city, surface: inputs.surface, propertyType: typeLabel, estimatedValue: res?.estimatedAvg, motive, timeframe, valuation: res ? { lowPrice: res.lowPrice, highPrice: res.highPrice } : undefined });
         }
       })
       .catch(() => {});
@@ -790,6 +791,15 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
           {AGENT.phone}
         </a>
       </header>
+
+      {result && lead && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-5 py-2 flex items-baseline justify-between gap-3" aria-label="Rappel de votre estimation">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800">Votre estimation</span>
+          <span className="text-base sm:text-lg font-bold text-[#0f1f3d] whitespace-nowrap">
+            {fmt(result.lowPrice)} – {fmt(result.highPrice)} €
+          </span>
+        </div>
+      )}
 
       <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-3 bg-stone-50" aria-live="polite">
         {messages.map((m) =>

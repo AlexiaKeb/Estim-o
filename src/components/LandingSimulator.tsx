@@ -35,14 +35,22 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
         <GuidedAssistant seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={onOpenBooking} onLeadReady={setLeadInfo} />
       </section>
 
-      <div className="space-y-14 pt-2 pb-16 sm:pb-0">
+      <div className="space-y-14 pt-2 pb-24 sm:pb-0">
         <HowItWorks />
         <WhyOnSite />
         <SocialProof />
         <FaqSection />
         <FinalCta />
       </div>
-      <StickyMobileCta unlocked={Boolean(leadInfo)} onBook={() => onOpenBooking?.(leadInfo || {})} />
+      <StickyMobileCta
+        unlocked={Boolean(leadInfo)}
+        onBook={() => onOpenBooking?.(leadInfo || {})}
+        priceLabel={
+          leadInfo?.valuation
+            ? `${leadInfo.valuation.lowPrice.toLocaleString('fr-FR')} – ${leadInfo.valuation.highPrice.toLocaleString('fr-FR')} €`
+            : undefined
+        }
+      />
     </div>
   );
 };

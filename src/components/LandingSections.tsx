@@ -313,7 +313,7 @@ export const FinalCta: React.FC = () => (
 );
 
 /** Mobile only: the action stays one tap away while the visitor reads. */
-export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void }> = ({ unlocked, onBook }) => {
+export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void; priceLabel?: string }> = ({ unlocked, onBook, priceLabel }) => {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 560);
@@ -326,9 +326,15 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
   if (!show) return null;
   return (
     <div
-      className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-stone-200 px-4 pt-3 flex gap-2"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-stone-200 px-4 pt-2.5 flex flex-wrap gap-x-2 gap-y-1.5"
       style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
     >
+      {unlocked && priceLabel && (
+        <div className="basis-full flex items-baseline justify-between text-xs">
+          <span className="font-semibold uppercase tracking-wider text-amber-800">Votre estimation</span>
+          <span className="text-base font-bold text-[#0f1f3d]">{priceLabel}</span>
+        </div>
+      )}
       {unlocked && onBook ? (
         <button
           type="button"
