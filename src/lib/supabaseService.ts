@@ -120,6 +120,7 @@ export async function syncLeadToSupabase(lead: Partial<Lead>): Promise<string | 
         tasks: lead.tasks,
         activities: lead.activities,
         valuation: lead.valuation,
+        attribution: lead.attribution,
       }),
     });
 

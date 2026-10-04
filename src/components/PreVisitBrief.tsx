@@ -57,6 +57,13 @@ export const PreVisitBrief: React.FC<Props> = ({ lead, onBrief }) => {
         </button>
       </div>
       {error && <p role="alert" className="text-xs text-rose-700">{error}</p>}
+      {lead.attribution && (lead.attribution.gclid || lead.attribution.utmCampaign || lead.attribution.utmSource) && (
+        <p className="text-xs text-slate-500">
+          Origine : {lead.attribution.gclid ? 'annonce Google Ads' : lead.attribution.utmSource}
+          {lead.attribution.utmCampaign ? ` · campagne « ${lead.attribution.utmCampaign} »` : ''}
+          {lead.attribution.utmTerm ? ` · mot-clé « ${lead.attribution.utmTerm} »` : ''}
+        </p>
+      )}
 
       {/* Why this score */}
       <div>

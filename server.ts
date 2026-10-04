@@ -1310,6 +1310,14 @@ async function startServer() {
       // Seller-journey context for the CRM, written once when the lead is created (never overwrites the advisor's edits)
       const initialCrm: Record<string, any> = {};
       for (const k of ["notes", "tasks", "activities", "valuation"]) if (leadData[k]) initialCrm[k] = leadData[k];
+      if (leadData.attribution && typeof leadData.attribution === "object") {
+        const a: Record<string, string> = {};
+        for (const k of ["gclid", "gbraid", "wbraid", "utmSource", "utmMedium", "utmCampaign", "utmTerm", "utmContent", "landingPage", "capturedAt"]) {
+          const v = leadData.attribution[k];
+          if (typeof v === "string" && v) a[k] = v.slice(0, 200);
+        }
+        if (Object.keys(a).length) initialCrm.attribution = a;
+      }
 
       if (idIsUuid) {
         // A lead that already has a confirmed appointment must never fall back to an earlier stage

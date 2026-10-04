@@ -4,6 +4,7 @@ import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { syncLeadToSupabase } from '../lib/supabaseService';
 import confetti from 'canvas-confetti';
 import { AGENT, VISIT_LABEL } from '../data/siteContent';
+import { getAttribution, trackConversion } from '../utils/tracking';
 import { AddressSearch } from './AddressSearch';
 import { QuickQualification, QuickAnswers } from './QuickQualification';
 import { scrollToSimulator, ValuationEvidence, LandingHero, HowItWorks, WhyOnSite, SocialProof, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
@@ -262,6 +263,7 @@ export const LandingSimulator: React.FC<Props> = ({
         periodFrom: result.periodFrom,
         periodTo: result.periodTo,
       },
+      attribution: getAttribution(),
       notes: `Lead capturé via simulateur d'estimation. Source du prix : ${
         result.dataSource === 'dvf'
           ? `${result.sampleSize} ventes réelles DVF${result.radiusM ? ` dans ${result.radiusM} m` : ' de la commune'} (médiane ${result.medianM2?.toLocaleString('fr-FR')} €/m²)`
@@ -284,6 +286,7 @@ export const LandingSimulator: React.FC<Props> = ({
 
     // Save lead in CRM & sync to Supabase
     setCapturedLead(newLead);
+    trackConversion('lead');
     if (onLeadCaptured) {
       onLeadCaptured(newLead);
     }

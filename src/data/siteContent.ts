@@ -22,6 +22,23 @@ export const AGENT = {
   photoUrl: '',
 };
 
+// Informations légales affichées sur les pages « Mentions légales » et « Confidentialité ».
+// Les champs laissés vides ne s'affichent pas : à compléter par Céline (voir la liste dans le message de livraison).
+export const LEGAL = {
+  company: 'NOVEA IMMOBILIER transaction',
+  form: 'SAS (société par actions simplifiée) au capital de 5 441,00 €',
+  address: '10 chemin du Vieux Moulin, 69270 Saint-Romain-au-Mont-d\'Or',
+  siret: '902 615 194',
+  cartePro:
+    'Carte professionnelle « Transaction » n° CPI 69012021000000167, délivrée par la Chambre de Commerce et d\'Industrie de Lyon',
+  fonds: 'Sans maniement de fonds',
+  // À compléter : numéro d'immatriculation de Céline au RSAC (agent commercial) et greffe
+  rsac: '',
+  // À compléter : e-mail de contact et nom du médiateur de la consommation de NOVEA
+  contactEmail: '',
+  mediator: '',
+};
+
 /** 30 -> "30 minutes", 60 -> "1 heure", 90 -> "1 h 30" */
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} minutes`;

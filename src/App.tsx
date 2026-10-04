@@ -37,7 +37,7 @@ import { BookingConfirmationView } from './components/BookingConfirmationView';
 import { PrivacyShieldModal } from './components/PrivacyShieldModal';
 import { AgentAuthModal } from './components/AgentAuthModal';
 import { CalendarHealth } from './components/CalendarHealth';
-import { BRAND } from './data/siteContent';
+import { BRAND, LEGAL } from './data/siteContent';
 
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator';
 
@@ -831,7 +831,10 @@ export default function App() {
               {BRAND.name}
             </span>
             <span>•</span>
-            <span>Conformité RGPD & Secret Professionnel</span>
+            <span>{LEGAL.company} · SIRET {LEGAL.siret}</span>
+            <span>•</span>
+            <a href="/mentions-legales" className="hover:text-stone-800 underline-offset-2 hover:underline">Mentions légales</a>
+            <a href="/confidentialite" className="hover:text-stone-800 underline-offset-2 hover:underline">Confidentialité</a>
           </div>
 
           <div className="flex items-center gap-4 text-stone-500">

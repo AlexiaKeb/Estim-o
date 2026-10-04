@@ -1,3 +1,4 @@
+import { trackConversion } from '../utils/tracking';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Lead } from '../types';
 import { syncLeadToSupabase, invokeBookAppointmentEdgeFunction, fetchCalSlotsDetailed } from '../lib/supabaseService';
@@ -252,6 +253,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
     setIsSubmitting(false);
     setIsBooked(true);
     setTimeout(() => {
+      trackConversion('booking');
       onConfirmBooking(finalLead);
     }, 1200);
   };
@@ -399,6 +401,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
     setIsSubmitting(false);
     setIsBooked(true);
     setTimeout(() => {
+      trackConversion('booking');
       onConfirmBooking(finalLead);
     }, 1200);
   };

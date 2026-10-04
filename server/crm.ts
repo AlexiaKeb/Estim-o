@@ -126,6 +126,7 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     scoreReasons: crm.scoreReasons,
     blockers: crm.blockers,
     brief: crm.brief,
+    attribution: crm.attribution,
     calBookingId: upcoming?.cal_booking_id,
   };
 }
