@@ -105,7 +105,7 @@ export const LandingSimulator: React.FC<Props> = ({
     email: '',
     timeframe: '1-3 mois' as '< 1 mois' | '1-3 mois' | '3-6 mois' | '> 6 mois' | 'Curiosité',
     motive: 'Agrandissement' as 'Succession' | 'Mutation pro' | 'Agrandissement' | 'Divorce / Séparation' | 'Vente investissement' | 'Autre',
-    consent: true,
+    consent: false,
   });
   const [contactError, setContactError] = useState<string | null>(null);
   const [capturedLead, setCapturedLead] = useState<Lead | null>(null);
@@ -217,6 +217,11 @@ export const LandingSimulator: React.FC<Props> = ({
       return;
     }
 
+    if (!leadContact.consent) {
+      setContactError("Merci de cocher la case de consentement pour recevoir votre estimation.");
+      return;
+    }
+
     // Email validation
     if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
       setContactError('Veuillez renseigner une adresse email valide pour recevoir votre dossier complet.');
@@ -308,7 +313,7 @@ export const LandingSimulator: React.FC<Props> = ({
     setIsUnlocked(true);
 
     // Initialize Advisor Bot with a direct personalized pitch
-    const initialCloserPitch = `Bonjour ${cleanName} ! J'ai bien calculé votre première valorisation de **${result.lowPrice.toLocaleString('fr-FR')} € à ${result.highPrice.toLocaleString('fr-FR')} €** pour votre ${inputs.propertyType === 'apartment' ? 'appartement' : 'maison'} de ${inputs.surface} m² à ${inputs.city}.\n\n🎯 **Mon engagement d'experte** : vous aider à obtenir l'offre d'achat la plus haute sans négociation des acquéreurs.\n\nPour cela, un algorithme ne peut pas voir votre vraie luminosité, le cachet de vos pièces et vos aménagements soignés. Avez-vous ${VISIT_LABEL} cette semaine pour que nous venions visiter votre bien sur place (100% offert et sans aucun engagement) ?`;
+    const initialCloserPitch = `Bonjour ${cleanName} ! Je suis l'assistant virtuel de ${AGENT.firstName} (une intelligence artificielle). La fourchette de votre ${inputs.propertyType === 'apartment' ? 'appartement' : 'maison'} de ${inputs.surface} m² à ${inputs.city} : **${result.lowPrice.toLocaleString('fr-FR')} € à ${result.highPrice.toLocaleString('fr-FR')} €**.\n\nC'est un repère : une simulation ne voit ni la luminosité, ni l'état réel du bien. Pour un avis plus précis, ${AGENT.firstName} propose une visite de ${VISIT_LABEL}, gratuite et sans engagement.\n\nJe peux répondre à vos questions, ou vous pouvez choisir un créneau directement.`;
 
     setCloserMessages([
       {
@@ -341,6 +346,7 @@ export const LandingSimulator: React.FC<Props> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: newHistory.map((m) => ({ role: m.role, content: m.content })),
+          leadId: capturedLead?.id,
           leadData: {
             name: leadContact.name,
             phone: leadContact.phone,
@@ -357,7 +363,7 @@ export const LandingSimulator: React.FC<Props> = ({
 
       const data = await response.json();
       const reply = data.reply || `C'est une excellente décision d'anticiper ! Une visite sur place de ${VISIT_LABEL} permet de fixer votre valeur exacte sans aucun engagement.`;
-      const isBookingTime = data.recommendedAction === 'BOOK_MEETING' || data.qualificationScore >= 70 || text.toLowerCase().includes('créneau') || text.toLowerCase().includes('visite') || text.toLowerCase().includes('rdv') || text.toLowerCase().includes('oui') || text.toLowerCase().includes('bloqu');
+      const isBookingTime = data.recommendedAction === 'BOOK_MEETING' || /\b(rdv|rendez-vous|créneau|visite|disponibilit)/i.test(text);
 
       setCloserMessages((prev) => [
         ...prev,
@@ -374,7 +380,7 @@ export const LandingSimulator: React.FC<Props> = ({
         {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
-          content: `Je comprends parfaitement votre réflexion ! Chaque mètre carré a son importance sur le secteur de ${inputs.city}. C'est pour cela que venir découvrir votre bien en direct permet de fixer le montant exact sans laisser d'argent sur la table.\n\nSouhaitez-vous que nous bloquions un créneau cette semaine ?`,
+          content: `Je rencontre un souci technique et ne peux pas répondre pour l'instant. Vous pouvez choisir un créneau de visite avec ${AGENT.firstName}, ou l'appeler au ${AGENT.phone}.`,
           showBookingBtn: true,
         },
       ]);
@@ -1139,13 +1145,14 @@ export const LandingSimulator: React.FC<Props> = ({
                   <label className="flex items-start gap-2 pt-0.5 text-[11px] text-stone-500 cursor-pointer">
                     <input
                       type="checkbox"
+                      id="checkbox-consent"
                       checked={leadContact.consent}
                       onChange={(e) => setLeadContact({ ...leadContact, consent: e.target.checked })}
                       required
                       className="w-3.5 h-3.5 text-stone-900 rounded border-stone-300 mt-0.5 flex-shrink-0"
                     />
                     <span className="leading-tight">
-                      J'accepte de recevoir mon avis de valeur certifié et l'analyse de marché (100% gratuit & confidentiel).
+                      J'accepte que mes coordonnées servent à m'envoyer mon estimation et à être recontacté(e) à ce sujet par {AGENT.name} ({AGENT.agency}). Mes données ne sont jamais revendues et je peux me désinscrire à tout moment.
                     </span>
                   </label>
 
@@ -1212,15 +1219,15 @@ export const LandingSimulator: React.FC<Props> = ({
                     <div className="flex items-center gap-2.5">
                       <div className="relative">
                         <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center font-bold text-stone-950 text-sm shadow-md border border-stone-800">
-                          C
+                          IA
                         </div>
                         <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-stone-950 animate-pulse" />
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-xs sm:text-sm text-white">Céline</span>
+                          <span className="font-semibold text-xs sm:text-sm text-white">Assistant de Céline</span>
                           <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-semibold">
-                            Conseillère Dédiée
+                            IA
                           </span>
                         </div>
                         <p className="text-[10px] text-stone-400">
@@ -1247,7 +1254,7 @@ export const LandingSimulator: React.FC<Props> = ({
                       >
                         {msg.role === 'assistant' && (
                           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 flex items-center justify-center text-[10px] sm:text-xs font-bold flex-shrink-0 mt-0.5">
-                            C
+                            IA
                           </div>
                         )}
                         <div className="space-y-2 max-w-[88%] sm:max-w-[85%]">
@@ -1279,7 +1286,7 @@ export const LandingSimulator: React.FC<Props> = ({
                     {closerTyping && (
                       <div className="flex gap-2 sm:gap-3 justify-start items-center">
                         <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 flex items-center justify-center text-[10px] sm:text-xs font-bold flex-shrink-0">
-                          C
+                          IA
                         </div>
                         <div className="p-2.5 rounded-2xl bg-stone-800 text-stone-300 text-xs border border-stone-700 flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -1345,7 +1352,7 @@ export const LandingSimulator: React.FC<Props> = ({
                       type="text"
                       value={closerInput}
                       onChange={(e) => setCloserInput(e.target.value)}
-                      placeholder="Votre message à Céline..."
+                      placeholder="Posez votre question..."
                       className="flex-1 bg-stone-900 border border-stone-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
                     />
                     <button
@@ -1463,7 +1470,7 @@ export const LandingSimulator: React.FC<Props> = ({
             onClick={() => {
               setShowFloatingDrawer(true);
               if (closerMessages.length === 0) {
-                const initialPitch = `Bonjour ! Je suis Céline, votre conseillère immobilière dédiée.\n\nAvez-vous une question particulière sur l'estimation de votre bien à ${inputs.city} ou souhaitez-vous préparer une visite d'expertise offerte ?`;
+                const initialPitch = `Bonjour ! Je suis l'assistant virtuel de ${AGENT.firstName} (une intelligence artificielle).\n\nUne question sur l'estimation de votre bien à ${inputs.city} ou sur la visite gratuite ? Je vous réponds, et ${AGENT.firstName} reste joignable au ${AGENT.phone}.`;
                 setCloserMessages([
                   {
                     id: `float-init-${Date.now()}`,
@@ -1478,18 +1485,18 @@ export const LandingSimulator: React.FC<Props> = ({
           >
             <div className="relative">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-stone-950 font-bold text-xs flex items-center justify-center shadow-xs">
-                C
+                IA
               </div>
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-stone-900 animate-pulse" />
             </div>
             <div className="text-left">
               <div className="text-xs font-semibold flex items-center gap-1 text-white">
-                <span>Céline</span>
+                <span>Assistant de Céline</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[10px] text-amber-300 font-normal">Conseillère en direct</span>
+                <span className="text-[10px] text-amber-300 font-normal">IA</span>
               </div>
               <div className="text-[10px] text-stone-300">
-                Échanger sur votre bien
+                Poser une question
               </div>
             </div>
           </button>
@@ -1500,13 +1507,13 @@ export const LandingSimulator: React.FC<Props> = ({
               <div className="flex items-center gap-2.5">
                 <div className="relative">
                   <div className="w-8 h-8 rounded-full bg-amber-400 text-stone-950 font-bold text-xs flex items-center justify-center">
-                    C
+                    IA
                   </div>
                   <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border border-stone-950" />
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <span>Céline • Conseillère Référente</span>
+                    <span>Assistant virtuel de Céline (IA)</span>
                   </div>
                   <div className="text-[10px] text-stone-400">
                     Secteur {inputs.city} • En ligne
@@ -1572,7 +1579,7 @@ export const LandingSimulator: React.FC<Props> = ({
                 type="text"
                 value={closerInput}
                 onChange={(e) => setCloserInput(e.target.value)}
-                placeholder="Votre message à Céline..."
+                placeholder="Posez votre question..."
                 className="flex-1 bg-stone-900 border border-stone-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-stone-500 focus:outline-none focus:ring-1 focus:ring-amber-400"
               />
               <button

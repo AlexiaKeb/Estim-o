@@ -105,8 +105,8 @@ export const QualificationChatbot: React.FC<Props> = ({
     const surfaceLabel = initialValuationInputs?.surface ? `${initialValuationInputs.surface} m²` : '';
 
     const welcomeText = initialValuationResult
-      ? `Bonjour et merci pour votre simulation ! Pour votre ${propertyLabel} ${surfaceLabel} à ${cityLabel}, la fourchette indicative est de **${initialValuationResult.lowPrice.toLocaleString('fr-FR')} € à ${initialValuationResult.highPrice.toLocaleString('fr-FR')} €**.\n\nC'est un repère : seule une visite permet d'affiner. Je prépare la vôtre avec Céline, en quelques questions.\n\nPour commencer, quel est le contexte de votre projet ?`
-      : `Bonjour et bienvenue ! Je prépare votre estimation avec Céline, en quelques questions.\n\nQuel type de bien souhaitez-vous valoriser, et dans quelle commune ?`;
+      ? `Bonjour et merci pour votre simulation ! Pour votre ${propertyLabel} ${surfaceLabel} à ${cityLabel}, la fourchette indicative est de **${initialValuationResult.lowPrice.toLocaleString('fr-FR')} € à ${initialValuationResult.highPrice.toLocaleString('fr-FR')} €**.\n\nC'est un repère : seule une visite permet d'affiner. Je suis l'assistant virtuel de Céline (une IA) : je prépare votre visite avec elle en quelques questions.\n\nPour commencer, quel est le contexte de votre projet ?`
+      : `Bonjour et bienvenue ! Je suis l'assistant virtuel de Céline (une IA) : je prépare votre estimation avec elle en quelques questions.\n\nQuel type de bien souhaitez-vous valoriser, et dans quelle commune ?`;
 
     setMessages([
       {
@@ -600,7 +600,7 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base sm:text-lg font-semibold text-stone-900">
-                {currentEffectiveViewMode === 'prospect' ? 'Céline • Votre Conseillère Immobilière' : 'Console Superviseur : Agent IA'}
+                {currentEffectiveViewMode === 'prospect' ? 'Assistant virtuel de Céline (IA)' : 'Console Superviseur : Agent IA'}
               </h2>
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -678,7 +678,7 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
         <div className="bg-stone-50/80 px-4 py-2 border-b border-stone-200/80 flex items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 text-stone-600 font-normal text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>{isAgentMode ? `${messages.length} message${messages.length > 1 ? 's' : ''} échangé${messages.length > 1 ? 's' : ''}` : 'Céline est en ligne · réponse immédiate'}</span>
+            <span>{isAgentMode ? `${messages.length} message${messages.length > 1 ? 's' : ''} échangé${messages.length > 1 ? 's' : ''}` : 'Assistant virtuel (IA) · réponse immédiate'}</span>
           </div>
 
           <div className="flex items-center gap-1.5">
