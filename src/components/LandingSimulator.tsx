@@ -121,8 +121,9 @@ export const LandingSimulator: React.FC<Props> = ({
   const closerChatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (closerChatEndRef.current) {
-      closerChatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    // Only follow the conversation once the visitor writes: the first message must not push the booking button off screen
+    if (closerChatEndRef.current && (closerTyping || closerMessages.length > 1)) {
+      closerChatEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [closerMessages, closerTyping]);
 
@@ -316,6 +317,7 @@ export const LandingSimulator: React.FC<Props> = ({
     }
 
     setIsUnlocked(true);
+    window.setTimeout(() => document.getElementById('valuation-result-box')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
 
     // Initialize Advisor Bot with a direct personalized pitch
     const initialCloserPitch = `Bonjour ${cleanName} ! Je suis l'assistant virtuel de ${AGENT.firstName} (une intelligence artificielle). La fourchette de votre ${inputs.propertyType === 'apartment' ? 'appartement' : 'maison'} de ${inputs.surface} m² à ${inputs.city} : **${result.lowPrice.toLocaleString('fr-FR')} € à ${result.highPrice.toLocaleString('fr-FR')} €**.\n\nC'est un repère : une simulation ne voit ni la luminosité, ni l'état réel du bien. Pour un avis plus précis, ${AGENT.firstName} propose une visite de ${VISIT_LABEL}, gratuite et sans engagement.\n\nJe peux répondre à vos questions, ou vous pouvez choisir un créneau directement.`;
@@ -1219,6 +1221,38 @@ export const LandingSimulator: React.FC<Props> = ({
                   </div>
                 </div>
 
+                {/* Primary action, right under the price: book the visit */}
+                <div className="rounded-2xl bg-[#0f1f3d] p-4 sm:p-5 shadow-xl space-y-3">
+                  <div>
+                    <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider">Prochaine étape</p>
+                    <p className="text-white text-base sm:text-lg font-semibold leading-snug">
+                      Faites confirmer ce prix sur place par {AGENT.firstName}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    id="btn-book-direct-appointment"
+                    onClick={handleTriggerBooking}
+                    className="group w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-[#0f1f3d] font-bold text-base py-4 px-5 shadow-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f1f3d]"
+                  >
+                    <Calendar className="w-5 h-5" />
+                    Réserver ma visite gratuite ({VISIT_LABEL})
+                    <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </button>
+                  <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-300">
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />Créneaux réels de {AGENT.firstName}</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />Gratuit, sans engagement</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />Confirmation immédiate</li>
+                  </ul>
+                  <a
+                    href={AGENT.phoneHref}
+                    className="inline-flex items-center gap-2 text-sm text-slate-200 hover:text-white underline underline-offset-4"
+                  >
+                    <PhoneCall className="w-4 h-4" />
+                    Ou appelez {AGENT.firstName} : {AGENT.phone}
+                  </a>
+                </div>
+
                 {/* Quick qualification: three taps, optional, saved for the advisor */}
                 <QuickQualification leadId={capturedLead?.id} low={result.lowPrice} high={result.highPrice} onSubmitted={setQuickAnswers} />
 
@@ -1375,46 +1409,6 @@ export const LandingSimulator: React.FC<Props> = ({
                     </button>
                   </form>
                 </div>
-
-                {/* 3. Direct Primary Action CTA Bar */}
-                <div className="space-y-3 pt-1">
-                  <button
-                    type="button"
-                    id="btn-book-direct-appointment"
-                    onClick={handleTriggerBooking}
-                    className="w-full py-4 px-5 rounded-xl bg-stone-900 hover:bg-stone-800 active:bg-black text-white font-medium text-sm transition-all shadow-md flex items-center justify-between group"
-                  >
-                    <div className="text-left">
-                      <div className="text-[11px] text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        Étape recommandée
-                      </div>
-                      <div className="text-xs sm:text-sm font-semibold text-white">
-                        Réserver mon créneau d'expertise avec Céline
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-stone-300 group-hover:translate-x-1 transition-transform" />
-                  </button>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <a
-                      href="tel:0603580316"
-                      className="py-2.5 px-3 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-center"
-                    >
-                      <PhoneCall className="w-3.5 h-3.5 text-stone-600" />
-                      <span>Appeler Céline (06 03 58 03 16)</span>
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={handleStartQualification}
-                      className="py-2.5 px-3 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-medium flex items-center justify-center gap-1.5 transition-all text-center"
-                    >
-                      <span>Ouvrir l'assistant grand écran</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-                    </button>
-                  </div>
-                </div>
               </div>
             )
           ) : (
@@ -1443,20 +1437,20 @@ export const LandingSimulator: React.FC<Props> = ({
           {/* Trust badges */}
           <div className="bg-white rounded-xl border border-stone-200/80 p-5 space-y-3 shadow-2xs">
             <h4 className="text-xs font-semibold text-stone-900 uppercase tracking-wider">
-              Pourquoi notre avis de valeur est supérieur ?
+              Ce que vous obtenez
             </h4>
             <div className="space-y-2.5 text-xs text-stone-600">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <span><strong>Filtrage anti-curieux :</strong> Données protégées, aucun démarchage abusif.</span>
+                <span><strong>Un avis argumenté :</strong> chaque chiffre est expliqué, vous gardez la décision.</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <span><strong>Analyse personnalisée :</strong> Prise en compte de vos impératifs de calendrier et des particularités du bien.</span>
+                <span><strong>Une visite adaptée :</strong> à votre bien et à votre calendrier, sans démarchage abusif.</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <span><strong>Accès direct à l'agenda :</strong> Créneau réservable en 1 clic pour un avis de valeur complet offert.</span>
+                <span><strong>Agenda en direct :</strong> vous choisissez un créneau réellement libre, en quelques clics.</span>
               </div>
             </div>
           </div>
@@ -1470,7 +1464,7 @@ export const LandingSimulator: React.FC<Props> = ({
         <FaqSection />
         <FinalCta />
       </div>
-      <StickyMobileCta />
+      <StickyMobileCta unlocked={isUnlocked} onBook={handleTriggerBooking} />
 
       {/* Floating Closer Concierge Widget (Always Visible & Accessible) */}
       <div className="hidden sm:block fixed bottom-5 right-5 z-40">
