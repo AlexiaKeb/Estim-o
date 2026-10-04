@@ -112,8 +112,16 @@ export const CalendarBookingModal: React.FC<Props> = ({
             setSlotsSource(result.source);
 
             // Find first available day that actually has slots
-            const firstDateWithSlots = Object.keys(rawSlots).find((k) => (rawSlots[k]?.length || 0) > 0);
-            if (firstDateWithSlots) {
+            const pref = initialLeadInfo?.preferredSlot;
+            const firstDateWithSlots =
+              pref && rawSlots[pref.date]?.includes(pref.time)
+                ? pref.date
+                : Object.keys(rawSlots).find((k) => (rawSlots[k]?.length || 0) > 0);
+            if (firstDateWithSlots && pref && firstDateWithSlots === pref.date) {
+              setSelectedDate(pref.date);
+              setSelectedTime(pref.time);
+              setWeekOffset(Math.max(0, Math.floor(availableDates.findIndex((d) => d.value === pref.date) / 6)));
+            } else if (firstDateWithSlots) {
               setSelectedDate(firstDateWithSlots);
               if (rawSlots[firstDateWithSlots]?.length > 0) {
                 setSelectedTime(rawSlots[firstDateWithSlots][0]);

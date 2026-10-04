@@ -155,13 +155,13 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
 const STEPS = [
   {
     icon: Home,
-    title: 'Décrivez votre bien',
-    text: 'Adresse, surface, nombre de pièces. Deux minutes suffisent pour obtenir une première fourchette.',
+    title: "Répondez à l'assistant",
+    text: "Adresse, surface, projet : l'assistant IA de Céline vous guide en quelques clics et affiche votre fourchette de prix.",
   },
   {
     icon: MessageSquare,
-    title: `Échangez avec ${AGENT.firstName}`,
-    text: 'Quelques questions sur votre projet pour préparer la suite, par messagerie ou par téléphone.',
+    title: 'Choisissez votre créneau',
+    text: `L'assistant vous montre les disponibilités réelles de ${AGENT.firstName} et réserve la visite avec vous.`,
   },
   {
     icon: CheckCircle2,

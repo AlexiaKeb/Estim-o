@@ -135,6 +135,8 @@ export interface Lead {
   blockers?: string[];
   /** Pre-visit brief for the advisor */
   brief?: { summary: string; strengths: string[]; watchouts: string[]; questions: string[]; source?: 'ia' | 'regles'; generatedAt?: string };
+  /** Créneau choisi dans la conversation : présélectionné dans la fenêtre de réservation */
+  preferredSlot?: { date: string; time: string };
   /** Origine du clic (annonce Google, campagne) */
   attribution?: { gclid?: string; gbraid?: string; wbraid?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string; utmTerm?: string; utmContent?: string; landingPage?: string; capturedAt?: string };
   /** How the price shown to the seller was computed (kept for the advisor) */
