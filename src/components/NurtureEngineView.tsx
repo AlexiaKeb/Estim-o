@@ -39,8 +39,18 @@ interface DispatchLog {
   subject: string;
   message: string;
   sentAt: string;
-  deliveryStatus: 'Délivré' | 'Envoyé (En attente confirmation)' | 'Remis au réseau';
-  operatorId: string;
+  status: 'envoye' | 'erreur' | 'annule';
+  error?: string | null;
+}
+
+interface MailStatus {
+  emailConfigured: boolean;
+  from: string | null;
+  replyTo: string | null;
+  baseUrlConfigured: boolean;
+  dailyLimit: number;
+  sentLast24h: number;
+  databaseConfigured: boolean;
 }
 
 interface Props {
@@ -103,17 +113,16 @@ export const NurtureEngineView: React.FC<Props> = ({
   const [editTime, setEditTime] = useState<string>(activeMessage?.scheduledTime || '09:30');
   const [editGoal, setEditGoal] = useState<string>(activeMessage?.goal || '');
 
-  // Sender settings (Local Storage persistence)
-  const [senderAgencyName, setSenderAgencyName] = useState<string>(() => {
-    return localStorage.getItem('agent_agency_name') || 'Conseil Immobilier & Estimation';
-  });
-  const [senderEmail, setSenderEmail] = useState<string>(() => {
-    return localStorage.getItem('agent_sender_email') || 'contact@agence-immobiliere.fr';
-  });
-  const [senderPhone, setSenderPhone] = useState<string>(() => {
-    return localStorage.getItem('agent_sender_phone') || '06 00 00 00 00';
-  });
-  const [autoDispatchEnabled, setAutoDispatchEnabled] = useState<boolean>(true);
+  // What the server is really able to do (e-mail provider, limits)
+  const [mailStatus, setMailStatus] = useState<MailStatus | null>(null);
+  const [syncingAuto, setSyncingAuto] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/relances/status', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setMailStatus(d))
+      .catch(() => {});
+  }, [activeTab]);
 
   // Live Dispatch Logs from server
   const [liveLogs, setLiveLogs] = useState<DispatchLog[]>([]);
@@ -122,7 +131,7 @@ export const NurtureEngineView: React.FC<Props> = ({
   // Fetch dispatch logs on mount and when tab changes
   const fetchLogs = async () => {
     try {
-      const res = await fetch('/api/dispatch-logs');
+      const res = await fetch('/api/relances/history', { credentials: 'same-origin' });
       const data = await res.json();
       if (data && data.logs) {
         setLiveLogs(data.logs);
@@ -154,15 +163,46 @@ export const NurtureEngineView: React.FC<Props> = ({
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  // Save settings
-  const handleSaveSettings = () => {
-    localStorage.setItem('agent_agency_name', senderAgencyName);
-    localStorage.setItem('agent_sender_email', senderEmail);
-    localStorage.setItem('agent_sender_phone', senderPhone);
-    onShowToast?.('Paramètres d\'envoi direct enregistrés avec succès !');
+  // Helper to save current sequence back to the lead in CRM
+  // Mirrors the sequence on the server: only e-mails are sent automatically, past dates are never sent
+  const syncSchedule = async (lead: Lead, sequence: ScheduledMessage[], enabled: boolean) => {
+    setSyncingAuto(true);
+    try {
+      const res = await fetch(`/api/relances/schedule/${encodeURIComponent(lead.id)}`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          enabled,
+          items: sequence
+            .filter((m) => m.status !== 'sent')
+            .map((m) => ({
+              step: m.step,
+              channel: m.channel,
+              subject: m.subject,
+              message: m.message,
+              status: m.status,
+              sendAt: new Date(`${m.scheduledDate}T${m.scheduledTime || '09:30'}:00`).toISOString(),
+            })),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        onShowToast?.(data.error || 'Programmation impossible.');
+        return false;
+      }
+      if (enabled) {
+        onShowToast?.(`${data.scheduled} message(s) programmé(s)${data.skipped ? `, ${data.skipped} ignoré(s) car la date est dépassée` : ''}.`);
+      }
+      return true;
+    } catch {
+      onShowToast?.('Serveur injoignable : programmation non enregistrée.');
+      return false;
+    } finally {
+      setSyncingAuto(false);
+    }
   };
 
-  // Helper to save current sequence back to the lead in CRM
   const saveSequenceToLead = (newSequence: ScheduledMessage[]) => {
     if (!currentLead) return;
     const updatedLead: Lead = {
@@ -170,6 +210,21 @@ export const NurtureEngineView: React.FC<Props> = ({
       customSequence: newSequence,
     };
     onUpdateLead(updatedLead);
+    if (currentLead.autoRelances) void syncSchedule(currentLead, newSequence, true);
+  };
+
+  const handleToggleAuto = async (enabled: boolean) => {
+    if (!currentLead) return;
+    if (enabled && !mailStatus?.emailConfigured) {
+      onShowToast?.("L'envoi d'e-mails n'est pas encore configuré (onglet Configuration).");
+      return;
+    }
+    if (enabled && !currentLead.email) {
+      onShowToast?.("Ce contact n'a pas d'adresse e-mail.");
+      return;
+    }
+    const ok = await syncSchedule(currentLead, currentSequence, enabled);
+    if (ok) onUpdateLead({ ...currentLead, customSequence: currentSequence, autoRelances: enabled });
   };
 
   // Save current active message changes
@@ -194,58 +249,54 @@ export const NurtureEngineView: React.FC<Props> = ({
     onShowToast?.(`Message mis à jour pour ${currentLead.name} !`);
   };
 
-  // Direct In-Dashboard Send Function (Connects directly to /api/send-message)
+  // Marks one step as sent in the lead's sequence
+  const markStepSent = (idx: number) => {
+    const now = new Date();
+    const updated = currentSequence.map((item, i) =>
+      i === idx
+        ? {
+            ...item,
+            status: 'sent' as const,
+            sentAt: `Envoyé le ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
+          }
+        : item
+    );
+    saveSequenceToLead(updated);
+  };
+
+  // E-mail: really sent by the server, then recorded. Never reported as sent unless the provider accepted it.
   const handleDirectSend = async (idx: number) => {
     if (!currentLead) return;
     const msgToSend = currentSequence[idx] || activeMessage;
-    if (!msgToSend) return;
-
+    if (!msgToSend || msgToSend.channel !== 'Email') return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(currentLead.email || '')) {
+      onShowToast?.("Ce contact n'a pas d'adresse e-mail valide.");
+      return;
+    }
     setSendingDirectly(true);
-
-    const recipient =
-      msgToSend.channel === 'Email'
-        ? currentLead.email || 'vendeur@contact.fr'
-        : currentLead.phone || '06 00 00 00 00';
-
     try {
-      const res = await fetch('/api/send-message', {
+      const res = await fetch('/api/relances/send', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           leadId: currentLead.id,
-          leadName: currentLead.name,
-          recipient,
-          channel: msgToSend.channel,
+          step: msgToSend.step,
           subject: editSubject || msgToSend.subject,
           message: editMessage || msgToSend.message,
         }),
       });
-
-      const data = await res.json();
-
-      const now = new Date();
-      const formattedDate = now.toLocaleDateString('fr-FR');
-      const formattedTime = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-
-      // Update lead state to mark message as sent
-      const updated = currentSequence.map((item, i) => {
-        if (i === idx) {
-          return {
-            ...item,
-            status: 'sent' as const,
-            sentAt: `Envoyé le ${formattedDate} à ${formattedTime}`,
-          };
-        }
-        return item;
-      });
-
-      saveSequenceToLead(updated);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        onShowToast?.(`E-mail non envoyé : ${data.error || `erreur ${res.status}`}`);
+        await fetchLogs();
+        return;
+      }
+      markStepSent(idx);
       await fetchLogs();
-
-      onShowToast?.(`✅ ${msgToSend.channel} envoyé directement avec succès à ${currentLead.name} (${recipient}) !`);
-    } catch (err) {
-      console.error('Direct send error:', err);
-      onShowToast?.(`Erreur lors de l'envoi direct.`);
+      onShowToast?.(`E-mail envoyé à ${currentLead.name} (${data.recipient}).`);
+    } catch {
+      onShowToast?.('E-mail non envoyé : serveur injoignable.');
     } finally {
       setSendingDirectly(false);
     }
@@ -444,20 +495,28 @@ export const NurtureEngineView: React.FC<Props> = ({
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold uppercase tracking-wider">
               <MailCheck className="w-3.5 h-3.5 text-blue-600" />
-              Centre d'Envoi Direct Intégré
+              Relances
             </div>
 
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Envoi Autonome Actif</span>
-            </div>
+            {mailStatus && (
+              <div
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold ${
+                  mailStatus.emailConfigured && mailStatus.baseUrlConfigured
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-amber-50 text-amber-800 border-amber-300'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${mailStatus.emailConfigured && mailStatus.baseUrlConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                <span>{mailStatus.emailConfigured && mailStatus.baseUrlConfigured ? 'Envoi d\'e-mails actif' : 'Envoi d\'e-mails à configurer'}</span>
+              </div>
+            )}
           </div>
 
           <h2 className="text-xl font-bold text-slate-900">
-            Envoi & Relances Directs depuis le Tableau de Bord
+            Relances par e-mail, SMS et WhatsApp
           </h2>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
-            Vos e-mails et SMS partent directement depuis votre tableau de bord sans nécessiter d'abonnement ou d'outil externe.
+            Les e-mails partent directement depuis votre adresse, à la demande ou à la date programmée. Les SMS et WhatsApp s'ouvrent dans votre téléphone, prêts à être envoyés.
           </p>
         </div>
 
@@ -573,6 +632,23 @@ export const NurtureEngineView: React.FC<Props> = ({
                     ✉️ {currentLead.email || 'Non renseigné'}
                   </span>
                 </div>
+
+                {/* Automatic e-mails for this contact (opt-in by the advisor) */}
+                <label
+                  className={`flex items-center gap-2 py-1.5 px-3 rounded-lg border text-xs font-bold cursor-pointer ${
+                    currentLead.autoRelances ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-white border-slate-300 text-slate-700'
+                  }`}
+                  title="Envoie automatiquement les e-mails de la séquence aux dates prévues (dates dépassées ignorées)"
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(currentLead.autoRelances)}
+                    disabled={syncingAuto}
+                    onChange={(e) => handleToggleAuto(e.target.checked)}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span>E-mails automatiques</span>
+                </label>
 
                 {/* AI Regenerate Sequence Button */}
                 <button
@@ -897,7 +973,7 @@ export const NurtureEngineView: React.FC<Props> = ({
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-emerald-400" />
                       <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                        Envoi Direct Intégré
+                        Envoi
                       </span>
                     </div>
                     <span className="text-[11px] text-slate-400">
@@ -906,25 +982,38 @@ export const NurtureEngineView: React.FC<Props> = ({
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3">
-                    {/* PRIMARY ACTION: DIRECT IN-DASHBOARD SEND */}
-                    <button
-                      type="button"
-                      onClick={() => handleDirectSend(selectedStepIndex)}
-                      disabled={sendingDirectly}
-                      className="w-full sm:flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                    >
-                      {sendingDirectly ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                          <span>Transmission en cours...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 text-blue-200" />
-                          <span>Envoyer directement depuis le Dashboard ({editChannel})</span>
-                        </>
-                      )}
-                    </button>
+                    {/* E-mail only: the server really sends it */}
+                    {editChannel === 'Email' && (
+                      <button
+                        type="button"
+                        onClick={() => handleDirectSend(selectedStepIndex)}
+                        disabled={sendingDirectly || !mailStatus?.emailConfigured || activeMessage?.status === 'sent'}
+                        className="w-full sm:flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                      >
+                        {sendingDirectly ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <span>Envoi en cours...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 text-blue-200" />
+                            <span>{activeMessage?.status === 'sent' ? 'E-mail déjà envoyé' : 'Envoyer l\'e-mail maintenant'}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                    {editChannel !== 'Email' && (
+                      <button
+                        type="button"
+                        onClick={() => markStepSent(selectedStepIndex)}
+                        disabled={activeMessage?.status === 'sent'}
+                        className="w-full sm:flex-1 py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Check className="w-4 h-4 text-emerald-300" />
+                        <span>{activeMessage?.status === 'sent' ? 'Marqué comme envoyé' : "Marquer comme envoyé (après l'avoir envoyé)"}</span>
+                      </button>
+                    )}
 
                     {/* SECONDARY 1-CLICK NATIVE LAUNCHER (Opens user's default app) */}
                     {editChannel === 'Email' && (
@@ -934,7 +1023,7 @@ export const NurtureEngineView: React.FC<Props> = ({
                         title="Ouvrir dans votre messagerie (Gmail, Outlook, Mail)"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
-                        <span>Ouvrir dans ma boîte mail</span>
+                        <span>Écrire depuis ma messagerie</span>
                       </a>
                     )}
 
@@ -1166,23 +1255,23 @@ export const NurtureEngineView: React.FC<Props> = ({
               className="py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Actualiser les accusés</span>
+              <span>Actualiser</span>
             </button>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                Accusés de Réception & Historique des Transmissions
+                Historique des e-mails
               </span>
               <span className="text-xs font-semibold text-slate-500">
-                {liveLogs.length} messages envoyés
+                {liveLogs.length} message{liveLogs.length > 1 ? 's' : ''}
               </span>
             </div>
 
             {liveLogs.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs">
-                Aucun message envoyé pour le moment. Utilisez le bouton "Envoyer directement" sur un prospect pour tester l'envoi.
+                Aucun e-mail envoyé pour le moment.
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
@@ -1214,12 +1303,18 @@ export const NurtureEngineView: React.FC<Props> = ({
                         </div>
 
                         <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                          <span className="font-mono text-slate-500">{log.operatorId}</span>
-                          <span>•</span>
                           <span>{new Date(log.sentAt).toLocaleString('fr-FR')}</span>
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 flex items-center gap-1">
-                            <Check className="w-3 h-3" />
-                            {log.deliveryStatus}
+                          <span
+                            className={`px-2 py-0.5 rounded-full font-bold border flex items-center gap-1 ${
+                              log.status === 'envoye'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : log.status === 'erreur'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                : 'bg-slate-100 text-slate-600 border-slate-200'
+                            }`}
+                          >
+                            {log.status === 'envoye' && <Check className="w-3 h-3" />}
+                            {log.status === 'envoye' ? 'Envoyé' : log.status === 'erreur' ? 'Échec' : 'Annulé'}
                           </span>
                         </div>
                       </div>
@@ -1227,6 +1322,7 @@ export const NurtureEngineView: React.FC<Props> = ({
                       <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700 leading-relaxed font-sans whitespace-pre-line">
                         <div className="font-bold text-slate-900 mb-1">{log.subject}</div>
                         {log.message}
+                        {log.error && <div className="mt-2 text-rose-700 font-semibold">Motif : {log.error}</div>}
                       </div>
                     </div>
                   ))}
@@ -1240,81 +1336,56 @@ export const NurtureEngineView: React.FC<Props> = ({
       {/* MODE 4: SENDER PROFILE & DIRECT DISPATCH SETTINGS                         */}
       {/* ========================================================================= */}
       {activeTab === 'settings' && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
           <div>
-            <h3 className="text-base font-bold text-slate-900">
-              Configuration de l'Expéditeur Direct
-            </h3>
+            <h3 className="text-base font-bold text-slate-900">Configuration de l'envoi d'e-mails</h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Ces coordonnées s'affichent comme signature et en-tête de vos e-mails et SMS.
+              Ces réglages se font sur le serveur (variables d'environnement), pas dans le navigateur.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                Nom commercial / Nom du conseiller ou de l'agence :
-              </label>
-              <input
-                type="text"
-                value={senderAgencyName}
-                onChange={(e) => setSenderAgencyName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          {!mailStatus ? (
+            <p className="text-xs text-slate-500">Chargement…</p>
+          ) : (
+            <ul className="space-y-3 text-xs">
+              {[
+                {
+                  ok: mailStatus.emailConfigured,
+                  label: 'Service d\'envoi',
+                  detail: mailStatus.emailConfigured
+                    ? `Prêt. Les e-mails partent de ${mailStatus.from}, les réponses arrivent sur ${mailStatus.replyTo}.`
+                    : "Non configuré. Ajoutez RESEND_API_KEY (ou BREVO_API_KEY) et MAIL_FROM_EMAIL sur le serveur.",
+                },
+                {
+                  ok: mailStatus.baseUrlConfigured,
+                  label: 'Adresse du site (lien de désinscription)',
+                  detail: mailStatus.baseUrlConfigured
+                    ? "Renseignée. Chaque e-mail contient un lien « Ne plus recevoir ces messages »."
+                    : "Variable APP_URL manquante : sans elle, aucun e-mail ne peut partir (le lien de désinscription est obligatoire).",
+                },
+                {
+                  ok: mailStatus.databaseConfigured,
+                  label: 'Historique et programmation',
+                  detail: mailStatus.databaseConfigured ? 'Base de données reliée.' : 'Base de données non configurée.',
+                },
+              ].map((c) => (
+                <li key={c.label} className="flex gap-2.5">
+                  <span className={`mt-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] text-white ${c.ok ? 'bg-emerald-600' : 'bg-amber-500'}`}>
+                    {c.ok ? '✓' : '!'}
+                  </span>
+                  <span>
+                    <span className="font-bold text-slate-900">{c.label}.</span> <span className="text-slate-600">{c.detail}</span>
+                  </span>
+                </li>
+              ))}
+              <li className="text-slate-600">
+                Limite de sécurité : {mailStatus.dailyLimit} e-mails par 24 h ({mailStatus.sentLast24h} envoyés ces dernières 24 h). Les envois programmés ne partent qu'entre 8 h et 20 h (heure de Paris).
+              </li>
+            </ul>
+          )}
 
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                Adresse e-mail d'expédition et de réponse :
-              </label>
-              <input
-                type="email"
-                value={senderEmail}
-                onChange={(e) => setSenderEmail(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                Numéro de téléphone professionnel (SMS & WhatsApp) :
-              </label>
-              <input
-                type="tel"
-                value={senderPhone}
-                onChange={(e) => setSenderPhone(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl">
-              <div>
-                <div className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  Moteur d'envoi autonome
-                </div>
-                <div className="text-[11px] text-emerald-800 mt-0.5">
-                  Les messages programmés sont délivrés automatiquement selon le calendrier.
-                </div>
-              </div>
-
-              <input
-                type="checkbox"
-                checked={autoDispatchEnabled}
-                onChange={(e) => setAutoDispatchEnabled(e.target.checked)}
-                className="w-4 h-4 text-emerald-600 rounded cursor-pointer"
-              />
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-slate-100 flex justify-end">
-            <button
-              type="button"
-              onClick={handleSaveSettings}
-              className="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors"
-            >
-              Enregistrer mes préférences d'expéditeur
-            </button>
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
+            <strong className="text-slate-900">SMS et WhatsApp :</strong> aucun service d'envoi automatique n'est connecté. Ces messages s'ouvrent dans l'application de votre téléphone, prêts à être envoyés d'un geste.
           </div>
         </div>
       )}

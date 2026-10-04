@@ -9,10 +9,13 @@ import {
   setSessionCookie,
   clearSessionCookie,
   isAgentRequest,
+  signValue,
+  readSignedValue,
   loginBlocked,
   recordLoginFailure,
   clearLoginFailures,
 } from "./server/auth";
+import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
 import { toLead, pickCrm, isUuid as isUuidStr } from "./server/crm";
 import { estimateFromDvf, prewarm, type DvfEstimate } from "./server/dvf";
 import { createServer as createViteServer } from "vite";
@@ -591,81 +594,242 @@ async function startServer() {
     }
   });
 
-  // Direct In-Dashboard Dispatch System (In-Memory Delivery Log & Direct Sender)
-  interface DispatchRecord {
-    id: string;
-    leadId: string;
-    leadName: string;
-    recipient: string;
-    channel: "SMS" | "Email" | "WhatsApp";
-    subject: string;
-    message: string;
-    sentAt: string;
-    deliveryStatus: "Délivré" | "Envoyé (En attente confirmation)" | "Remis au réseau";
-    operatorId: string;
+  // ===================== Relances: real e-mail sending, scheduling, history =====================
+  const BASE_URL = (process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
+  const DAILY_LIMIT = Number(process.env.MAIL_DAILY_LIMIT) || 50;
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  // Sending window: scheduled e-mails only leave between 8:00 and 20:00 Paris time
+  function inSendWindow(now = new Date()): boolean {
+    const h = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" }).format(now));
+    return h >= 8 && h < 20;
   }
 
-  const dispatchLogs: DispatchRecord[] = [
-    {
-      id: "dsp-001",
-      leadId: "lead-001",
-      leadName: "Jean-Marc Dupont",
-      recipient: "06 42 18 90 22",
-      channel: "SMS",
-      subject: "Avis de valeur pour votre appartement à Lyon",
-      message: "Bonjour Jean-Marc, suite à votre estimation pour votre appartement (84 m² à Lyon), nous avons validé la valorisation indicative de 460 000 €. Un conseiller reste à votre disposition si vous souhaitez affiner les points clés.",
-      sentAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-      deliveryStatus: "Délivré",
-      operatorId: "SMS-FR-49102",
-    },
-    {
-      id: "dsp-002",
-      leadId: "lead-002",
-      leadName: "Émilie Laurent",
-      recipient: "e.laurent@gmail.com",
-      channel: "Email",
-      subject: "Avis de valeur pour votre maison à Villeurbanne",
-      message: "Bonjour Émilie, nous avons bien pris en compte votre projet de vente dans le cadre de votre mutation. Voici votre synthèse comparative de prix.",
-      sentAt: new Date(Date.now() - 3600000 * 18).toISOString(),
-      deliveryStatus: "Délivré",
-      operatorId: "MAIL-SRV-88219",
+  async function sentToday(client: any): Promise<number> {
+    const since = new Date();
+    since.setHours(since.getHours() - 24);
+    const { count } = await client.from("relances").select("id", { count: "exact", head: true }).eq("status", "envoye").gte("sent_at", since.toISOString());
+    return count || 0;
+  }
+
+  /** Sends one relance row (already inserted with status "envoi") and records the outcome. */
+  async function deliverRelance(client: any, row: { id: string; lead_id: string; subject?: string | null; message: string }) {
+    const finish = async (patch: Record<string, any>) => {
+      await client.from("relances").update(patch).eq("id", row.id);
+    };
+    const { data: lead } = await client.from("leads").select("*").eq("id", row.lead_id).maybeSingle();
+    if (!lead) {
+      await finish({ status: "erreur", error: "Fiche introuvable" });
+      return { ok: false as const, error: "Fiche introuvable" };
     }
-  ];
-
-  // Send Direct Message Endpoint
-  app.post("/api/send-message", requireAgent, (req: Request, res: Response) => {
-    try {
-      const { leadId, leadName, recipient, channel, subject, message } = req.body;
-
-      const newRecord: DispatchRecord = {
-        id: `dsp-${Date.now()}`,
-        leadId: leadId || "unknown",
-        leadName: leadName || "Prospect",
-        recipient: recipient || "Non renseigné",
-        channel: (channel as "SMS" | "Email" | "WhatsApp") || "Email",
-        subject: subject || "Message automatique",
-        message: message || "",
-        sentAt: new Date().toISOString(),
-        deliveryStatus: "Délivré",
-        operatorId: `${channel || "MSG"}-SYS-${Math.floor(10000 + Math.random() * 90000)}`,
-      };
-
-      dispatchLogs.unshift(newRecord);
-
-      res.json({
-        success: true,
-        message: `Message envoyé avec succès à ${leadName} via ${channel}`,
-        record: newRecord,
-      });
-    } catch (error) {
-      console.error("Direct send error:", error);
-      res.status(500).json({ error: "Erreur lors de l'envoi du message" });
+    const to = String(lead.email || "").trim();
+    if (!EMAIL_RE.test(to)) {
+      await finish({ status: "erreur", error: "Pas d'adresse e-mail valide pour ce contact", recipient: to || null });
+      return { ok: false as const, error: "Ce contact n'a pas d'adresse e-mail valide." };
     }
+    const { data: optOut } = await client.from("desinscriptions").select("email").eq("email", to.toLowerCase()).maybeSingle();
+    if (optOut) {
+      await finish({ status: "annule", error: "Contact désinscrit", recipient: to });
+      return { ok: false as const, error: "Ce contact s'est désinscrit : aucun message ne peut lui être envoyé." };
+    }
+
+    if (!BASE_URL) {
+      // Every e-mail must carry a working unsubscribe link
+      await finish({ status: "erreur", error: "APP_URL manquante", recipient: to });
+      return { ok: false as const, error: "L'adresse du site (variable APP_URL) n'est pas renseignée : le lien de désinscription obligatoire ne peut pas être ajouté." };
+    }
+    const cfg = mailConfig();
+    const unsubscribeUrl = `${BASE_URL}/api/unsubscribe?t=${encodeURIComponent(signValue(lead.id))}`;
+    const body = fillVariables(row.message, lead);
+    const subject = fillVariables(row.subject || "Votre estimation", lead);
+    const { text, html } = renderEmail({
+      body,
+      signatureName: AGENT_PROFILE.name,
+      signatureLine: `Conseillère immobilière, ${AGENT_PROFILE.agency}`,
+      phone: AGENT_PROFILE.phone,
+      bookingUrl: BASE_URL,
+      unsubscribeUrl,
+    });
+    const result = await sendEmail({ to, toName: lead.nom, subject, text, html, unsubscribeUrl });
+    if (result.ok === false) {
+      await finish({ status: "erreur", error: result.error, recipient: to });
+      return { ok: false as const, error: result.error };
+    }
+    await finish({ status: "envoye", sent_at: new Date().toISOString(), recipient: to, provider_id: result.id, error: null });
+    return { ok: true as const, id: result.id, recipient: to, from: cfg.fromEmail };
+  }
+
+  app.get("/api/relances/status", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    const cfg = mailConfig();
+    res.json({
+      emailConfigured: cfg.provider !== null,
+      provider: cfg.provider,
+      from: cfg.provider ? `${cfg.fromName} <${cfg.fromEmail}>` : null,
+      replyTo: cfg.provider ? cfg.replyTo : null,
+      bccConfigured: Boolean(cfg.bcc),
+      baseUrlConfigured: Boolean(BASE_URL),
+      dailyLimit: DAILY_LIMIT,
+      sentLast24h: client ? await sentToday(client) : 0,
+      databaseConfigured: Boolean(client),
+    });
   });
 
-  // Get Dispatch Logs Endpoint
-  app.get("/api/dispatch-logs", requireAgent, (_req: Request, res: Response) => {
-    res.json({ logs: dispatchLogs });
+  // Immediate send (one e-mail, from the advisor's screen)
+  app.post("/api/relances/send", requireAgent, rateLimit("relance-send", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ success: false, error: "Base de données non configurée." });
+    if (!isMailConfigured()) {
+      return res.status(503).json({ success: false, error: "L'envoi d'e-mails n'est pas configuré sur ce serveur (voir RESEND_API_KEY et MAIL_FROM_EMAIL)." });
+    }
+    const { leadId, subject, message, step } = req.body || {};
+    if (!isUuidStr(leadId) || typeof message !== "string" || message.trim().length < 5) {
+      return res.status(400).json({ success: false, error: "Message ou contact invalide. Enregistrez d'abord la fiche du contact." });
+    }
+    if ((await sentToday(client)) >= DAILY_LIMIT) {
+      return res.status(429).json({ success: false, error: `Limite de ${DAILY_LIMIT} e-mails par 24 h atteinte.` });
+    }
+    const { data: row, error } = await client
+      .from("relances")
+      .insert({ lead_id: leadId, step: step || null, channel: "Email", subject: subject || null, message, status: "envoi" })
+      .select("id, lead_id, subject, message")
+      .single();
+    if (error || !row) return res.status(500).json({ success: false, error: error?.message || "Enregistrement impossible" });
+    const result = await deliverRelance(client, row);
+    if (result.ok === false) return res.status(502).json({ success: false, error: result.error });
+    res.json({ success: true, id: row.id, recipient: result.recipient, from: result.from });
+  });
+
+  // Replace the programmed (not yet sent) relances of one contact. Only e-mails are sent automatically;
+  // SMS / WhatsApp steps become reminders ("a_faire") because no SMS provider is connected.
+  app.put("/api/relances/schedule/:leadId", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Base de données non configurée." });
+    const leadId = req.params.leadId;
+    if (!isUuidStr(leadId)) return res.status(400).json({ error: "Identifiant invalide" });
+    const { enabled, items } = req.body || {};
+
+    await client.from("relances").delete().eq("lead_id", leadId).in("status", ["programme", "a_faire"]);
+    if (!enabled) return res.json({ success: true, scheduled: 0, skipped: 0 });
+
+    const now = Date.now();
+    let skipped = 0;
+    const rows: any[] = [];
+    for (const it of Array.isArray(items) ? items : []) {
+      const sendAt = new Date(it.sendAt);
+      if (isNaN(sendAt.getTime()) || sendAt.getTime() < now - 5 * 60 * 1000 || typeof it.message !== "string" || !it.message.trim()) {
+        skipped++; // past or empty steps are never sent in a burst
+        continue;
+      }
+      if (it.status === "paused") continue;
+      const channel = ["Email", "SMS", "WhatsApp"].includes(it.channel) ? it.channel : "Email";
+      rows.push({
+        lead_id: leadId,
+        step: it.step || null,
+        channel,
+        subject: it.subject || null,
+        message: it.message,
+        send_at: sendAt.toISOString(),
+        status: channel === "Email" ? "programme" : "a_faire",
+      });
+    }
+    if (rows.length) {
+      const { error } = await client.from("relances").insert(rows);
+      if (error) return res.status(500).json({ error: error.message });
+    }
+    res.json({ success: true, scheduled: rows.length, skipped });
+  });
+
+  app.get("/api/relances/lead/:leadId", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(req.params.leadId)) return res.json({ relances: [] });
+    const { data } = await client.from("relances").select("*").eq("lead_id", req.params.leadId).order("send_at", { ascending: true });
+    res.json({ relances: data || [] });
+  });
+
+  app.get("/api/relances/history", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.json({ logs: [] });
+    const { data } = await client
+      .from("relances")
+      .select("id, step, channel, subject, message, status, sent_at, send_at, recipient, error, created_at, lead:leads(nom)")
+      .in("status", ["envoye", "erreur", "annule"])
+      .order("created_at", { ascending: false })
+      .limit(100);
+    res.json({
+      logs: (data || []).map((r: any) => ({
+        id: r.id,
+        leadName: r.lead?.nom || "Contact supprimé",
+        recipient: r.recipient || "",
+        channel: r.channel,
+        subject: r.subject || "",
+        message: r.message,
+        status: r.status,
+        sentAt: r.sent_at || r.created_at,
+        error: r.error,
+      })),
+    });
+  });
+
+  // Sends every due programmed e-mail (called every minute by the server and by an optional external cron)
+  let relancesRunning = false;
+  async function processDueRelances(): Promise<{ sent: number; failed: number }> {
+    const client = getSupabaseAdmin();
+    if (relancesRunning || !client || !isMailConfigured() || !inSendWindow()) return { sent: 0, failed: 0 };
+    relancesRunning = true;
+    let sent = 0;
+    let failed = 0;
+    try {
+      const { data: due, error } = await client
+        .from("relances")
+        .select("id")
+        .eq("status", "programme")
+        .eq("channel", "Email")
+        .lte("send_at", new Date().toISOString())
+        .order("send_at", { ascending: true })
+        .limit(10);
+      if (error || !due?.length) return { sent, failed };
+      let budget = DAILY_LIMIT - (await sentToday(client));
+      for (const d of due) {
+        if (budget <= 0) break;
+        // Atomic claim: only the instance that flips programme -> envoi sends the message
+        const { data: claimed } = await client.from("relances").update({ status: "envoi" }).eq("id", d.id).eq("status", "programme").select("id, lead_id, subject, message").maybeSingle();
+        if (!claimed) continue;
+        const r = await deliverRelance(client, claimed);
+        if (r.ok) {
+          sent++;
+          budget--;
+        } else failed++;
+      }
+    } catch (e: any) {
+      console.warn("[Relances] scheduler error:", e.message);
+    } finally {
+      relancesRunning = false;
+    }
+    return { sent, failed };
+  }
+  setInterval(() => void processDueRelances(), 60 * 1000).unref();
+
+  // Optional: lets an external pinger (cron-job.org, UptimeRobot) wake a sleeping free instance and trigger a run
+  app.post("/api/cron/relances", async (req: Request, res: Response) => {
+    const secret = process.env.CRON_SECRET;
+    if (!secret || req.headers["x-cron-secret"] !== secret) return res.status(401).json({ error: "unauthorized" });
+    res.json(await processDueRelances());
+  });
+
+  // Public unsubscribe link (in every e-mail)
+  app.get("/api/unsubscribe", rateLimit("unsub", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const page = (title: string, text: string) =>
+      res.status(200).type("html").send(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="font-family:-apple-system,Segoe UI,Arial,sans-serif;background:#f6f5f3;margin:0;padding:40px 16px"><div style="max-width:460px;margin:0 auto;background:#fff;border-radius:12px;padding:28px"><h1 style="font-size:20px;margin:0 0 12px">${title}</h1><p style="line-height:1.6;color:#44403c;margin:0">${text}</p></div></body></html>`);
+    const leadId = readSignedValue(String(req.query.t || ""));
+    const client = getSupabaseAdmin();
+    if (!leadId || !isUuidStr(leadId) || !client) return page("Lien invalide", "Ce lien de désinscription n'est pas valide.");
+    const { data: lead } = await client.from("leads").select("email").eq("id", leadId).maybeSingle();
+    if (lead?.email) {
+      await client.from("desinscriptions").upsert({ email: String(lead.email).toLowerCase() });
+      await client.from("relances").update({ status: "annule", error: "Désinscription" }).eq("lead_id", leadId).in("status", ["programme", "a_faire"]);
+    }
+    page("Vous êtes désinscrit", "Vous ne recevrez plus de messages de notre part. Si c'est une erreur, répondez simplement à l'un de nos e-mails.");
   });
 
   // AI Nurture Sequence generator endpoint
@@ -673,42 +837,21 @@ async function startServer() {
     try {
       const { leadProfile } = req.body;
 
+      const first = String(leadProfile?.name || "").split(" ")[0];
+      const hello = first ? `Bonjour ${first},` : "Bonjour,";
+      const type = String(leadProfile?.propertyType || "bien").toLowerCase();
+      const city = leadProfile?.city || "votre commune";
       const fallbackSequence = [
-        {
-          step: "J+1 (SMS)",
-          channel: "SMS",
-          subject: "Confirmation & Rapport d'avis de valeur",
-          message: `Bonjour ${leadProfile?.name || "Mme/M."}, merci pour notre échange concernant votre ${leadProfile?.propertyType?.toLowerCase() || "bien"} à ${leadProfile?.city || "votre commune"}. Votre dossier d'estimation comparative a été enregistré. N'hésitez pas si vous avez la moindre question !`,
-        },
-        {
-          step: "J+7 (Email)",
-          channel: "Email",
-          subject: "Tendances des prix & dernières ventes dans votre quartier",
-          message: `Découvrez les 3 dernières transactions comparables réalisées dans votre secteur et l'impact des taux de crédit actuels sur la demande acheteurs.`,
-        },
-        {
-          step: "J+15 (Email)",
-          channel: "Email",
-          subject: "5 astuces de valorisation pour vendre 5 à 8% plus cher",
-          message: `DPE, désencombrement, dossier technique et stratégie d'annonce : nos recommandations clés pour déclencher des offres au prix sans négociation.`,
-        },
-        {
-          step: "J+30 (SMS)",
-          channel: "SMS",
-          subject: "Point d'étape sur votre projet immobilier",
-          message: `Bonjour ${leadProfile?.name || "Mme/M."}, où en est votre réflexion sur votre projet de vente ? Plusieurs acquéreurs qualifiés recherchent actuellement sur votre secteur.`,
-        },
-        {
-          step: "J+60 (Email VIP)",
-          channel: "Email",
-          subject: "Acquéreur solvable en recherche active sur votre typologie de bien",
-          message: `Nous venons de qualifier un profil solvable en recherche urgente sur votre secteur. Souhaitez-vous échanger 10 minutes cette semaine ?`,
-        },
+        { step: "J+1 (Email)", channel: "Email", subject: `Votre estimation à ${city}`, message: `${hello}\n\nMerci d'avoir demandé l'estimation de votre ${type} à ${city}. La simulation est un repère : une visite permet de tenir compte de l'état réel du bien. Elle est gratuite et sans engagement.` },
+        { step: "J+7 (Email)", channel: "Email", subject: `Ce qui fait varier le prix d'un ${type}`, message: `${hello}\n\nL'état général, l'étage, l'exposition, le DPE et les charges font varier le prix d'une vente à l'autre. Y a-t-il un point de votre bien que vous aimeriez voir valorisé ?` },
+        { step: "J+15 (Email)", channel: "Email", subject: "Documents utiles pour préparer une vente", message: `${hello}\n\nTitre de propriété, taxes foncières, diagnostics déjà réalisés, et en copropriété les derniers procès-verbaux d'assemblée : les rassembler à l'avance fait gagner du temps. Rien n'est obligatoire pour une première visite.` },
+        { step: "J+30 (Email)", channel: "Email", subject: "Où en est votre projet ?", message: `${hello}\n\nOù en est votre réflexion sur votre ${type} à ${city} ? Je reste disponible pour en parler quelques minutes.` },
+        { step: "J+60 (Email)", channel: "Email", subject: "Mettre à jour votre estimation", message: `${hello}\n\nVotre estimation date de deux mois. Je peux la mettre à jour gratuitement avec les ventes les plus récentes. Il suffit de répondre à cet e-mail.` },
       ];
 
       try {
         const parsed = await claudeJson<{ sequence: any[] }>({
-          system: `Tu rédiges des relances immobilières pour une conseillère de NOVEA Immobilier (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. SMS: 300 caractères max. Email: objet court + 4 à 6 lignes. Chaque message propose un pas simple vers une visite de découverte offerte d'environ ${formatDuration(AGENT_PROFILE.visitMinutes)}.`,
+          system: `Tu rédiges des relances par e-mail pour une conseillère de NOVEA Immobilier (Lyon). Ton chaleureux, vouvoiement, jamais agressif, sans jargon commercial. Canal : Email uniquement. Objet court, 4 à 6 lignes. RÈGLES STRICTES : n'invente aucun fait (aucune vente précise, aucun délai de vente, aucun acquéreur ou « acheteur qualifié », aucune statistique, aucun partenaire ni tarif négocié, aucune urgence artificielle) ; n'utilise que les données du profil fournies ; n'écris jamais « net vendeur ». Chaque message propose un pas simple vers une visite de découverte offerte d'environ ${formatDuration(AGENT_PROFILE.visitMinutes)}.`,
           messages: [{
             role: "user",
             content: `Génère une séquence de 5 relances (J+1, J+7, J+15, J+30, J+60) pour ce propriétaire pas encore mûr.\nProfil :\n${JSON.stringify(leadProfile, null, 2)}\nLe champ step doit être de la forme "J+1 (SMS)".`,

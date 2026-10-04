@@ -11,6 +11,7 @@ export const CRM_KEYS = [
   "status",
   "meetingType",
   "valuation",
+  "autoRelances",
 ] as const;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -119,6 +120,7 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     activities: crm.activities,
     mandate: crm.mandate,
     valuation: crm.valuation,
+    autoRelances: crm.autoRelances,
     calBookingId: upcoming?.cal_booking_id,
   };
 }

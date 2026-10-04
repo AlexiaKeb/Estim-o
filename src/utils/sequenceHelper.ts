@@ -1,74 +1,89 @@
 import { Lead, ScheduledMessage } from '../types';
 
+/**
+ * Default follow-up sequence: five e-mails, plain and useful.
+ * Rules: no invented facts (no made-up sales, buyers, statistics or partners), no pressure,
+ * only data we really have about the contact. Dates count from the day of the estimation.
+ */
 export function generateDefaultSequenceForLead(lead: Lead): ScheduledMessage[] {
-  const firstName = lead.name.split(' ')[0] || 'Bonjour';
-  const today = new Date();
+  const firstName = lead.name.split(' ')[0] || '';
+  const hello = firstName ? `Bonjour ${firstName},` : 'Bonjour,';
+  const base = lead.createdAtIso ? new Date(lead.createdAtIso) : new Date();
+  const type = (lead.propertyType || 'bien').toLowerCase();
+  const city = lead.city || 'votre commune';
 
-  const addDays = (days: number) => {
-    const d = new Date(today);
+  const dayAt = (days: number) => {
+    const d = new Date(base);
     d.setDate(d.getDate() + days);
     return d.toISOString().split('T')[0];
   };
+
+  const range =
+    lead.valuation && lead.valuation.lowPrice && lead.valuation.highPrice
+      ? `${lead.valuation.lowPrice.toLocaleString('fr-FR')} € et ${lead.valuation.highPrice.toLocaleString('fr-FR')} €`
+      : lead.estimatedValue
+        ? `environ ${lead.estimatedValue.toLocaleString('fr-FR')} €`
+        : null;
 
   return [
     {
       id: `${lead.id}-step-1`,
       step: 'Message 1 (J+1)',
-      channel: 'SMS',
-      delay: '24h après estimation',
-      scheduledDate: addDays(1),
+      channel: 'Email',
+      delay: 'Le lendemain',
+      scheduledDate: dayAt(1),
       scheduledTime: '09:30',
-      subject: `Avis de valeur pour votre ${lead.propertyType.toLowerCase()} à ${lead.city}`,
-      message: `Bonjour ${firstName}, suite à votre estimation pour votre ${lead.propertyType.toLowerCase()} (${lead.surface} m² à ${lead.city}), nous avons validé la valorisation indicative de ${lead.estimatedValue.toLocaleString('fr-FR')} €. Un conseiller de notre équipe reste à votre disposition si vous souhaitez affiner les points clés.`,
-      goal: 'Confirmer la prise en compte du dossier et ouvrir le canal direct par SMS.',
+      subject: `Votre estimation à ${city}`,
+      message: `${hello}\n\nMerci d'avoir demandé l'estimation de votre ${type} à ${city}.${range ? ` La simulation situe sa valeur entre ${range}.` : ''} C'est un repère : seule une visite permet de tenir compte de l'état réel, de la luminosité, de l'étage ou de la vue.\n\nSi vous le souhaitez, je peux passer voir votre bien. La visite est gratuite et sans engagement. Vous pouvez répondre directement à cet e-mail ou choisir un créneau ci-dessous.`,
+      goal: "Confirmer la prise en compte de la demande et proposer la visite.",
       status: 'scheduled',
     },
     {
       id: `${lead.id}-step-2`,
-      step: 'Message 2 (J+5)',
+      step: 'Message 2 (J+4)',
       channel: 'Email',
-      delay: '5 jours après',
-      scheduledDate: addDays(5),
+      delay: '4 jours après',
+      scheduledDate: dayAt(4),
       scheduledTime: '10:00',
-      subject: `3 ventes récentes comparables à votre bien à ${lead.city}`,
-      message: `Bonjour ${firstName},\n\nDans le cadre de votre projet (${lead.motive}), voici un récapitulatif des dernières transactions constatées dans votre secteur à ${lead.city} pour des biens comparables :\n• Bien similaire dans votre secteur : Vendu en 24 jours au prix du marché\n• Tendance actuelle : Forte demande d'acheteurs avec financement validé\n\nSouhaitez-vous recevoir notre analyse détaillée des prix constatés par rue ?`,
-      goal: 'Démontrer l\'expertise locale avec des repères concrets de prix.',
+      subject: `Ce qui fait varier le prix d'un ${type}`,
+      message: `${hello}\n\nPour un ${type} comme le vôtre, plusieurs éléments font varier le prix d'une vente à l'autre : l'état général et les travaux récents, l'étage et l'exposition, la performance énergétique (DPE), les charges, le calme de la rue.\n\nCe sont justement ces points que je regarde sur place. Y a-t-il un élément de votre bien que vous aimeriez que je valorise en particulier ?`,
+      goal: "Donner des repères utiles et inviter à répondre.",
       status: 'scheduled',
     },
     {
       id: `${lead.id}-step-3`,
-      step: 'Message 3 (J+12)',
+      step: 'Message 3 (J+10)',
       channel: 'Email',
-      delay: '12 jours après',
-      scheduledDate: addDays(12),
+      delay: '10 jours après',
+      scheduledDate: dayAt(10),
       scheduledTime: '14:00',
-      subject: `Dossier technique & DPE : Sécurisez votre prix net vendeur`,
-      message: `Bonjour ${firstName},\n\nPour réussir votre vente dans votre calendrier (${lead.timeframe}), l'anticipation du dossier technique (DPE, électricité, mesurage) permet d'éviter les négociations de dernière minute lors du compromis.\n\nNous pouvons vous orienter vers nos diagnostiqueurs certifiés partenaires avec tarifs négociés.`,
-      goal: 'Apporter une valeur technique et juridique rassurante.',
+      subject: `Les documents utiles pour préparer une vente`,
+      message: `${hello}\n\nSi vous envisagez de vendre${lead.timeframe && lead.timeframe !== 'Curiosité' ? ` (${lead.timeframe})` : ''}, il est utile de rassembler dès maintenant quelques documents : le titre de propriété, les dernières taxes foncières, les diagnostics déjà réalisés (dont le DPE) et, en copropriété, les derniers procès-verbaux d'assemblée et le montant des charges.\n\nRien n'est obligatoire pour une première visite : cela permet simplement d'aller plus vite le moment venu.`,
+      goal: "Apporter une aide concrète, sans pression.",
       status: 'scheduled',
     },
     {
       id: `${lead.id}-step-4`,
-      step: 'Message 4 (J+25)',
-      channel: 'SMS',
-      delay: '25 jours après',
-      scheduledDate: addDays(25),
-      scheduledTime: '11:15',
-      subject: `Point d'étape sur votre projet`,
-      message: `Bonjour ${firstName}, où en est votre réflexion sur votre projet de vente à ${lead.city} ? Plusieurs acquéreurs qualifiés recherchent actuellement un ${lead.propertyType.toLowerCase()} sur votre secteur. Souhaitez-vous faire un point rapide de 5 min ?`,
-      goal: 'Réengager la conversation pour caler le rendez-vous d\'estimation physique.',
+      step: 'Message 4 (J+21)',
+      channel: 'Email',
+      delay: '21 jours après',
+      scheduledDate: dayAt(21),
+      scheduledTime: '11:00',
+      subject: `Où en est votre projet ?`,
+      message: `${hello}\n\nJe reviens simplement vers vous : où en est votre réflexion sur votre ${type} à ${city} ? Que votre projet ait avancé, changé ou soit mis en pause, je reste disponible pour en parler quelques minutes.`,
+      goal: "Reprendre le contact avec une question simple.",
       status: 'scheduled',
     },
     {
       id: `${lead.id}-step-5`,
       step: 'Message 5 (J+45)',
-      channel: 'WhatsApp',
+      channel: 'Email',
       delay: '45 jours après',
-      scheduledDate: addDays(45),
+      scheduledDate: dayAt(45),
       scheduledTime: '15:30',
-      subject: `Acheteur qualifié en recherche sur ${lead.city}`,
-      message: `Bonjour ${firstName}, nous venons de valider la solvabilité d'un acquéreur qui recherche activement un ${lead.propertyType.toLowerCase()} sur ${lead.city}. Si votre projet a évolué, faites-moi signe pour organiser un échange !`,
-      goal: 'Créer une opportunité concrète avec un acquéreur sérieux.',
+      subject: `Votre estimation a plus d'un mois`,
+      message: `${hello}\n\nVotre estimation date d'un mois et demi. Le marché évolue : si vous le souhaitez, je peux la mettre à jour gratuitement, avec les ventes les plus récentes de votre secteur.\n\nIl suffit de répondre à cet e-mail.`,
+      goal: "Proposer une mise à jour de l'estimation.",
       status: 'scheduled',
     },
   ];

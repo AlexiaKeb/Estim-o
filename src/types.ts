@@ -126,6 +126,8 @@ export interface Lead {
   customSequence?: ScheduledMessage[];
   createdAt: string;
   createdAtIso?: string;
+  /** E-mails of the follow-up sequence are sent automatically on their dates */
+  autoRelances?: boolean;
   /** How the price shown to the seller was computed (kept for the advisor) */
   valuation?: {
     dataSource?: 'dvf' | 'baseline';

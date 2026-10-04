@@ -117,3 +117,17 @@ setInterval(() => {
   const now = Date.now();
   for (const m of [buckets, failures]) for (const [k, v] of m) if (v.resetAt < now) m.delete(k);
 }, 10 * 60 * 1000).unref();
+
+/** Signed opaque tokens for links sent by e-mail (e.g. unsubscribe). No expiry: a link must keep working. */
+export function signValue(value: string): string {
+  return `${value}.${sign(`v:${value}`)}`;
+}
+export function readSignedValue(token: string): string | null {
+  const i = token.lastIndexOf(".");
+  if (i < 1) return null;
+  const value = token.slice(0, i);
+  const sig = token.slice(i + 1);
+  const expected = sign(`v:${value}`);
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  return value;
+}

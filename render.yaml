@@ -29,3 +29,13 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM_EMAIL
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: Céline Levrat
+      - key: MAIL_REPLY_TO
+        sync: false
+      - key: APP_URL
+        sync: false
