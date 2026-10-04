@@ -85,7 +85,7 @@ export async function getActiveAgent(): Promise<AgentRecord | null> {
     cal_username: 'celine-levrat-novea',
     script_qualification: {
       agent_display_name: 'Céline Levrat',
-      agency_name: 'NOVEA Immobilier',
+      agency_name: 'Agent Estimation',
       phone: '06 03 58 03 16',
       tone: 'professionnel, empathique, valorisant et orienté vers une visite de découverte sans engagement',
     },

@@ -115,7 +115,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
             <AgentAvatar size={64} />
             <div className="min-w-0">
               <div className="font-semibold text-stone-900">{AGENT.name}</div>
-              <div className="text-sm text-stone-600">Conseillère immobilière, {AGENT.agency}</div>
+              <div className="text-sm text-stone-600">Conseillère immobilière indépendante</div>
             </div>
           </div>
           <p className="text-sm text-stone-600 leading-relaxed">

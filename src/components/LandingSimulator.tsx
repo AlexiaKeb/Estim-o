@@ -1159,7 +1159,7 @@ export const LandingSimulator: React.FC<Props> = ({
                       className="w-3.5 h-3.5 text-stone-900 rounded border-stone-300 mt-0.5 flex-shrink-0"
                     />
                     <span className="leading-tight">
-                      J'accepte que mes coordonnées servent à m'envoyer mon estimation et à être recontacté(e) à ce sujet par {AGENT.name} ({AGENT.agency}). Mes données ne sont jamais revendues et je peux me désinscrire à tout moment.
+                      J'accepte que mes coordonnées servent à m'envoyer mon estimation et à être recontacté(e) à ce sujet par {AGENT.name}. Mes données ne sont jamais revendues et je peux me désinscrire à tout moment.
                     </span>
                   </label>
 

@@ -261,7 +261,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-stone-900">Céline</h3>
-                <p className="text-xs font-medium text-amber-700">Conseillère immobilière, NOVEA Immobilier</p>
+                <p className="text-xs font-medium text-amber-700">Conseillère immobilière indépendante</p>
               </div>
             </div>
 

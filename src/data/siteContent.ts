@@ -11,7 +11,7 @@ export const BRAND = {
 export const AGENT = {
   name: 'Céline Levrat',
   firstName: 'Céline',
-  agency: 'NOVEA Immobilier',
+  agency: 'Agent Estimation',
   city: 'Lyon',
   phone: '06 03 58 03 16',
   phoneHref: 'tel:+33603580316',

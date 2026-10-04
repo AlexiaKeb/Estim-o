@@ -37,7 +37,7 @@ import { BookingConfirmationView } from './components/BookingConfirmationView';
 import { PrivacyShieldModal } from './components/PrivacyShieldModal';
 import { AgentAuthModal } from './components/AgentAuthModal';
 import { CalendarHealth } from './components/CalendarHealth';
-import { BRAND, LEGAL } from './data/siteContent';
+import { BRAND } from './data/siteContent';
 
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator';
 
@@ -831,7 +831,7 @@ export default function App() {
               {BRAND.name}
             </span>
             <span>•</span>
-            <span>{LEGAL.company} · SIRET {LEGAL.siret}</span>
+            <span>Estimation gratuite et sans engagement</span>
             <span>•</span>
             <a href="/mentions-legales" className="hover:text-stone-800 underline-offset-2 hover:underline">Mentions légales</a>
             <a href="/confidentialite" className="hover:text-stone-800 underline-offset-2 hover:underline">Confidentialité</a>
