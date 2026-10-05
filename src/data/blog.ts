@@ -102,57 +102,59 @@ export const BLOG_POSTS: BlogPost[] = [
   },
   {
     slug: 'prix-immobilier-dvf-ventes-reelles-quartier',
-    metaTitle: "Lire les ventes réelles de son quartier (base DVF)",
-    title: 'Prix immobilier : comment lire les ventes réelles de son quartier (base DVF)',
+    metaTitle: "Ventes réelles (DVF) : comment les lire, et leurs limites",
+    title: "Ventes réelles (base DVF) : ce qu'elles révèlent sur votre bien, et ce qu'elles ne disent pas",
     description:
-      "La base DVF recense les ventes immobilières réelles en France. Ce qu'elle contient, comment la lire pour estimer un bien, et ses limites à connaître.",
+      "La base DVF recense les ventes immobilières réelles. Ce qu'elle apporte pour estimer un bien, pourquoi elle ne suffit pas et ce que seule une visite permet de voir.",
     category: 'Marché',
     date: '2026-10-04',
+    updated: '2026-10-05',
     readingMinutes: 5,
     intro:
-      "Les prix des annonces sont des prix demandés, pas des prix obtenus. Pour connaître ce que les acheteurs ont réellement payé près de chez vous, il existe une source publique et gratuite : la base « Demandes de valeurs foncières », plus connue sous le nom de DVF.",
+      "Les prix des annonces sont des prix demandés, pas des prix obtenus. Pour savoir ce que les acheteurs ont réellement payé, il existe une source publique : la base « Demandes de valeurs foncières », ou DVF. Elle est précieuse, mais elle répond à une seule question : à quel prix des biens se sont vendus. Elle ne dit pas combien vaut le vôtre.",
     sections: [
       {
-        h2: 'Qu\'est-ce que la base DVF ?',
+        h2: 'Ce que contient la base DVF',
         paragraphs: [
-          "DVF est une base de données publique, diffusée par l'État (notamment sur data.gouv.fr). Elle recense les ventes immobilières conclues ces dernières années, à partir des actes notariés : date de la vente, prix inscrit à l'acte, type de bien, surface, nombre de pièces, adresse. Elle est ouverte à tous.",
+          "DVF est une base publique diffusée par l'État. Elle recense les ventes conclues ces dernières années, à partir des actes notariés : date, prix inscrit à l'acte, type de bien, surface, nombre de pièces, adresse. C'est la meilleure photographie des prix réellement pratiqués, bien plus fiable que les annonces.",
         ],
       },
       {
-        h2: 'Pourquoi c\'est plus fiable qu\'une annonce',
-        paragraphs: [
-          "Une annonce affiche un prix de départ, souvent négocié ensuite. DVF affiche des prix de transactions réellement signées. C'est donc la meilleure base de comparaison pour estimer un bien, à condition de comparer ce qui est comparable : même type de bien, surface proche, même secteur, ventes récentes.",
-        ],
-      },
-      {
-        h2: 'Comment s\'en servir, pas à pas',
+        h2: 'Ce que les chiffres ne disent pas',
+        paragraphs: ['Deux biens peuvent apparaître avec la même surface, dans la même rue, et pourtant se vendre à des prix très éloignés. DVF ne renseigne pas :'],
         list: [
-          'Repérez les ventes dans un rayon réduit autour de votre adresse (quelques centaines de mètres en ville).',
-          "Gardez les biens du même type : appartement avec appartement, maison avec maison.",
-          'Calculez le prix au mètre carré de chaque vente (prix divisé par la surface).',
-          'Privilégiez les ventes les plus récentes, car le marché évolue.',
-          'Écartez les ventes atypiques : très haut de gamme, très mauvais état, lots groupés.',
-          'Regardez la fourchette plutôt qu\'un chiffre unique : elle reflète la diversité des biens.',
+          "l'état réel du logement, la qualité de la rénovation ou les travaux à prévoir ;",
+          "l'étage, l'ascenseur, la vue, la luminosité, le calme ;",
+          "les extérieurs, la cave, le stationnement, souvent regroupés dans un même prix ;",
+          "la qualité de la copropriété, ses charges et les travaux votés ;",
+          "le DPE, devenu un critère de décision majeur ;",
+          "les circonstances de la vente : urgence, négociation, acheteurs en concurrence.",
         ],
       },
       {
-        h2: 'Les limites à connaître',
-        paragraphs: ['DVF est précieuse, mais elle ne dit pas tout :'],
-        list: [
-          "elle ne donne ni l'état du bien, ni les travaux, ni l'étage, ni la vue, ni la luminosité ;",
-          "une vente peut regrouper plusieurs lots (appartement, cave, parking), ce qui rend le prix au mètre carré trompeur ;",
-          "les données sont publiées avec un certain délai : les toutes dernières ventes n'y figurent pas encore ;",
-          "dans un secteur où il se vend peu de biens, l'échantillon est mince et la fourchette plus large.",
-        ],
-      },
-      {
-        h2: 'DVF et estimation sur place',
+        h2: 'Un point de départ, jamais une réponse',
         paragraphs: [
-          "Les ventes réelles donnent un point de départ solide ; la visite ajuste ensuite ce point de départ à votre bien précis, en tenant compte de ce que les chiffres ne montrent pas. C'est la logique de notre simulateur : une fourchette fondée sur les ventes autour de l'adresse, que la visite vient affiner. Pour comprendre les différences entre les deux approches, lisez [estimation en ligne ou par un agent](/blog/estimation-en-ligne-ou-agent-immobilier).",
+          "Une moyenne de secteur mélange des biens très différents : elle situe un ordre de grandeur, pas la valeur de votre bien. Appliquer mécaniquement un prix au mètre carré mène presque toujours à se tromper, par excès comme par défaut, et c'est précisément sur les détails ci-dessus que se joue l'écart entre une vente rapide et un bien qui stagne.",
+        ],
+      },
+      {
+        h2: 'Les erreurs fréquentes quand on compare seul',
+        list: [
+          'comparer des biens qui ne le sont pas (étage, état, extérieur différents) ;',
+          'retenir les ventes flatteuses et ignorer les autres ;',
+          "oublier que les données publiées ont un délai, alors que le marché évolue ;",
+          "prendre un prix de vente regroupant plusieurs lots (logement, cave, parking) pour un prix au mètre carré ;",
+          "surestimer son bien par attachement, ce que les acheteurs ne partagent pas.",
+        ],
+      },
+      {
+        h2: 'Ce que fait la visite',
+        paragraphs: [
+          "C'est là que la valeur se précise. Sur place, on regarde ce que les chiffres ne voient pas, on choisit les ventes réellement comparables et on justifie chaque écart avec la moyenne du secteur. Vous obtenez un avis argumenté, que vous pouvez défendre face aux acheteurs. C'est le principe de notre simulateur : une fourchette fondée sur les ventes autour de votre adresse, que la visite vient affiner, gratuitement et sans engagement. Pour comprendre la différence entre les deux approches, lisez [estimation en ligne ou par un agent](/blog/estimation-en-ligne-ou-agent-immobilier).",
         ],
       },
     ],
-    related: ['estimer-appartement-lyon-criteres-prix', 'estimation-en-ligne-ou-agent-immobilier', 'fixer-prix-annonce-vente-immobiliere'],
+    related: ['estimation-en-ligne-ou-agent-immobilier', 'estimer-appartement-lyon-criteres-prix', 'fixer-prix-annonce-vente-immobiliere'],
   },
   {
     slug: 'estimation-en-ligne-ou-agent-immobilier',
@@ -376,54 +378,56 @@ export const BLOG_POSTS: BlogPost[] = [
   },
   {
     slug: 'fixer-prix-annonce-vente-immobiliere',
-    metaTitle: "Fixer le bon prix d'annonce pour vendre son bien",
-    title: "Comment fixer le bon prix d'annonce pour vendre son bien",
+    metaTitle: "Prix d'annonce : les pièges d'un prix mal fixé",
+    title: "Prix d'annonce : les pièges d'un prix mal fixé, et comment les éviter",
     description:
-      "Un prix trop haut fait stagner l'annonce, un prix trop bas fait perdre de l'argent. Comment fixer un prix d'annonce cohérent avec le marché et votre projet.",
+      "Un prix trop haut fait stagner l'annonce, un prix trop bas fait perdre de l'argent. Pourquoi le prix d'annonce est la décision la plus délicate d'une vente.",
     category: 'Estimation',
     date: '2026-10-04',
+    updated: '2026-10-05',
     readingMinutes: 5,
     intro:
-      "Le prix d'annonce est la décision la plus importante d'une vente. Trop haut, il écarte les acheteurs et l'annonce s'essouffle. Trop bas, il fait perdre de l'argent. La bonne démarche consiste à partir des faits, puis à choisir une stratégie assumée.",
+      "Le prix d'annonce est la décision la plus importante d'une vente, et la plus difficile à prendre seul. Trop haut, il écarte les acheteurs et l'annonce s'essouffle. Trop bas, il fait perdre de l'argent. Voici les pièges les plus courants, et comment s'en protéger.",
     sections: [
       {
-        h2: 'Partir des ventes réelles, pas des annonces',
+        h2: "Pourquoi c'est si difficile à fixer soi-même",
         paragraphs: [
-          "Les annonces voisines affichent des prix demandés, dont beaucoup ne se concrétisent jamais. Les ventes enregistrées montrent ce que les acheteurs ont réellement payé : c'est la meilleure base (voir [comment lire la base DVF](/blog/prix-immobilier-dvf-ventes-reelles-quartier)). Ajustez ensuite selon l'état, l'étage, la vue, les extérieurs et le DPE de votre bien.",
+          "On connaît son bien depuis des années, on y a investi du temps, de l'argent et des souvenirs : cet attachement fausse presque toujours le regard. À l'inverse, un acheteur compare avec ce qu'il a vu ailleurs, et ne tient aucun compte de ce que le logement représente pour vous.",
         ],
       },
       {
-        h2: 'Les risques d\'un prix trop élevé',
+        h2: "Les risques d'un prix trop élevé",
         list: [
           "l'annonce reçoit peu de visites, alors que les premières semaines sont celles où l'intérêt est le plus fort ;",
-          "un bien qui reste longtemps en ligne finit par éveiller la méfiance des acheteurs, qui se demandent ce qui cloche ;",
-          "il faut ensuite baisser le prix, avec le sentiment d'un bien « fatigué » ;",
+          "un bien qui reste longtemps en ligne éveille la méfiance : les acheteurs se demandent ce qui cloche ;",
+          "il faut ensuite baisser le prix, avec l'image d'un bien « fatigué » ;",
           "vous perdez du temps, alors que votre projet suivant (achat, déménagement) peut dépendre de cette vente.",
         ],
       },
       {
-        h2: 'Les risques d\'un prix trop bas',
+        h2: "Les risques d'un prix trop bas",
         paragraphs: [
-          "Sous-évaluer permet de vendre vite, mais au détriment de votre patrimoine. Méfiez-vous d'une estimation anormalement basse, qui peut chercher à obtenir un mandat rapidement. Demandez toujours les ventes comparables qui la justifient.",
+          "Sous-évaluer permet de vendre vite, mais au détriment de votre patrimoine. Méfiez-vous aussi d'une estimation anormalement basse qui chercherait avant tout à obtenir un mandat rapidement : demandez toujours les ventes comparables qui la justifient.",
         ],
       },
       {
-        h2: 'Prévoir la marge de négociation',
-        paragraphs: [
-          "Beaucoup d'acheteurs négocient. Il est donc raisonnable de prévoir, dans le prix d'annonce, la marge que vous accepteriez de concéder, sans pour autant gonfler artificiellement le prix : un acheteur informé compare avec les ventes réelles. Fixez avant la mise en vente le prix plancher en dessous duquel vous ne vendrez pas.",
-        ],
-      },
-      {
-        h2: 'Une méthode simple',
+        h2: 'Ce qu\'un professionnel apporte',
         list: [
-          'obtenir une fourchette fondée sur les ventes réelles autour de votre adresse ;',
-          'la faire confirmer lors d\'une visite, qui tient compte de ce que les chiffres ne voient pas ;',
-          "décider d'une stratégie : prix de marché pour vendre dans un délai raisonnable, ou prix plus ambitieux avec une durée d'attente assumée ;",
-          'réévaluer après les premières visites : le nombre de visites et les retours sont de précieux indicateurs.',
+          "le choix de ventes réellement comparables, pas seulement les plus proches ;",
+          "la connaissance des acheteurs actifs sur votre secteur et de la concurrence du moment ;",
+          "une stratégie de prix et une marge de négociation décidées avant la mise en vente ;",
+          "un regard extérieur et objectif sur les atouts et les faiblesses du bien ;",
+          "un suivi après les premières visites : nombre de contacts, retours des acheteurs, ajustement éventuel.",
+        ],
+      },
+      {
+        h2: 'Avant de décider d\'un prix',
+        paragraphs: [
+          "Faites d'abord confirmer la valeur de votre bien par une visite : c'est le meilleur moyen d'éviter les deux écueils. Commencez par une fourchette fondée sur les [ventes réelles autour de chez vous](/blog/prix-immobilier-dvf-ventes-reelles-quartier), puis affinez-la sur place. Pour la suite du projet, découvrez [les étapes d'une vente immobilière](/blog/etapes-vente-immobiliere).",
         ],
       },
     ],
-    related: ['prix-immobilier-dvf-ventes-reelles-quartier', 'estimer-appartement-lyon-criteres-prix', 'etapes-vente-immobiliere'],
+    related: ['estimation-en-ligne-ou-agent-immobilier', 'estimer-appartement-lyon-criteres-prix', 'etapes-vente-immobiliere'],
   },
 ];
 

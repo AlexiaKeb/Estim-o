@@ -27,7 +27,14 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       </div>
     </header>
     {children}
-    <footer className="border-t border-stone-200 bg-white mt-16">
+    <a
+      href="/#simulateur"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-amber-400 text-[#0f1f3d] font-bold text-center py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.12)]"
+      style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+    >
+      Estimer mon bien gratuitement →
+    </a>
+    <footer className="border-t border-stone-200 bg-white mt-16 pb-16 sm:pb-0">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 text-xs text-stone-500 flex flex-wrap gap-x-5 gap-y-2 justify-between">
         <span>{BRAND.name} · Estimation immobilière à Lyon</span>
         <span className="flex gap-4">
@@ -106,6 +113,9 @@ export const BlogArticle: React.FC<{ post: BlogPost }> = ({ post }) => {
             {post.updated ? <> · mis à jour le <time dateTime={post.updated}>{formatPostDate(post.updated)}</time></> : null} · {post.readingMinutes} min de lecture
           </p>
           <p className="mt-6 text-lg text-stone-700 leading-relaxed">{renderInline(post.intro)}</p>
+          <a href="/#simulateur" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold px-5 py-3">
+            Estimer mon bien en 2 minutes →
+          </a>
 
           {post.sections.map((s, i) => (
             <React.Fragment key={s.h2}>
