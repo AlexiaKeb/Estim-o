@@ -1,6 +1,6 @@
 import React from 'react';
 
-/** Crédit de création : renvoie vers la page de la créatrice, pour les agents d'autres villes qui voudraient le même outil. */
+/** Crédit de création discret : renvoie vers le contact de la créatrice. */
 export const CreditLine: React.FC<{ className?: string }> = ({ className = '' }) => (
   <p className={`text-xs text-stone-500 ${className}`}>
     Site conçu par{' '}
@@ -12,6 +12,5 @@ export const CreditLine: React.FC<{ className?: string }> = ({ className = '' })
     >
       Alexia Kebir
     </a>
-    {' '}· Agent immobilier dans une autre ville ? Je crée le même outil d'estimation pour vous.
   </p>
 );
