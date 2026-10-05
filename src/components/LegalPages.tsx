@@ -1,6 +1,7 @@
 import React from 'react';
 import { AGENT, BRAND, LEGAL } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
+import { CreditLine } from './CreditLine';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <section className="mt-8">
@@ -21,6 +22,7 @@ const Shell: React.FC<{ title: string; children: React.ReactNode }> = ({ title, 
       <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900">{title}</h1>
       {children}
       <p className="mt-10 text-xs text-stone-400">Dernière mise à jour : octobre 2026</p>
+      <CreditLine className="mt-3" />
     </main>
   </div>
 );
@@ -55,6 +57,9 @@ export const MentionsLegales: React.FC = () => (
         Activité de transaction sur immeubles et fonds de commerce, soumise à la loi n° 70-9 du 2 janvier 1970
         (loi Hoguet).
       </p>
+    </Section>
+    <Section title="Conception du site">
+      <p>Site conçu par Alexia Kebir (<a className="underline" href="https://www.facebook.com/alexiakebir/" target="_blank" rel="noopener noreferrer">facebook.com/alexiakebir</a>).</p>
     </Section>
     <Section title="Hébergement">
       <p>Render Services, Inc., 525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis.</p>

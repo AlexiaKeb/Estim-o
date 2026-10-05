@@ -38,6 +38,7 @@ const PrivacyShieldModal = lazy(() => import('./components/PrivacyShieldModal').
 const AgentAuthModal = lazy(() => import('./components/AgentAuthModal').then((m) => ({ default: m.AgentAuthModal })));
 const CalendarHealth = lazy(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
 import { BRAND } from './data/siteContent';
+import { CreditLine } from './components/CreditLine';
 
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator';
 
@@ -721,7 +722,7 @@ export default function App() {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 ${currentView === 'landing' ? 'pb-0' : 'pb-8'}`}>
         <Suspense fallback={<div role="status" className="py-24 text-center text-sm text-stone-500">Chargement…</div>}>
         {currentView === 'landing' && (
           <LandingSimulator
@@ -876,6 +877,9 @@ export default function App() {
               </span>
             )}
           </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 pt-4 border-t border-stone-100 text-center sm:text-left">
+          <CreditLine />
         </div>
       </footer>
     </div>

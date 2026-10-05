@@ -29,7 +29,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
   };
 
   return (
-    <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto space-y-10 -mb-8">
+    <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto flex flex-col gap-10">
       <LandingHero onStart={handleHeroStart} />
 
       <section id="simulateur" aria-label="Votre estimation avec l'assistant" className="scroll-mt-20 space-y-4">

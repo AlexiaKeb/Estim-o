@@ -1,6 +1,7 @@
 import React from 'react';
 import { AGENT, BRAND } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
+import { CreditLine } from './CreditLine';
 import { BLOG_POSTS, BlogPost, formatPostDate, getPost } from '../data/blog';
 
 // Pages du blog. Aucun hook ni API navigateur : ces composants sont aussi rendus côté serveur (référencement).
@@ -42,6 +43,9 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           <a href="/mentions-legales" className="hover:text-stone-800">Mentions légales</a>
           <a href="/confidentialite" className="hover:text-stone-800">Confidentialité</a>
         </span>
+      </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-6">
+        <CreditLine />
       </div>
     </footer>
   </div>
