@@ -309,6 +309,28 @@ export default function App() {
     persistLead(updatedLead);
   };
 
+  // Deletes a contact and everything attached to it (server side), then removes it from the screen
+  const handleDeleteLead = async (lead: Lead): Promise<boolean> => {
+    const isDbId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lead.id);
+    if (isDbId) {
+      try {
+        const res = await fetch(`/api/crm/leads/${encodeURIComponent(lead.id)}`, { method: 'DELETE', credentials: 'same-origin' });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          showToast(d.error || 'Suppression impossible.');
+          return false;
+        }
+      } catch {
+        showToast('Serveur injoignable : suppression impossible.');
+        return false;
+      }
+    }
+    setLeads((prev) => prev.filter((l) => l.id !== lead.id));
+    if (activeLead?.id === lead.id) setActiveLead(null);
+    showToast(`Dossier de ${lead.name} supprimé, avec ses messages et rendez-vous.`);
+    return true;
+  };
+
   const handleNavigateToNurture = (leadId: string) => {
     setSelectedLeadForNurtureId(leadId);
     handleNavigate('nurture');
@@ -785,6 +807,7 @@ export default function App() {
             onOpenBookingModal={handleOpenBooking}
             onUpdateLeadStatus={handleUpdateLeadStatus}
             onUpdateLead={handleUpdateLead}
+            onDeleteLead={handleDeleteLead}
             onNavigateToNurture={handleNavigateToNurture}
           />
         )}

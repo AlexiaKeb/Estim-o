@@ -37,6 +37,7 @@ import {
   AlertCircle,
   ArrowUpRight,
   ShieldCheck,
+  Trash2,
   Tag,
   Award,
   ScrollText,
@@ -50,6 +51,7 @@ interface Props {
   onUpdateLeadStatus: (leadId: string, newStatus: 'HOT' | 'WARM' | 'COLD') => void;
   onUpdateLead?: (updatedLead: Lead) => void;
   onNavigateToNurture?: (leadId: string) => void;
+  onDeleteLead?: (lead: Lead) => Promise<boolean>;
 }
 
 export const CrmPipelineView: React.FC<Props> = ({
@@ -59,6 +61,7 @@ export const CrmPipelineView: React.FC<Props> = ({
   onUpdateLeadStatus,
   onUpdateLead,
   onNavigateToNurture,
+  onDeleteLead,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
@@ -1387,8 +1390,26 @@ export const CrmPipelineView: React.FC<Props> = ({
                   <Mail className="w-4 h-4" />
                   Envoyer un e-mail à {selectedLeadDrawer.name.split(' ')[0]}
                 </button>
+                {onDeleteLead && (
+                  <button
+                    type="button"
+                    id="btn-delete-lead"
+                    onClick={async () => {
+                      const l = selectedLeadDrawer;
+                      const ok = window.confirm(
+                        `Supprimer définitivement le dossier de ${l.name} ?\n\nSont supprimés avec lui : ses e-mails et messages, sa conversation avec l'assistant, ses rendez-vous (le créneau Cal.com est annulé et redevient libre). Cette action est irréversible.`,
+                      );
+                      if (!ok) return;
+                      if (await onDeleteLead(l)) setSelectedLeadDrawer(null);
+                    }}
+                    className="sm:ml-auto inline-flex items-center gap-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-sm font-semibold px-4 py-2.5"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Supprimer ce dossier
+                  </button>
+                )}
                 {selectedLeadDrawer.phone && (
-                  <a href={`tel:${selectedLeadDrawer.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-sm font-semibold px-4 py-2.5">
+                  <a href={`tel:${(selectedLeadDrawer.phone || '').replace(/\s/g, '')}`} className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-sm font-semibold px-4 py-2.5">
                     <Phone className="w-4 h-4" />
                     Appeler
                   </a>
@@ -1476,7 +1497,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                         <span>{copiedField === 'phone' ? 'Copié !' : 'Copier'}</span>
                       </button>
                       <a
-                        href={`tel:${selectedLeadDrawer.phone.replace(/\s+/g, '')}`}
+                        href={`tel:${(selectedLeadDrawer.phone || '').replace(/\s+/g, '')}`}
                         className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center"
                         title="Appeler directement"
                       >

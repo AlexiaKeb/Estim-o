@@ -897,22 +897,31 @@ async function startServer() {
     if (!client) return res.json({ logs: [] });
     const { data } = await client
       .from("relances")
-      .select("id, step, channel, subject, message, status, sent_at, send_at, recipient, error, created_at, lead:leads(nom)")
+      .select("id, lead_id, step, channel, subject, message, status, sent_at, send_at, recipient, error, created_at")
       .in("status", ["envoye", "erreur", "annule"])
       .order("created_at", { ascending: false })
       .limit(100);
+    const rows: any[] = data || [];
+    // Messages whose contact no longer exists (deleted by hand in the database) are removed for good
+    const leadIds = [...new Set(rows.map((r) => r.lead_id).filter(Boolean))];
+    const { data: leads } = leadIds.length ? await client.from("leads").select("id, nom").in("id", leadIds) : { data: [] as any[] };
+    const names = new Map<string, string>((leads || []).map((l: any) => [l.id, l.nom]));
+    const orphans = rows.filter((r) => !names.has(r.lead_id)).map((r) => r.id);
+    if (orphans.length && leads) await client.from("relances").delete().in("id", orphans);
     res.json({
-      logs: (data || []).map((r: any) => ({
-        id: r.id,
-        leadName: r.lead?.nom || "Contact supprimé",
-        recipient: r.recipient || "",
-        channel: r.channel,
-        subject: r.subject || "",
-        message: r.message,
-        status: r.status,
-        sentAt: r.sent_at || r.created_at,
-        error: r.error,
-      })),
+      logs: rows
+        .filter((r) => names.has(r.lead_id))
+        .map((r: any) => ({
+          id: r.id,
+          leadName: names.get(r.lead_id) || "Contact",
+          recipient: r.recipient || "",
+          channel: r.channel,
+          subject: r.subject || "",
+          message: r.message,
+          status: r.status,
+          sentAt: r.sent_at || r.created_at,
+          error: r.error,
+        })),
     });
   });
 
@@ -1451,6 +1460,43 @@ async function startServer() {
       res.json({ configured: true, leads: rows.map((r: any) => toLead(r, convBy.get(r.id), rdvBy.get(r.id) || [])) });
     } catch (e: any) {
       res.status(500).json({ configured: true, error: e.message, leads: [] });
+    }
+  });
+
+  // Deletes a contact AND everything attached to it (messages, e-mails, conversation, appointments).
+  // The Cal.com booking is cancelled too, so the slot becomes free again. The opt-out list is kept on purpose.
+  app.delete("/api/crm/leads/:id", requireAgent, rateLimit("lead-delete", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    if (!isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const id = req.params.id;
+    try {
+      const { data: rdvs } = await client.from("rendez_vous").select("cal_booking_id, statut").eq("lead_id", id);
+      let cancelled = 0;
+      const calApiKey = process.env.CAL_API_KEY;
+      if (calApiKey) {
+        for (const r of rdvs || []) {
+          if (!r.cal_booking_id || r.statut === "annule") continue;
+          try {
+            const c = await fetch(`${CAL_BASE}/v2/bookings/${encodeURIComponent(r.cal_booking_id)}/cancel`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${calApiKey}`, "cal-api-version": "2024-08-13", "Content-Type": "application/json" },
+              body: JSON.stringify({ cancellationReason: "Dossier supprimé" }),
+              signal: AbortSignal.timeout(8000),
+            });
+            if (c.ok) cancelled++;
+          } catch {
+            /* best effort: the booking can be cancelled by hand in Cal.com */
+          }
+        }
+      }
+      // Explicit deletes first (works even if a foreign key without CASCADE exists), then the contact itself
+      for (const table of ["relances", "conversations", "rendez_vous"]) await client.from(table).delete().eq("lead_id", id);
+      const { error } = await client.from("leads").delete().eq("id", id);
+      if (error) return res.status(500).json({ error: error.message });
+      res.json({ success: true, calCancelled: cancelled });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
     }
   });
 
