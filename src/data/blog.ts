@@ -10,6 +10,13 @@ export interface BlogSection {
   list?: string[];
 }
 
+/** Contenu d'un article écrit dans le tableau de bord : une suite de blocs simples */
+export type ArticleBlock =
+  | { type: 'h2'; text: string }
+  | { type: 'p'; text: string }
+  | { type: 'ul'; items: string[] }
+  | { type: 'img'; url: string; alt: string; caption?: string };
+
 export interface BlogPost {
   slug: string;
   title: string;
@@ -24,6 +31,23 @@ export interface BlogPost {
   intro: string;
   sections: BlogSection[];
   related: string[];
+  /** Articles écrits par la conseillère : blocs (sinon, `sections` ci-dessus) */
+  blocks?: ArticleBlock[];
+  /** Photo d'illustration en tête d'article (adresse https) */
+  coverUrl?: string;
+  /** « code » = articles livrés avec le site ; « db » = articles écrits dans le tableau de bord */
+  source?: 'code' | 'db';
+}
+
+export function blocksOf(post: BlogPost): ArticleBlock[] {
+  if (post.blocks) return post.blocks;
+  const out: ArticleBlock[] = [];
+  for (const s of post.sections) {
+    out.push({ type: 'h2', text: s.h2 });
+    for (const p of s.paragraphs || []) out.push({ type: 'p', text: p });
+    if (s.list?.length) out.push({ type: 'ul', items: s.list });
+  }
+  return out;
 }
 
 export const BLOG_POSTS: BlogPost[] = [
@@ -431,7 +455,7 @@ export const BLOG_POSTS: BlogPost[] = [
   },
 ];
 
-export const getPost = (slug: string): BlogPost | undefined => BLOG_POSTS.find((p) => p.slug === slug);
+export const getPost = (slug: string, all: BlogPost[] = BLOG_POSTS): BlogPost | undefined => all.find((p) => p.slug === slug);
 
 export const formatPostDate = (iso: string): string =>
   new Date(`${iso}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });

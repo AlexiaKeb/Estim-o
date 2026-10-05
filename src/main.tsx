@@ -18,9 +18,17 @@ async function pageFor(p: string): Promise<ReactElement> {
   }
   if (p === '/blog' || p.startsWith('/blog/')) {
     const [pages, data] = await Promise.all([import('./components/BlogPages.tsx'), import('./data/blog.ts')]);
-    if (p === '/blog') return <pages.BlogIndex />;
-    const post = data.getPost(p.slice('/blog/'.length));
-    return post ? <pages.BlogArticle post={post} /> : <pages.BlogNotFound />;
+    // The server sends the articles with the page (including those written in the dashboard)
+    let served: any = null;
+    try {
+      served = JSON.parse(document.getElementById('blog-data')?.textContent || 'null');
+    } catch {
+      /* page sans données */
+    }
+    if (p === '/blog') return <pages.BlogIndex posts={served?.posts || data.BLOG_POSTS} />;
+    const slug = p.slice('/blog/'.length);
+    const post = served?.post?.slug === slug ? served.post : data.getPost(slug);
+    return post ? <pages.BlogArticle post={post} all={[...(served?.related || []), ...data.BLOG_POSTS]} /> : <pages.BlogNotFound />;
   }
   return <App />;
 }

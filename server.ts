@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
 import { renderSeo, robotsTxt, sitemapXml, siteBase } from "./server/seo";
+import { BLOG_POSTS } from "./src/data/blog";
+import { getAllPosts, invalidateArticles, sanitizeArticle, slugify, readingMinutes, imageKind, randomName } from "./server/articles";
 import { ZONE, checkZone, zoneFromCoords } from "./server/zone";
 import crypto from "crypto";
 import {
@@ -2505,23 +2507,132 @@ async function startServer() {
     }
   });
 
-  app.use("/api", (_req: Request, res: Response) => res.status(404).json({ error: "Not found" }));
 
   // Les pages « prix par secteur » ont été retirées : on renvoie vers l'accueil
   app.get(["/estimation-immobiliere", "/estimation-immobiliere/*"], (_req: Request, res: Response) => res.redirect(301, "/"));
+
+  // ---- Blog articles written by the advisor (dashboard) ----
+  const ARTICLE_COLS = "id, slug, title, meta_title, description, category, cover_url, intro, blocks, status, reading_minutes, published_at, created_at, updated_at";
+  const articlesMissing = (error: any) => error && (error.code === "42P01" || /relation .*articles|schema cache/i.test(error.message || ""));
+  const MISSING_MSG = "La table des articles n'existe pas encore : exécutez la migration 20261006000000_articles.sql dans Supabase (SQL Editor).";
+
+  app.get("/api/articles", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const { data, error } = await client.from("articles").select("id, slug, title, category, status, cover_url, published_at, updated_at").order("updated_at", { ascending: false }).limit(200);
+    if (articlesMissing(error)) return res.status(409).json({ error: MISSING_MSG });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ articles: data || [] });
+  });
+
+  app.get("/api/articles/:id", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(req.params.id)) return res.status(400).json({ error: "Article introuvable" });
+    const { data, error } = await client.from("articles").select(ARTICLE_COLS).eq("id", req.params.id).maybeSingle();
+    if (error || !data) return res.status(404).json({ error: "Article introuvable" });
+    res.json({ article: data });
+  });
+
+  const saveArticle = async (req: Request, res: Response, id: string | null) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const parsed = sanitizeArticle(req.body);
+    if (parsed.ok === false) return res.status(400).json({ error: parsed.error });
+    const a = parsed.value;
+    const wantsPublish = req.body?.status === "publie";
+    if (wantsPublish && !a.intro && a.blocks.length === 0) return res.status(400).json({ error: "Ajoutez du contenu avant de publier." });
+
+    const fields: Record<string, any> = {
+      title: a.title,
+      meta_title: a.metaTitle || null,
+      description: a.description || (a.intro || "").slice(0, 155) || null,
+      category: a.category,
+      cover_url: a.coverUrl || null,
+      intro: a.intro || null,
+      blocks: a.blocks,
+      reading_minutes: readingMinutes(a),
+      updated_at: new Date().toISOString(),
+    };
+    let existing: any = null;
+    if (id) {
+      const { data } = await client.from("articles").select("id, slug, status, published_at").eq("id", id).maybeSingle();
+      if (!data) return res.status(404).json({ error: "Article introuvable" });
+      existing = data;
+    }
+    const status = req.body?.status === "publie" ? "publie" : req.body?.status === "brouillon" ? "brouillon" : existing?.status || "brouillon";
+    fields.status = status;
+    if (status === "publie" && !existing?.published_at) fields.published_at = new Date().toISOString();
+
+    if (!existing) {
+      // Unique address: the title decides it, a number is added if it is already taken
+      const base = slugify(a.title);
+      const builtIn = new Set(BLOG_POSTS.map((p) => p.slug));
+      let slug = base;
+      for (let n = 2; n < 50; n++) {
+        const { data: clash } = await client.from("articles").select("id").eq("slug", slug).maybeSingle();
+        if (!clash && !builtIn.has(slug)) break;
+        slug = `${base}-${n}`;
+      }
+      fields.slug = slug;
+    }
+    const q = existing ? client.from("articles").update(fields).eq("id", existing.id) : client.from("articles").insert(fields);
+    const { data, error } = await q.select(ARTICLE_COLS).single();
+    if (articlesMissing(error)) return res.status(409).json({ error: MISSING_MSG });
+    if (error) return res.status(500).json({ error: error.message });
+    invalidateArticles();
+    res.json({ article: data });
+  };
+  app.post("/api/articles", requireAgent, rateLimit("article-save", 120, 10 * 60 * 1000), (req: Request, res: Response) => void saveArticle(req, res, null));
+  app.put("/api/articles/:id", requireAgent, rateLimit("article-save", 120, 10 * 60 * 1000), (req: Request, res: Response) => {
+    if (!isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    void saveArticle(req, res, req.params.id);
+  });
+
+  app.delete("/api/articles/:id", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const { error } = await client.from("articles").delete().eq("id", req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    invalidateArticles();
+    res.json({ success: true });
+  });
+
+  // Photo upload (the browser sends a resized JPEG/PNG/WebP as raw bytes). Stored in the public "blog" bucket.
+  app.post(
+    "/api/articles/image",
+    requireAgent,
+    rateLimit("article-image", 60, 10 * 60 * 1000),
+    express.raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "6mb" }),
+    async (req: Request, res: Response) => {
+      const client = getSupabaseAdmin();
+      if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+      const buf: Buffer = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+      const kind = imageKind(buf);
+      if (!kind) return res.status(400).json({ error: "Image non valide (formats acceptés : JPEG, PNG, WebP, 6 Mo maximum)." });
+      const name = randomName(kind.ext);
+      const { error } = await client.storage.from("blog").upload(name, buf, { contentType: kind.mime, upsert: false, cacheControl: "31536000" });
+      if (error) {
+        const noBucket = /bucket/i.test(error.message || "") || (error as any).statusCode === "404";
+        return res.status(noBucket ? 409 : 500).json({ error: noBucket ? "Le dossier de photos n'existe pas encore : exécutez la migration 20261006000000_articles.sql dans Supabase." : error.message });
+      }
+      res.json({ url: client.storage.from("blog").getPublicUrl(name).data.publicUrl });
+    },
+  );
+
+  app.use("/api", (_req: Request, res: Response) => res.status(404).json({ error: "Not found" }));
 
   // SEO files
   app.get("/robots.txt", (req: Request, res: Response) => {
     res.type("text/plain").send(robotsTxt(siteBase(req)));
   });
-  app.get("/sitemap.xml", (req: Request, res: Response) => {
-    res.type("application/xml").send(sitemapXml(siteBase(req)));
+  app.get("/sitemap.xml", async (req: Request, res: Response) => {
+    res.type("application/xml").send(sitemapXml(siteBase(req), await getAllPosts(getSupabaseAdmin())));
   });
 
   // HTML pages get their own title, description, canonical and structured data (same for dev and production)
   const sendPage = async (req: Request, res: Response, load: () => Promise<string>) => {
     try {
-      const seo = await renderSeo(req);
+      const seo = await renderSeo(req, await getAllPosts(getSupabaseAdmin()));
       let html = (await load()).replace("<!--SEO_HEAD-->", () => seo.head).replace('<div id="root"></div>', () => `<div id="root">${seo.body}</div>`);
       if (seo.body) html = html.replace(/<noscript>[\s\S]*?<\/noscript>/, () => "");
       res.status(seo.status).set("Content-Type", "text/html; charset=utf-8").set("Cache-Control", "no-cache").send(html);

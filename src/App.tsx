@@ -6,7 +6,8 @@ import {
   Bot, 
   Calendar, 
   MailCheck, 
-  Calculator, 
+  Calculator,
+  PenLine, 
   Target, 
   TrendingUp, 
   CheckCircle2, 
@@ -36,11 +37,12 @@ const CalendarBookingModal = lazy(() => import('./components/CalendarBookingModa
 const BookingConfirmationView = lazy(() => import('./components/BookingConfirmationView').then((m) => ({ default: m.BookingConfirmationView })));
 const PrivacyShieldModal = lazy(() => import('./components/PrivacyShieldModal').then((m) => ({ default: m.PrivacyShieldModal })));
 const AgentAuthModal = lazy(() => import('./components/AgentAuthModal').then((m) => ({ default: m.AgentAuthModal })));
+const ArticlesView = lazy(() => import('./components/ArticlesView').then((m) => ({ default: m.ArticlesView })));
 const CalendarHealth = lazy(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
 import { BRAND } from './data/siteContent';
 import { CreditLine } from './components/CreditLine';
 
-type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator';
+type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator' | 'articles';
 
 export default function App() {
   // Agent Authentication & View Mode State - Default to authenticated pro mode for immediate dashboard view
@@ -369,7 +371,7 @@ export default function App() {
 
   // Safe navigation switcher
   const handleNavigate = (view: NavView) => {
-    const isInternalAgentView = ['pipeline', 'nurture', 'calculator'].includes(view);
+    const isInternalAgentView = ['pipeline', 'nurture', 'calculator', 'articles'].includes(view);
 
     if (isInternalAgentView && !isAgentAuthenticated) {
       setIsAuthModalOpen(true);
@@ -531,6 +533,20 @@ export default function App() {
 
               <button
                 type="button"
+                id="agent-nav-articles"
+                onClick={() => handleNavigate('articles')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  currentView === 'articles'
+                    ? 'bg-zinc-800 text-white shadow-xs'
+                    : 'text-stone-400 hover:text-stone-200'
+                }`}
+              >
+                <PenLine className="w-3.5 h-3.5" />
+                <span>Articles</span>
+              </button>
+
+              <button
+                type="button"
                 id="agent-nav-calculator"
                 onClick={() => handleNavigate('calculator')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
@@ -611,6 +627,7 @@ export default function App() {
               {[
                 { key: 'pipeline', label: `Dossiers & Mandats (${leads.length})` },
                 { key: 'nurture', label: 'Relances' },
+                { key: 'articles', label: 'Articles' },
                 { key: 'calculator', label: 'Honoraires' },
                 { key: 'landing', label: 'Tester le site' },
               ].map((item) => (
@@ -822,6 +839,7 @@ export default function App() {
         )}
 
         {currentView === 'calculator' && <KpiRoiCalculator />}
+        {currentView === 'articles' && <ArticlesView />}
         </Suspense>
       </main>
 

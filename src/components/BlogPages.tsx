@@ -2,7 +2,7 @@ import React from 'react';
 import { AGENT, BRAND } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
 import { CreditLine } from './CreditLine';
-import { BLOG_POSTS, BlogPost, formatPostDate, getPost } from '../data/blog';
+import { BlogPost, ArticleBlock, blocksOf, formatPostDate, getPost } from '../data/blog';
 
 // Pages du blog. Aucun hook ni API navigateur : ces composants sont aussi rendus côté serveur (référencement).
 
@@ -73,7 +73,7 @@ const PostCard: React.FC<{ post: BlogPost }> = ({ post }) => (
   </article>
 );
 
-export const BlogIndex: React.FC = () => (
+export const BlogIndex: React.FC<{ posts: BlogPost[] }> = ({ posts }) => (
   <Shell>
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
       <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 [text-wrap:balance]">
@@ -83,7 +83,7 @@ export const BlogIndex: React.FC = () => (
         Prix, documents, diagnostics, étapes de la vente : des explications claires pour préparer votre projet, rédigées par {AGENT.name}, conseillère immobilière à Lyon.
       </p>
       <div className="mt-8 grid sm:grid-cols-2 gap-5">
-        {BLOG_POSTS.map((p) => <PostCard key={p.slug} post={p} />)}
+        {posts.map((p) => <PostCard key={p.slug} post={p} />)}
       </div>
       <BlogCta />
     </main>
@@ -100,8 +100,35 @@ export const BlogNotFound: React.FC = () => (
   </Shell>
 );
 
-export const BlogArticle: React.FC<{ post: BlogPost }> = ({ post }) => {
-  const related = post.related.map(getPost).filter(Boolean) as BlogPost[];
+/** URL d'image acceptée : adresse https uniquement */
+const safeImg = (u: string) => (/^https:\/\//i.test(u) ? u : '');
+
+const Block: React.FC<{ b: ArticleBlock }> = ({ b }) => {
+  switch (b.type) {
+    case 'h2':
+      return <h2 className="mt-10 text-xl sm:text-2xl font-bold text-stone-900 leading-snug">{b.text}</h2>;
+    case 'p':
+      return <p className="mt-3 text-stone-700 leading-relaxed">{renderInline(b.text)}</p>;
+    case 'ul':
+      return (
+        <ul className="mt-3 list-disc pl-6 space-y-1.5 text-stone-700 leading-relaxed">
+          {b.items.map((li, k) => <li key={k}>{renderInline(li)}</li>)}
+        </ul>
+      );
+    case 'img':
+      return safeImg(b.url) ? (
+        <figure className="mt-6">
+          <img src={safeImg(b.url)} alt={b.alt} loading="lazy" decoding="async" className="w-full rounded-2xl border border-stone-200 object-cover" />
+          {b.caption && <figcaption className="mt-2 text-center text-xs text-stone-500">{b.caption}</figcaption>}
+        </figure>
+      ) : null;
+  }
+};
+
+export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ post, all }) => {
+  const related = post.related.map((s) => getPost(s, all)).filter(Boolean) as BlogPost[];
+  const blocks = blocksOf(post);
+  let h2Seen = 0;
   return (
     <Shell>
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
@@ -119,20 +146,19 @@ export const BlogArticle: React.FC<{ post: BlogPost }> = ({ post }) => {
             Estimer mon bien en 2 minutes →
           </a>
 
-          {post.sections.map((s, i) => (
-            <React.Fragment key={s.h2}>
-              <section className="mt-9">
-                <h2 className="text-xl sm:text-2xl font-bold text-stone-900 leading-snug">{s.h2}</h2>
-                {s.paragraphs?.map((p, j) => <p key={j} className="mt-3 text-stone-700 leading-relaxed">{renderInline(p)}</p>)}
-                {s.list && (
-                  <ul className="mt-3 list-disc pl-6 space-y-1.5 text-stone-700 leading-relaxed">
-                    {s.list.map((li, k) => <li key={k}>{renderInline(li)}</li>)}
-                  </ul>
-                )}
-              </section>
-              {i === 1 && <BlogCta compact />}
-            </React.Fragment>
-          ))}
+          {post.coverUrl && safeImg(post.coverUrl) && (
+            <img src={safeImg(post.coverUrl)} alt={post.title} width={1200} height={630} decoding="async" className="mt-6 w-full rounded-2xl border border-stone-200 object-cover aspect-[16/9]" />
+          )}
+
+          {blocks.map((b, i) => {
+            if (b.type === 'h2') h2Seen++;
+            return (
+              <React.Fragment key={i}>
+                {b.type === 'h2' && h2Seen === 3 && <BlogCta compact />}
+                <Block b={b} />
+              </React.Fragment>
+            );
+          })}
 
           <BlogCta />
 

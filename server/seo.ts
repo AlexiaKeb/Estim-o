@@ -2,7 +2,7 @@ import type { Request } from "express";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AGENT, BRAND, FAQ } from "../src/data/siteContent";
-import { BLOG_POSTS, getPost, BlogPost } from "../src/data/blog";
+import { getPost, BlogPost } from "../src/data/blog";
 import { BlogIndex, BlogArticle, BlogNotFound } from "../src/components/BlogPages";
 
 // Référencement : balises par page, données structurées, robots.txt, sitemap.xml.
@@ -27,7 +27,7 @@ interface PageMeta {
   status?: number;
 }
 
-export function pageMeta(rawPath: string): PageMeta {
+export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   const path = rawPath.toLowerCase().replace(/\/+$/, "") || "/";
   if (path === "/") {
     return {
@@ -66,7 +66,7 @@ export function pageMeta(rawPath: string): PageMeta {
     };
   }
   if (path.startsWith("/blog/")) {
-    const post = getPost(path.slice("/blog/".length));
+    const post = getPost(path.slice("/blog/".length), posts);
     if (post) return { title: post.metaTitle.length + BRAND.name.length + 3 <= 68 ? `${post.metaTitle} | ${BRAND.name}` : post.metaTitle, description: post.description, path, index: true, post };
     return { title: `Article introuvable | ${BRAND.name}`, description: BRAND.tagline, path, index: false, status: 404 };
   }
@@ -187,12 +187,18 @@ export interface SeoResult {
 }
 
 /** Tout ce qu'il faut injecter dans index.html pour la page demandée (balises, contenu rendu côté serveur, statut HTTP). */
-export async function renderSeo(req: Request): Promise<SeoResult> {
-  const m = pageMeta(req.path);
+const card = (p: BlogPost): BlogPost => ({ ...p, sections: [], blocks: undefined, intro: "" });
+
+export async function renderSeo(req: Request, posts: BlogPost[]): Promise<SeoResult> {
+  const m = pageMeta(req.path, posts);
   let body = "";
-  if (m.post) body = renderToStaticMarkup(createElement(BlogArticle, { post: m.post }));
-  else if (m.blogIndex) body = renderToStaticMarkup(createElement(BlogIndex));
-  else if (m.status === 404 && req.path.startsWith("/blog")) body = renderToStaticMarkup(createElement(BlogNotFound));
+  const data = (o: unknown) => `<script id="blog-data" type="application/json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`;
+  if (m.post) {
+    const related = m.post.related.map((s) => getPost(s, posts)).filter(Boolean) as BlogPost[];
+    body = renderToStaticMarkup(createElement(BlogArticle, { post: m.post, all: posts })) + data({ post: m.post, related: related.map(card) });
+  } else if (m.blogIndex) {
+    body = renderToStaticMarkup(createElement(BlogIndex, { posts })) + data({ posts: posts.map(card) });
+  } else if (m.status === 404 && req.path.startsWith("/blog")) body = renderToStaticMarkup(createElement(BlogNotFound));
   return { head: buildHead(req, m), body, status: m.status || 200 };
 }
 
@@ -208,19 +214,19 @@ export function robotsTxt(base: string): string {
   ].join("\n");
 }
 
-export function sitemapXml(base: string): string {
+export function sitemapXml(base: string, posts: BlogPost[]): string {
   const today = new Date().toISOString().slice(0, 10);
   const urls: Array<[string, string, string]> = [
     ["/", "1.0", "weekly"],
     ["/mentions-legales", "0.2", "yearly"],
     ["/confidentialite", "0.2", "yearly"],
     ["/blog", "0.8", "weekly"],
-    ...BLOG_POSTS.map((p) => [`/blog/${p.slug}`, "0.7", "monthly"] as [string, string, string]),
+    ...posts.map((p) => [`/blog/${p.slug}`, "0.7", "monthly"] as [string, string, string]),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
-  .map(([p, prio, freq]) => `  <url><loc>${base}${p === "/" ? "/" : p}</loc><lastmod>${p.startsWith("/blog/") ? (getPost(p.slice(6))?.updated || getPost(p.slice(6))?.date || today) : today}</lastmod><changefreq>${freq}</changefreq><priority>${prio}</priority></url>`)
+  .map(([p, prio, freq]) => `  <url><loc>${base}${p === "/" ? "/" : p}</loc><lastmod>${p.startsWith("/blog/") ? (getPost(p.slice(6), posts)?.updated || getPost(p.slice(6), posts)?.date || today) : today}</lastmod><changefreq>${freq}</changefreq><priority>${prio}</priority></url>`)
   .join("\n")}
 </urlset>
 `;
