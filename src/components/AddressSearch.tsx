@@ -6,6 +6,8 @@ export interface AddressSuggestion {
   street: string;
   postalCode: string;
   city: string;
+  /** false = hors de la zone d'intervention ; null/absent = inconnu */
+  inZone?: boolean | null;
 }
 
 interface Props {

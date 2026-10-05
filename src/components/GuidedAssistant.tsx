@@ -210,7 +210,31 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seed, step]);
 
-  const confirmAddress = async (street: string, postalCode: string, city: string) => {
+  const confirmAddress = async (street: string, postalCode: string, city: string, knownInZone?: boolean | null) => {
+    // Only properties inside the advisor's area go further: no contact, no conversion, no wasted advertising
+    let inZone = knownInZone;
+    let radius = 50;
+    if (inZone === undefined || inZone === null) {
+      try {
+        const r = await fetch('/api/zone-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: street, city, postalCode }),
+        });
+        const d = await r.json();
+        inZone = d.inZone;
+        radius = d.radiusKm || radius;
+      } catch {
+        inZone = null; // service unreachable: never turn a seller away because of an outage
+      }
+    }
+    if (inZone === false) {
+      userSays(`${street}, ${postalCode} ${city}`);
+      await say(
+        `${AGENT.firstName} intervient à Lyon et dans un rayon d'environ ${radius} km autour. Votre bien à **${city}** semble en dehors de ce secteur, je ne peux donc pas planifier de visite. Si l'adresse est erronée, saisissez-la de nouveau ci-dessous. Pour un projet particulier, vous pouvez appeler ${AGENT.firstName} au **${AGENT.phone}**.`,
+      );
+      return;
+    }
     setInputs((p) => ({ ...p, address: street, postalCode, city }));
     userSays(`${street}, ${postalCode} ${city}`, 'address');
     setStep('type');
@@ -218,7 +242,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
   };
 
   const submitAddress = () => {
-    if (picked && picked.label === addrText) return void confirmAddress(picked.street, picked.postalCode, picked.city);
+    if (picked && picked.label === addrText) return void confirmAddress(picked.street, picked.postalCode, picked.city, picked.inZone);
     const street = addrText.trim();
     const city = cityText.trim();
     const postal = postalText.replace(/\D/g, '').slice(0, 5);

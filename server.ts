@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
 import { renderSeo, robotsTxt, sitemapXml, siteBase } from "./server/seo";
+import { ZONE, checkZone, zoneFromCoords } from "./server/zone";
 import crypto from "crypto";
 import {
   requireAgent,
@@ -370,18 +371,35 @@ async function startServer() {
       const features: any[] = (await r.json())?.features || [];
       const data = features
         .filter((f) => f?.properties?.label && f.properties.postcode && f.properties.city)
-        .map((f) => ({
-          label: f.properties.label as string,
-          street: (f.properties.name as string) || "",
-          postalCode: f.properties.postcode as string,
-          city: f.properties.city as string,
-        }));
+        .map((f) => {
+          const [lon, lat] = f.geometry?.coordinates || [];
+          const zone = typeof lat === "number" && typeof lon === "number" ? zoneFromCoords(lat, lon) : null;
+          return {
+            label: f.properties.label as string,
+            street: (f.properties.name as string) || "",
+            postalCode: f.properties.postcode as string,
+            city: f.properties.city as string,
+            inZone: zone ? zone.inZone : null,
+            distanceKm: zone ? zone.distanceKm : null,
+          };
+        });
       if (addressCache.size > 500) addressCache.clear();
       addressCache.set(q.toLowerCase(), { t: Date.now(), data });
       res.json({ suggestions: data });
     } catch {
       res.json({ suggestions: [] }); // typing must never be blocked by the service being down
     }
+  });
+
+  // Is this property inside the area the advisor covers? (public: used by the assistant before collecting contact details)
+  app.post("/api/zone-check", rateLimit("zone", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const { address, city, postalCode } = req.body || {};
+    const r = await checkZone({
+      address: typeof address === "string" ? address.slice(0, 150) : "",
+      city: typeof city === "string" ? city.slice(0, 80) : "",
+      postalCode: typeof postalCode === "string" ? postalCode.slice(0, 10) : "",
+    });
+    res.json({ ...r, radiusKm: ZONE.radiusKm, zone: ZONE.name });
   });
 
   // Health check
@@ -1374,6 +1392,14 @@ async function startServer() {
 
       const agentId = await getOrCreateActiveAgentId(client);
       const idIsUuid = isUuidStr(leadData.id);
+
+      // Only properties inside the advisor's area create a contact (a lead outside it would only cost advertising money)
+      if (!idIsUuid && (leadData.city || leadData.postalCode)) {
+        const z = await checkZone({ address: leadData.address, city: leadData.city, postalCode: leadData.postalCode });
+        if (z.inZone === false) {
+          return res.status(422).json({ success: false, outOfZone: true, distanceKm: z.distanceKm, radiusKm: ZONE.radiusKm, error: "Bien situé hors de la zone d'intervention." });
+        }
+      }
 
       const base: Record<string, any> = {
         agent_id: agentId,
