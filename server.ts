@@ -18,7 +18,7 @@ import {
   clearLoginFailures,
 } from "./server/auth";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
-import { toLead, pickCrm, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
+import { toLead, pickCrm, leadsToCsv, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
 import { computeScore, sanitizeQualification, type Qualification } from "./server/scoring";
 import { estimateFromDvf, prewarm, type DvfEstimate } from "./server/dvf";
 import { createServer as createViteServer } from "vite";
@@ -919,7 +919,8 @@ async function startServer() {
       console.warn("[keepalive] Supabase:", e?.message || e);
     }
   };
-  void keepSupabaseAwake();
+  // Premier passage après le démarrage complet du serveur, puis toutes les 6 heures
+  setTimeout(() => void keepSupabaseAwake(), 15 * 1000).unref();
   setInterval(() => void keepSupabaseAwake(), 6 * 3600 * 1000).unref();
 
   // Optional: lets an external pinger (cron-job.org, UptimeRobot) wake a sleeping free instance and trigger a run
@@ -1390,6 +1391,32 @@ async function startServer() {
       res.json({ configured: true, leads: rows.map((r: any) => toLead(r, convBy.get(r.id), rdvBy.get(r.id) || [])) });
     } catch (e: any) {
       res.status(500).json({ configured: true, error: e.message, leads: [] });
+    }
+  });
+
+  // Export complet des dossiers au format CSV (sauvegarde : l'offre gratuite de Supabase n'en fait pas)
+  app.get("/api/crm/export.csv", requireAgent, rateLimit("export", 20, 10 * 60 * 1000), async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    try {
+      const rows: any[] = [];
+      for (let from = 0; from < 20000; from += 1000) {
+        const { data, error } = await client.from("leads").select("*").order("created_at", { ascending: false }).range(from, from + 999);
+        if (error) return res.status(500).json({ error: error.message });
+        rows.push(...(data || []));
+        if (!data || data.length < 1000) break;
+      }
+      const ids = rows.map((r) => r.id);
+      const rdvBy = new Map<string, any[]>();
+      for (let i = 0; i < ids.length; i += 200) {
+        const { data } = await client.from("rendez_vous").select("lead_id, creneau, statut, cal_booking_id").in("lead_id", ids.slice(i, i + 200));
+        for (const r of data || []) (rdvBy.get(r.lead_id) || rdvBy.set(r.lead_id, []).get(r.lead_id)!).push(r);
+      }
+      const csv = leadsToCsv(rows.map((r) => toLead(r, undefined, rdvBy.get(r.id) || [])));
+      const day = new Date().toISOString().slice(0, 10);
+      res.set("Content-Type", "text/csv; charset=utf-8").set("Content-Disposition", `attachment; filename="dossiers-${day}.csv"`).set("Cache-Control", "no-store").send(csv);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
     }
   });
 
