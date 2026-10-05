@@ -90,6 +90,8 @@ const PhotoPicker: React.FC<{ url: string; onChange: (url: string) => void; onEr
 
 export const ArticlesView: React.FC = () => {
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [builtIn, setBuiltIn] = useState<Array<{ slug: string; title: string; category: string; date: string }>>([]);
+  const [importing, setImporting] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -111,6 +113,7 @@ export const ArticlesView: React.FC = () => {
         return;
       }
       setRows(data.articles || []);
+      setBuiltIn(data.builtIn || []);
     } catch {
       setRows([]);
       flash(false, 'Serveur injoignable.');
@@ -168,6 +171,21 @@ export const ArticlesView: React.FC = () => {
     }
   };
 
+  const importBuiltIn = async () => {
+    setImporting(true);
+    try {
+      const res = await fetch('/api/articles/import-builtin', { method: 'POST', credentials: 'same-origin' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) flash(false, data.error || "L'import a échoué.");
+      else {
+        flash(true, `${data.imported} article(s) importé(s) : vous pouvez maintenant les modifier.`);
+        await load();
+      }
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const remove = async (id: string, title: string) => {
     if (!window.confirm(`Supprimer définitivement l'article « ${title} » ?`)) return;
     const res = await fetch(`/api/articles/${id}`, { method: 'DELETE', credentials: 'same-origin' });
@@ -214,11 +232,30 @@ export const ArticlesView: React.FC = () => {
           </button>
         </div>
         {Notice}
+        {builtIn.length > 0 && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+            <p className="text-sm text-amber-900">
+              <strong>{builtIn.length} articles sont déjà publiés sur votre site</strong> (livrés avec le site) mais ils ne sont pas encore modifiables ici. Importez-les pour pouvoir les relire, les corriger et y ajouter des photos. Ils restent en ligne, à la même adresse et à la même date.
+            </p>
+            <ul className="text-sm text-stone-800 space-y-1">
+              {builtIn.map((b) => (
+                <li key={b.slug} className="flex items-center justify-between gap-3">
+                  <span className="truncate">{b.title}</span>
+                  <a href={`/blog/${b.slug}`} target="_blank" rel="noreferrer" className="shrink-0 text-xs underline">Voir</a>
+                </li>
+              ))}
+            </ul>
+            <button type="button" id="btn-import-articles" onClick={importBuiltIn} disabled={importing} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-bold px-4 py-2.5 disabled:opacity-60">
+              {importing && <Loader2 className="w-4 h-4 animate-spin" />}
+              Importer ces articles pour les modifier
+            </button>
+          </div>
+        )}
         {rows === null ? (
           <p className="text-sm text-stone-500 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Chargement…</p>
         ) : rows.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center text-stone-600">
-            Vous n'avez pas encore écrit d'article. Les articles livrés avec le site restent affichés sur le blog.
+            Vous n'avez pas encore d'article modifiable ici.
           </div>
         ) : (
           <ul className="space-y-2">

@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
 import { renderSeo, robotsTxt, sitemapXml, siteBase } from "./server/seo";
-import { BLOG_POSTS } from "./src/data/blog";
+import { BLOG_POSTS, blocksOf } from "./src/data/blog";
 import { getAllPosts, invalidateArticles, sanitizeArticle, slugify, readingMinutes, imageKind, randomName } from "./server/articles";
 import { ZONE, checkZone, zoneFromCoords } from "./server/zone";
 import crypto from "crypto";
@@ -2522,7 +2522,42 @@ async function startServer() {
     const { data, error } = await client.from("articles").select("id, slug, title, category, status, cover_url, published_at, updated_at").order("updated_at", { ascending: false }).limit(200);
     if (articlesMissing(error)) return res.status(409).json({ error: MISSING_MSG });
     if (error) return res.status(500).json({ error: error.message });
-    res.json({ articles: data || [] });
+    // Articles delivered with the site that are not editable yet (not copied into the database)
+    const inDb = new Set((data || []).map((a: any) => a.slug));
+    res.json({
+      articles: data || [],
+      builtIn: BLOG_POSTS.filter((p) => !inDb.has(p.slug)).map((p) => ({ slug: p.slug, title: p.title, category: p.category, date: p.date })),
+    });
+  });
+
+  // Copies the articles delivered with the site into the database so that they can be edited (same address, same date, still published)
+  app.post("/api/articles/import-builtin", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const { data: existing, error: e0 } = await client.from("articles").select("slug");
+    if (articlesMissing(e0)) return res.status(409).json({ error: MISSING_MSG });
+    if (e0) return res.status(500).json({ error: e0.message });
+    const have = new Set((existing || []).map((a: any) => a.slug));
+    const rows = BLOG_POSTS.filter((p) => !have.has(p.slug)).map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      meta_title: p.metaTitle,
+      description: p.description,
+      category: p.category,
+      intro: p.intro,
+      blocks: blocksOf(p),
+      reading_minutes: p.readingMinutes,
+      status: "publie",
+      published_at: `${p.date}T12:00:00Z`,
+      created_at: `${p.date}T12:00:00Z`,
+      updated_at: `${p.date}T12:00:00Z`,
+    }));
+    if (rows.length) {
+      const { error } = await client.from("articles").insert(rows);
+      if (error) return res.status(500).json({ error: error.message });
+      invalidateArticles();
+    }
+    res.json({ imported: rows.length });
   });
 
   app.get("/api/articles/:id", requireAgent, async (req: Request, res: Response) => {
