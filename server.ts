@@ -907,6 +907,21 @@ async function startServer() {
   }
   setInterval(() => void processDueRelances(), 60 * 1000).unref();
 
+  // Supabase (offre gratuite) met un projet en pause après une semaine sans activité : une requête légère toutes les 6 heures,
+  // quel que soit le trafic, suffit à le garder actif. Sans effet si Supabase n'est pas configuré.
+  const keepSupabaseAwake = async () => {
+    const client = getSupabaseAdmin();
+    if (!client) return;
+    try {
+      const { error } = await client.from("agents").select("id").limit(1);
+      if (error) console.warn("[keepalive] Supabase:", error.message);
+    } catch (e: any) {
+      console.warn("[keepalive] Supabase:", e?.message || e);
+    }
+  };
+  void keepSupabaseAwake();
+  setInterval(() => void keepSupabaseAwake(), 6 * 3600 * 1000).unref();
+
   // Optional: lets an external pinger (cron-job.org, UptimeRobot) wake a sleeping free instance and trigger a run
   app.post("/api/cron/relances", async (req: Request, res: Response) => {
     const secret = process.env.CRON_SECRET;
