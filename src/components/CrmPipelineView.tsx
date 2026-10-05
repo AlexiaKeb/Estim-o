@@ -1,5 +1,6 @@
 import { PreVisitBrief } from './PreVisitBrief';
 import { SecurityPanel } from './SecurityPanel';
+import { EmailComposer } from './EmailComposer';
 import React, { useState } from 'react';
 import { Lead, LeadTask, LeadActivity, MandateDetails, MandateType, MandateStatus } from '../types';
 import { 
@@ -71,6 +72,7 @@ export const CrmPipelineView: React.FC<Props> = ({
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isEditingMandate, setIsEditingMandate] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);
+  const [mailLead, setMailLead] = useState<Lead | null>(null);
 
   // Helper copy function with temporary notification
   const handleCopyValue = (fieldKey: string, value: string) => {
@@ -364,6 +366,21 @@ export const CrmPipelineView: React.FC<Props> = ({
 
   return (
     <div id="crm-pipeline-container" className="w-full max-w-6xl mx-auto space-y-6 animate-in fade-in">
+      {mailLead && (
+        <EmailComposer
+          lead={mailLead}
+          onClose={() => setMailLead(null)}
+          onSent={(subject) => {
+            const updated = {
+              ...mailLead,
+              activities: [{ id: `act-${Date.now()}`, type: 'email', label: `E-mail envoyé : ${subject}`, date: "À l'instant" }, ...(mailLead.activities || [])],
+            } as Lead;
+            onUpdateLead?.(updated);
+            if (selectedLeadDrawer?.id === updated.id) setSelectedLeadDrawer(updated);
+            setMailLead(updated);
+          }}
+        />
+      )}
       {securityOpen && <SecurityPanel onClose={() => setSecurityOpen(false)} onLoggedOut={() => window.location.assign('/')} />}
       {/* Top Metrics Banner - Clean Warm SaaS */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -1125,6 +1142,18 @@ export const CrmPipelineView: React.FC<Props> = ({
                               </button>
                             )}
 
+                            {lead.email && (
+                              <button
+                                type="button"
+                                onClick={() => setMailLead(lead)}
+                                className="py-1.5 px-2.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap"
+                                title={`Écrire un e-mail à ${lead.name}`}
+                              >
+                                <Mail className="w-3 h-3" />
+                                <span>E-mail</span>
+                              </button>
+                            )}
+
                             <button
                               type="button"
                               onClick={() => setSelectedLeadDrawer(lead)}
@@ -1348,6 +1377,24 @@ export const CrmPipelineView: React.FC<Props> = ({
             {/* Modal Body */}
             <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1 bg-slate-50/50">
               
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  id="btn-open-email"
+                  onClick={() => setMailLead(selectedLeadDrawer)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-bold px-4 py-2.5 shadow-sm"
+                >
+                  <Mail className="w-4 h-4" />
+                  Envoyer un e-mail à {selectedLeadDrawer.name.split(' ')[0]}
+                </button>
+                {selectedLeadDrawer.phone && (
+                  <a href={`tel:${selectedLeadDrawer.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-sm font-semibold px-4 py-2.5">
+                    <Phone className="w-4 h-4" />
+                    Appeler
+                  </a>
+                )}
+              </div>
+
               <PreVisitBrief
                 lead={selectedLeadDrawer}
                 onBrief={(brief) => {
