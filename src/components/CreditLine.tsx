@@ -1,16 +1,16 @@
 import React from 'react';
 
-/** Crédit de création discret : renvoie vers le contact de la créatrice. */
+/** Crédit de création très discret : renvoie vers le contact de la créatrice. */
 export const CreditLine: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <p className={`text-xs text-stone-500 ${className}`}>
-    Site conçu par{' '}
+  <span className={`text-[11px] text-stone-400 ${className}`}>
+    App conçue par{' '}
     <a
       href="https://www.facebook.com/alexiakebir/"
       target="_blank"
       rel="noopener noreferrer"
-      className="font-semibold text-stone-700 underline underline-offset-2 hover:text-stone-900"
+      className="text-stone-500 hover:text-stone-800 hover:underline underline-offset-2"
     >
-      Alexia Kebir
+      La Digitale School
     </a>
-  </p>
+  </span>
 );

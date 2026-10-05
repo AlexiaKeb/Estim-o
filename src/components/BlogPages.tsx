@@ -42,10 +42,8 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           <a href="/" className="hover:text-stone-800">Accueil</a>
           <a href="/mentions-legales" className="hover:text-stone-800">Mentions légales</a>
           <a href="/confidentialite" className="hover:text-stone-800">Confidentialité</a>
+          <CreditLine />
         </span>
-      </div>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-6">
-        <CreditLine />
       </div>
     </footer>
   </div>
