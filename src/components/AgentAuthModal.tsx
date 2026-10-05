@@ -16,12 +16,19 @@ export const AgentAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [twoFactor, setTwoFactor] = useState(false);
+  const [code, setCode] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setPassword('');
+      setCode('');
       setError(null);
+      fetch('/api/agent/session', { credentials: 'same-origin' })
+        .then((r) => r.json())
+        .then((d) => setTwoFactor(Boolean(d.twoFactor)))
+        .catch(() => {});
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -37,14 +44,14 @@ export const AgentAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password || loading) return;
+    if (!password || loading || (twoFactor && code.replace(/\s/g, '').length !== 6)) return;
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/agent/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, remember }),
+        body: JSON.stringify({ password, remember, code }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.authenticated) {
@@ -109,9 +116,28 @@ export const AgentAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
           </div>
         </div>
 
+        {twoFactor && (
+          <div className="space-y-1.5">
+            <label htmlFor="agent-code" className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+              Code à 6 chiffres
+            </label>
+            <input
+              id="agent-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={7}
+              placeholder="123 456"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="w-full rounded-xl border border-stone-300 px-4 py-3 text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-stone-900/20 focus:border-stone-900"
+            />
+            <p className="text-xs text-stone-500">Affiché dans votre application d'authentification.</p>
+          </div>
+        )}
+
         <label className="flex items-center gap-2 text-sm text-stone-700">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="w-4 h-4 rounded border-stone-300" />
-          Rester connecté sur cet appareil (30 jours)
+          Rester connecté sur cet appareil (7 jours)
         </label>
 
         {error && (
@@ -124,7 +150,7 @@ export const AgentAuthModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) 
         <button
           type="submit"
           id="btn-agent-login"
-          disabled={!password || loading}
+          disabled={!password || loading || (twoFactor && code.replace(/\s/g, '').length !== 6)}
           className="w-full rounded-xl bg-stone-900 hover:bg-stone-800 disabled:bg-stone-400 text-white font-semibold py-3 text-sm flex items-center justify-center gap-2 transition-colors"
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

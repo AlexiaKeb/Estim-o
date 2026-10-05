@@ -16,6 +16,14 @@ import {
   loginBlocked,
   recordLoginFailure,
   clearLoginFailures,
+  isTotpEnabled,
+  verifyTotp,
+  generateTotpSecret,
+  recordGlobalFailure,
+  loginDelayMs,
+  securityHeaders,
+  setRevokedBefore,
+  getRevokedBefore,
 } from "./server/auth";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
 import { toLead, pickCrm, leadsToCsv, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
@@ -279,12 +287,14 @@ async function startServer() {
 
   // --- Advisor authentication (server-side session, HttpOnly cookie) ---
   app.set("trust proxy", 1);
+  app.disable("x-powered-by");
+  app.use(securityHeaders);
 
   app.get("/api/agent/session", (req: Request, res: Response) => {
-    res.json({ authenticated: isAgentRequest(req), configured: isAuthConfigured() });
+    res.json({ authenticated: isAgentRequest(req), configured: isAuthConfigured(), twoFactor: isTotpEnabled() });
   });
 
-  app.post("/api/agent/login", (req: Request, res: Response) => {
+  app.post("/api/agent/login", async (req: Request, res: Response) => {
     if (!isAuthConfigured()) {
       return res.status(503).json({ error: "L'accès conseiller n'est pas configuré (variable AGENT_PASSWORD, 8 caractères minimum)." });
     }
@@ -293,14 +303,52 @@ async function startServer() {
       res.setHeader("Retry-After", String(wait));
       return res.status(429).json({ error: `Trop de tentatives. Réessayez dans ${Math.ceil(wait / 60)} min.` });
     }
-    const { password, remember } = req.body || {};
-    if (typeof password !== "string" || !checkPassword(password)) {
+    // Many failures from many addresses: slow every attempt down instead of locking everyone out
+    const delay = loginDelayMs();
+    if (delay) await new Promise((r) => setTimeout(r, delay));
+    const { password, remember, code } = req.body || {};
+    const passwordOk = typeof password === "string" && checkPassword(password);
+    // With the second factor on, the code is checked every time, so a wrong password and a wrong code look the same
+    const codeOk = !isTotpEnabled() || (typeof code === "string" && verifyTotp(code.replace(/\s/g, "")));
+    if (!passwordOk || !codeOk) {
       recordLoginFailure(req.ip || "");
-      return res.status(401).json({ error: "Mot de passe incorrect." });
+      recordGlobalFailure();
+      console.warn(`[auth] failed advisor login from ${req.ip}`);
+      return res.status(401).json({ error: isTotpEnabled() ? "Mot de passe ou code incorrect." : "Mot de passe incorrect." });
     }
     clearLoginFailures(req.ip || "");
     setSessionCookie(req, res, Boolean(remember));
     res.json({ authenticated: true });
+  });
+
+  // Second factor: shows a fresh key to add to an authenticator app (only while it is not enabled yet)
+  app.get("/api/agent/2fa", requireAgent, (_req: Request, res: Response) => {
+    if (isTotpEnabled()) return res.json({ enabled: true });
+    const secret = generateTotpSecret();
+    res.json({
+      enabled: false,
+      secret,
+      otpauth: `otpauth://totp/Agent%20Estimation:conseill%C3%A8re?secret=${secret}&issuer=Agent%20Estimation`,
+    });
+  });
+
+  // "Log out everywhere": every session created before now stops working (kept in the database, survives restarts)
+  app.post("/api/agent/logout-all", requireAgent, async (_req: Request, res: Response) => {
+    const now = Date.now();
+    setRevokedBefore(now);
+    const client = getSupabaseAdmin();
+    if (client) {
+      try {
+        const { data: agent } = await client.from("agents").select("id, script_qualification").order("created_at", { ascending: true }).limit(1).maybeSingle();
+        if (agent) {
+          await client.from("agents").update({ script_qualification: { ...(agent.script_qualification || {}), sessions_revoked_before: now } }).eq("id", agent.id);
+        }
+      } catch (e: any) {
+        console.warn("[auth] could not persist the revocation:", e?.message || e);
+      }
+    }
+    clearSessionCookie(res);
+    res.json({ success: true });
   });
 
   app.post("/api/agent/logout", (_req: Request, res: Response) => {
@@ -921,6 +969,18 @@ async function startServer() {
   };
   // Premier passage après le démarrage complet du serveur, puis toutes les 6 heures
   setTimeout(() => void keepSupabaseAwake(), 15 * 1000).unref();
+  // Load the "log out everywhere" marker once the server is fully started
+  setTimeout(async () => {
+    const client = getSupabaseAdmin();
+    if (!client) return;
+    try {
+      const { data: agent } = await client.from("agents").select("script_qualification").order("created_at", { ascending: true }).limit(1).maybeSingle();
+      const ts = Number(agent?.script_qualification?.sessions_revoked_before) || 0;
+      if (ts > getRevokedBefore()) setRevokedBefore(ts);
+    } catch {
+      /* no marker yet */
+    }
+  }, 5 * 1000).unref();
   setInterval(() => void keepSupabaseAwake(), 6 * 3600 * 1000).unref();
 
   // Optional: lets an external pinger (cron-job.org, UptimeRobot) wake a sleeping free instance and trigger a run

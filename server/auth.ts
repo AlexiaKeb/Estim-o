@@ -20,8 +20,15 @@ function sign(payload: string): string {
   return crypto.createHmac("sha256", SESSION_SECRET).update(payload).digest("base64url");
 }
 
+/** Sessions created before this moment are refused ("log out everywhere"). Persisted by the server in the database. */
+let revokedBefore = 0;
+export const getRevokedBefore = () => revokedBefore;
+export const setRevokedBefore = (ts: number) => {
+  revokedBefore = ts;
+};
+
 export function createSessionToken(ttlMs: number): string {
-  const payload = Buffer.from(JSON.stringify({ exp: Date.now() + ttlMs })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({ iat: Date.now(), exp: Date.now() + ttlMs })).toString("base64url");
   return `${payload}.${sign(payload)}`;
 }
 
@@ -32,7 +39,8 @@ export function verifySessionToken(token: string | undefined): boolean {
   const expected = sign(payload);
   if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return false;
   try {
-    return JSON.parse(Buffer.from(payload, "base64url").toString()).exp > Date.now();
+    const p = JSON.parse(Buffer.from(payload, "base64url").toString());
+    return p.exp > Date.now() && (Number(p.iat) || 0) >= revokedBefore;
   } catch {
     return false;
   }
@@ -55,7 +63,7 @@ function readCookie(req: Request, name: string): string | undefined {
 }
 
 export function setSessionCookie(req: Request, res: Response, remember: boolean) {
-  const ttl = remember ? 30 * 24 * 3600 * 1000 : 12 * 3600 * 1000;
+  const ttl = remember ? 7 * 24 * 3600 * 1000 : 12 * 3600 * 1000;
   const secure = req.secure || req.headers["x-forwarded-proto"] === "https";
   res.setHeader(
     "Set-Cookie",
@@ -130,4 +138,80 @@ export function readSignedValue(token: string): string | null {
   const expected = sign(`v:${value}`);
   if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   return value;
+}
+
+// ---- Second factor (TOTP, RFC 6238): compatible with Google Authenticator, Microsoft Authenticator, 1Password, Authy... ----
+const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+export function generateTotpSecret(): string {
+  const bytes = crypto.randomBytes(20);
+  let bits = "";
+  for (const b of bytes) bits += b.toString(2).padStart(8, "0");
+  let out = "";
+  for (let i = 0; i + 5 <= bits.length; i += 5) out += B32[parseInt(bits.slice(i, i + 5), 2)];
+  return out;
+}
+
+function b32decode(s: string): Buffer {
+  let bits = "";
+  for (const c of s.replace(/[\s=-]/g, "").toUpperCase()) {
+    const v = B32.indexOf(c);
+    if (v < 0) return Buffer.alloc(0);
+    bits += v.toString(2).padStart(5, "0");
+  }
+  const bytes: number[] = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.slice(i, i + 8), 2));
+  return Buffer.from(bytes);
+}
+
+export function totpAt(secret: string, step: number): string {
+  const buf = Buffer.alloc(8);
+  buf.writeBigUInt64BE(BigInt(step));
+  const h = crypto.createHmac("sha1", b32decode(secret)).update(buf).digest();
+  const o = h[h.length - 1] & 0xf;
+  const code = ((h[o] & 0x7f) << 24) | (h[o + 1] << 16) | (h[o + 2] << 8) | h[o + 3];
+  return String(code % 1_000_000).padStart(6, "0");
+}
+
+export const isTotpEnabled = () => b32decode(process.env.AGENT_TOTP_SECRET || "").length >= 10;
+
+let lastTotpStep = 0;
+/** Accepts the current code and the neighbouring ones (clock drift); a code can be used only once. */
+export function verifyTotp(candidate: string, now = Date.now()): boolean {
+  const secret = process.env.AGENT_TOTP_SECRET || "";
+  if (!isTotpEnabled() || !/^\d{6}$/.test(candidate)) return false;
+  const step = Math.floor(now / 30000);
+  for (const d of [0, -1, 1]) {
+    const s = step + d;
+    if (s > lastTotpStep && crypto.timingSafeEqual(Buffer.from(totpAt(secret, s)), Buffer.from(candidate))) {
+      lastTotpStep = s;
+      return true;
+    }
+  }
+  return false;
+}
+
+// ---- Global failure tarpit: if many logins fail across all IPs, every attempt is slowed down (no lock-out, so nobody can be shut out on purpose) ----
+const globalFailures: number[] = [];
+export function recordGlobalFailure() {
+  globalFailures.push(Date.now());
+  if (globalFailures.length > 500) globalFailures.shift();
+}
+export function loginDelayMs(): number {
+  const since = Date.now() - 3600 * 1000;
+  const n = globalFailures.filter((t) => t > since).length;
+  return n > 30 ? 3000 : 0;
+}
+
+// ---- Security headers ----
+export function securityHeaders(req: Request, res: Response, next: NextFunction) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  if (process.env.NODE_ENV === "production" && (req.secure || req.headers["x-forwarded-proto"] === "https")) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000");
+  }
+  next();
 }

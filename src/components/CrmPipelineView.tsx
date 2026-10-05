@@ -1,4 +1,5 @@
 import { PreVisitBrief } from './PreVisitBrief';
+import { SecurityPanel } from './SecurityPanel';
 import React, { useState } from 'react';
 import { Lead, LeadTask, LeadActivity, MandateDetails, MandateType, MandateStatus } from '../types';
 import { 
@@ -69,6 +70,7 @@ export const CrmPipelineView: React.FC<Props> = ({
   const [customNoteInput, setCustomNoteInput] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isEditingMandate, setIsEditingMandate] = useState(false);
+  const [securityOpen, setSecurityOpen] = useState(false);
 
   // Helper copy function with temporary notification
   const handleCopyValue = (fieldKey: string, value: string) => {
@@ -362,6 +364,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 
   return (
     <div id="crm-pipeline-container" className="w-full max-w-6xl mx-auto space-y-6 animate-in fade-in">
+      {securityOpen && <SecurityPanel onClose={() => setSecurityOpen(false)} onLoggedOut={() => window.location.assign('/')} />}
       {/* Top Metrics Banner - Clean Warm SaaS */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="bg-white rounded-xl border border-stone-200/80 p-3.5 space-y-1 shadow-2xs">
@@ -497,12 +500,22 @@ export const CrmPipelineView: React.FC<Props> = ({
             <span>Vue Tâches & Mandats ({signedMandatesCount} signés)</span>
           </button>
 
+          <button
+            type="button"
+            onClick={() => setSecurityOpen(true)}
+            id="btn-security"
+            className="sm:ml-auto px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-zinc-800/80 text-stone-300 hover:bg-zinc-800 hover:text-white"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Sécurité</span>
+          </button>
+
           <a
             href="/api/crm/export.csv"
             download
             id="btn-export-leads"
             title="Télécharge tous les dossiers dans un fichier Excel (CSV) : votre sauvegarde"
-            className="sm:ml-auto px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white"
+            className="px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Exporter mes dossiers (Excel)</span>
