@@ -496,6 +496,17 @@ export const CrmPipelineView: React.FC<Props> = ({
             <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
             <span>Vue Tâches & Mandats ({signedMandatesCount} signés)</span>
           </button>
+
+          <a
+            href="/api/crm/export.csv"
+            download
+            id="btn-export-leads"
+            title="Télécharge tous les dossiers dans un fichier Excel (CSV) : votre sauvegarde"
+            className="sm:ml-auto px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Exporter mes dossiers (Excel)</span>
+          </a>
         </div>
       </div>
 

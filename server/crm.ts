@@ -130,3 +130,35 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     calBookingId: upcoming?.cal_booking_id,
   };
 }
+
+// ---------- Export CSV (sauvegarde des dossiers) ----------
+const CSV_HEADERS = [
+  "Date de la demande", "Nom", "Téléphone", "E-mail", "Adresse", "Ville", "Type de bien", "Surface (m²)",
+  "Valeur estimée (€)", "Fourchette basse (€)", "Fourchette haute (€)", "Motif", "Délai du projet", "Statut", "Score",
+  "Rendez-vous (date)", "Rendez-vous (heure)", "Propriétaire", "Mandat en cours", "Occupation", "Prix espéré (€)",
+  "Points de blocage", "Source (campagne)", "Notes",
+];
+
+/** Protège contre l'injection de formules dans Excel : une cellule ne doit jamais commencer par = + - @. */
+function csvCell(v: unknown): string {
+  let s = v === null || v === undefined ? "" : String(v).replace(/\r?\n/g, " ");
+  if (/^[=+\-@\t]/.test(s)) s = `'${s}`;
+  return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+export function leadsToCsv(leads: ReturnType<typeof toLead>[]): string {
+  const rows = leads.map((l) => {
+    const a = l.attribution || {};
+    const source = [a.utmSource || (a.gclid ? "Google Ads" : ""), a.utmCampaign, a.utmTerm].filter(Boolean).join(" / ");
+    return [
+      l.createdAtIso ? String(l.createdAtIso).slice(0, 16).replace("T", " ") : "",
+      l.name, l.phone, l.email, l.address || "", l.city, l.propertyType, l.surface || "",
+      l.estimatedValue || "", l.valuation?.lowPrice ?? "", l.valuation?.highPrice ?? "", l.motive, l.timeframe, l.status, l.score,
+      l.meetingDate || "", l.meetingTime || "",
+      l.qualification?.ownership || "", l.qualification?.mandate || l.mandate || "", l.qualification?.occupancy || "", l.qualification?.expectedPrice ?? "",
+      (l.blockers || []).join(" | "), source, l.notes || "",
+    ].map(csvCell).join(";");
+  });
+  // BOM UTF-8 + séparateur « ; » : s'ouvre directement dans Excel en français
+  return "\ufeff" + [CSV_HEADERS.join(";"), ...rows].join("\r\n") + "\r\n";
+}
