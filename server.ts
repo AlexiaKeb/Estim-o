@@ -2,8 +2,6 @@ import express, { Request, Response } from "express";
 import path from "path";
 import fs from "fs";
 import { renderSeo, robotsTxt, sitemapXml, siteBase } from "./server/seo";
-import { warmAreas } from "./server/market";
-import { AREAS } from "./src/data/areas";
 import crypto from "crypto";
 import {
   requireAgent,
@@ -2335,6 +2333,9 @@ async function startServer() {
 
   app.use("/api", (_req: Request, res: Response) => res.status(404).json({ error: "Not found" }));
 
+  // Les pages « prix par secteur » ont été retirées : on renvoie vers l'accueil
+  app.get(["/estimation-immobiliere", "/estimation-immobiliere/*"], (_req: Request, res: Response) => res.redirect(301, "/"));
+
   // SEO files
   app.get("/robots.txt", (req: Request, res: Response) => {
     res.type("text/plain").send(robotsTxt(siteBase(req)));
@@ -2377,7 +2378,6 @@ async function startServer() {
     );
   }
 
-  if (process.env.DVF_PREWARM !== "") warmAreas(AREAS);
   prewarm((process.env.DVF_PREWARM || "69381,69382,69383,69384,69385,69386,69387,69388,69389,69266").split(",").filter(Boolean));
 
   app.listen(PORT, "0.0.0.0", () => {

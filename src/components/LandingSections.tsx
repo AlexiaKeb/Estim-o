@@ -476,24 +476,12 @@ export const ZoneSection: React.FC = () => (
         <p className="mt-4 text-stone-600 leading-relaxed">
           {AGENT.name} accompagne les propriétaires de la métropole lyonnaise et du Beaujolais, jusqu'à 50 km autour de Lyon. Votre estimation en ligne s'appuie sur les ventes réellement enregistrées par l'État (base DVF) autour de votre adresse. La visite permet ensuite de tenir compte de ce qu'aucune base de données ne voit : l'état du bien, la luminosité, l'étage, la vue, les travaux réalisés.
         </p>
-        <a href="/estimation-immobiliere" className="mt-5 inline-flex items-center gap-2 font-semibold text-[#0f1f3d] underline underline-offset-4">
-          Voir les prix par secteur <ArrowRight className="w-4 h-4" />
-        </a>
       </div>
       <ul className="grid grid-cols-2 gap-3">
-        {[
-          ['Lyon', '/estimation-immobiliere'],
-          ['Villeurbanne', '/estimation-immobiliere/villeurbanne'],
-          ['Caluire-et-Cuire', '/estimation-immobiliere/caluire-et-cuire'],
-          ['Bron', '/estimation-immobiliere/bron'],
-          ['Écully', '/estimation-immobiliere/ecully'],
-          ['Villefranche-sur-Saône', '/estimation-immobiliere/villefranche-sur-saone'],
-        ].map(([c, href]) => (
-          <li key={c}>
-            <a href={href} className="flex items-center gap-2 rounded-xl bg-white border border-stone-200 px-4 py-3.5 font-semibold text-[#0f1f3d] hover:border-amber-400 hover:shadow-md transition">
-              <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
-              {c}
-            </a>
+        {['Lyon', 'Villeurbanne', 'Caluire-et-Cuire', 'Bron', 'Écully', 'Villefranche-sur-Saône'].map((c) => (
+          <li key={c} className="flex items-center gap-2 rounded-xl bg-white border border-stone-200 px-4 py-3.5 font-semibold text-[#0f1f3d]">
+            <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
+            {c}
           </li>
         ))}
         <li className="col-span-2 rounded-xl border border-dashed border-stone-300 px-4 py-3 text-sm text-stone-600">Beaujolais et communes alentour</li>

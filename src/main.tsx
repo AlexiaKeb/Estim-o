@@ -22,19 +22,6 @@ async function pageFor(p: string): Promise<ReactElement> {
     const post = data.getPost(p.slice('/blog/'.length));
     return post ? <pages.BlogArticle post={post} /> : <pages.BlogNotFound />;
   }
-  if (p === '/estimation-immobiliere' || p.startsWith('/estimation-immobiliere/')) {
-    const [pages, areas] = await Promise.all([import('./components/AreaPages.tsx'), import('./data/areas.ts')]);
-    if (p === '/estimation-immobiliere') return <pages.AreaHub />;
-    const area = areas.getArea(p.slice('/estimation-immobiliere/'.length));
-    if (!area) return <pages.AreaHub />;
-    let stats = null;
-    try {
-      stats = JSON.parse(document.getElementById('area-data')?.textContent || 'null')?.stats ?? null;
-    } catch {
-      /* page rendue sans données */
-    }
-    return <pages.AreaPage area={area} stats={stats} />;
-  }
   return <App />;
 }
 
