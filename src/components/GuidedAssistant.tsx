@@ -795,7 +795,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     <div
       id="assistant-panel"
       className="rounded-3xl border border-stone-200 bg-white shadow-xl overflow-hidden flex flex-col max-w-3xl mx-auto w-full"
-      style={{ height: 'min(90vh, 880px)', minHeight: 560 }}
+      style={{ maxHeight: 'min(90vh, 880px)' }}
     >
       <header className="bg-[#0f1f3d] text-white px-4 sm:px-5 py-3.5 flex items-center gap-3">
         <div className="relative">
@@ -825,7 +825,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         </div>
       )}
 
-      <div ref={scrollRef} className="relative flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-3 bg-stone-50" aria-live="polite">
+      <div ref={scrollRef} className="relative min-h-0 overflow-y-auto px-4 sm:px-5 py-5 space-y-3 bg-stone-50 transition-[max-height]" aria-live="polite">
         {messages.map((m) =>
           m.result ? (
             <div key={m.id} id="assistant-result" className="max-w-[96%] space-y-3">{resultCard}</div>
@@ -865,7 +865,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         )}
       </div>
 
-      <div className="border-t border-stone-200 bg-white px-4 sm:px-5 py-4 space-y-3 max-h-[68%] overflow-y-auto">
+      <div className="border-t border-stone-200 bg-white px-4 sm:px-5 py-4 space-y-3 shrink-0 max-h-[52vh] overflow-y-auto">
         {!typing || step === 'computing' ? composer : <div className="h-10" />}
         {contactDone && step !== 'computing' && (
           <form
