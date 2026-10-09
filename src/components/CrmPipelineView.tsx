@@ -1,6 +1,36 @@
 import { PreVisitBrief } from './PreVisitBrief';
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
+
+/** Enregistrement d'une vente conclue : date et honoraires réellement encaissés. */
+const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number) => void }> = ({ lead, onSave }) => {
+  const m = lead.mandate!;
+  const [date, setDate] = useState(m.soldDate || new Date().toISOString().slice(0, 10));
+  const [fee, setFee] = useState(String(m.saleFee || m.feeAmount || ''));
+  if (m.soldDate) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3">
+        <p className="text-sm text-emerald-900">
+          <strong>🏁 Vente conclue le {m.soldDate}</strong> · honoraires encaissés : {(m.saleFee || m.feeAmount || 0).toLocaleString('fr-FR')} €
+        </p>
+        <button type="button" onClick={() => onSave('', 0)} className="text-xs underline text-emerald-900">Annuler la vente</button>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-stone-200 bg-stone-50 p-3">
+      <div>
+        <label htmlFor="sale-date" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Vente conclue le</label>
+        <input id="sale-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
+      </div>
+      <div>
+        <label htmlFor="sale-fee" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Honoraires encaissés (€)</label>
+        <input id="sale-fee" inputMode="numeric" value={fee} onChange={(e) => setFee(e.target.value.replace(/[^\d]/g, ''))} className="w-36 rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
+      </div>
+      <button type="button" id="btn-save-sale" onClick={() => date && onSave(date, Number(fee) || 0)} className="rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2">🏁 Enregistrer la vente</button>
+    </div>
+  );
+};
 import React, { useState } from 'react';
 import { Lead, LeadTask, LeadActivity, MandateDetails, MandateType, MandateStatus } from '../types';
 import { 
@@ -183,7 +213,11 @@ export const CrmPipelineView: React.FC<Props> = ({
     };
 
     let actionLabel = '';
-    if (updatedMandate.status === 'signed') {
+    if (mandateData.soldDate) {
+      actionLabel = `Vente conclue le ${mandateData.soldDate} (honoraires ${(updatedMandate.saleFee || computedFeeAmount).toLocaleString('fr-FR')} €)`;
+    } else if (mandateData.soldDate === '') {
+      actionLabel = 'Vente annulée (retour au mandat signé)';
+    } else if (updatedMandate.status === 'signed') {
       actionLabel = updatedMandate.type === 'exclusive'
         ? `Mandat Exclusif N° ${updatedMandate.mandateNumber || 'M-2026-X'} signé (${(newSellingPrice / 1000).toFixed(0)}k€ - ${computedFeeAmount.toLocaleString('fr-FR')}€ hono)`
         : `Mandat Simple N° ${updatedMandate.mandateNumber || 'M-2026-X'} signé (${(newSellingPrice / 1000).toFixed(0)}k€ - ${computedFeeAmount.toLocaleString('fr-FR')}€ hono)`;
@@ -1647,6 +1681,15 @@ export const CrmPipelineView: React.FC<Props> = ({
                     </button>
                   </div>
                 </div>
+
+                {/* Vente conclue : alimente les statistiques (taux de transformation et chiffre d'affaires) */}
+                {selectedLeadDrawer.mandate?.status === 'signed' && (
+                  <SaleBox
+                    key={selectedLeadDrawer.id + (selectedLeadDrawer.mandate?.soldDate || '')}
+                    lead={selectedLeadDrawer}
+                    onSave={(soldDate, saleFee) => handleUpdateLeadMandate(selectedLeadDrawer, { soldDate, saleFee })}
+                  />
+                )}
 
                 {/* Mandate Metrics Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

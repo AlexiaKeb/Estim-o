@@ -1491,6 +1491,33 @@ async function startServer() {
     }
   });
 
+  // Advertising budget spent per month (entered by the advisor): used for cost-per-lead statistics.
+  // Stored in the agent row (no extra table).
+  const readSpend = async (client: any) => {
+    const { data } = await client.from("agents").select("id, script_qualification").order("created_at", { ascending: true }).limit(1).maybeSingle();
+    return { id: data?.id as string | undefined, sq: (data?.script_qualification && typeof data.script_qualification === "object" ? data.script_qualification : {}) as Record<string, any> };
+  };
+  app.get("/api/stats/spend", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.json({ spend: {} });
+    const { sq } = await readSpend(client);
+    res.json({ spend: sq.ad_spend && typeof sq.ad_spend === "object" ? sq.ad_spend : {} });
+  });
+  app.put("/api/stats/spend", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const month = String(req.body?.month || "");
+    const amount = Number(req.body?.amount);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !(amount >= 0) || amount > 1_000_000) return res.status(400).json({ error: "Mois ou montant invalide." });
+    const { id, sq } = await readSpend(client);
+    if (!id) return res.status(409).json({ error: "Aucune fiche conseillère en base : créez d'abord un prospect." });
+    const spend = { ...(sq.ad_spend || {}), [month]: Math.round(amount * 100) / 100 };
+    if (amount === 0) delete spend[month];
+    const { error } = await client.from("agents").update({ script_qualification: { ...sq, ad_spend: spend } }).eq("id", id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ spend });
+  });
+
   // Deletes a contact AND everything attached to it (messages, e-mails, conversation, appointments).
   // The Cal.com booking is cancelled too, so the slot becomes free again. The opt-out list is kept on purpose.
   app.delete("/api/crm/leads/:id", requireAgent, rateLimit("lead-delete", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {

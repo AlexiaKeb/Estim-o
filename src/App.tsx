@@ -7,7 +7,8 @@ import {
   Calendar, 
   MailCheck, 
   Calculator,
-  PenLine, 
+  PenLine,
+  BarChart3, 
   Target, 
   TrendingUp, 
   CheckCircle2, 
@@ -37,12 +38,13 @@ const CalendarBookingModal = lazy(() => import('./components/CalendarBookingModa
 const BookingConfirmationView = lazy(() => import('./components/BookingConfirmationView').then((m) => ({ default: m.BookingConfirmationView })));
 const PrivacyShieldModal = lazy(() => import('./components/PrivacyShieldModal').then((m) => ({ default: m.PrivacyShieldModal })));
 const AgentAuthModal = lazy(() => import('./components/AgentAuthModal').then((m) => ({ default: m.AgentAuthModal })));
+const StatsView = lazy(() => import('./components/StatsView').then((m) => ({ default: m.StatsView })));
 const ArticlesView = lazy(() => import('./components/ArticlesView').then((m) => ({ default: m.ArticlesView })));
 const CalendarHealth = lazy(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
 import { BRAND } from './data/siteContent';
 import { CreditLine } from './components/CreditLine';
 
-type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator' | 'articles';
+type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator' | 'articles' | 'stats';
 
 export default function App() {
   // Agent Authentication & View Mode State - Default to authenticated pro mode for immediate dashboard view
@@ -371,7 +373,7 @@ export default function App() {
 
   // Safe navigation switcher
   const handleNavigate = (view: NavView) => {
-    const isInternalAgentView = ['pipeline', 'nurture', 'calculator', 'articles'].includes(view);
+    const isInternalAgentView = ['pipeline', 'nurture', 'calculator', 'articles', 'stats'].includes(view);
 
     if (isInternalAgentView && !isAgentAuthenticated) {
       setIsAuthModalOpen(true);
@@ -511,7 +513,7 @@ export default function App() {
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
               >
-                <span>Dossiers</span>
+                <span>Leads</span>
                 <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
                   {leads.filter(l => l.status === 'HOT').length}
                 </span>
@@ -528,7 +530,7 @@ export default function App() {
                 }`}
               >
                 <MailCheck className="w-3.5 h-3.5" />
-                <span>Relances</span>
+                <span>Email</span>
               </button>
 
               <button
@@ -542,7 +544,21 @@ export default function App() {
                 }`}
               >
                 <PenLine className="w-3.5 h-3.5" />
-                <span>Articles</span>
+                <span>Blog</span>
+              </button>
+
+              <button
+                type="button"
+                id="agent-nav-stats"
+                onClick={() => handleNavigate('stats')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  currentView === 'stats'
+                    ? 'bg-zinc-800 text-white shadow-xs'
+                    : 'text-stone-400 hover:text-stone-200'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Statistiques</span>
               </button>
 
               <button
@@ -556,22 +572,7 @@ export default function App() {
                 }`}
               >
                 <Calculator className="w-3.5 h-3.5" />
-                <span>Honoraires</span>
-              </button>
-
-              <button
-                type="button"
-                id="agent-nav-simulator"
-                onClick={() => handleNavigate('landing')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                  currentView === 'landing' || currentView === 'chat'
-                    ? 'bg-zinc-800 text-white shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
-                }`}
-                title="Essayer le parcours client"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Tester le site</span>
+                <span>Calculatrice</span>
               </button>
             </nav>
 
@@ -625,11 +626,11 @@ export default function App() {
           {mobileMenuOpen && (
             <div className="lg:hidden bg-zinc-900 border-b border-zinc-800 px-4 py-3 space-y-1">
               {[
-                { key: 'pipeline', label: `Dossiers & Mandats (${leads.length})` },
-                { key: 'nurture', label: 'Relances' },
-                { key: 'articles', label: 'Articles' },
-                { key: 'calculator', label: 'Honoraires' },
-                { key: 'landing', label: 'Tester le site' },
+                { key: 'pipeline', label: `Leads (${leads.length})` },
+                { key: 'nurture', label: 'Email' },
+                { key: 'articles', label: 'Blog' },
+                { key: 'stats', label: 'Statistiques' },
+                { key: 'calculator', label: 'Calculatrice' },
               ].map((item) => (
                 <button
                   key={item.key}
@@ -840,6 +841,7 @@ export default function App() {
 
         {currentView === 'calculator' && <KpiRoiCalculator />}
         {currentView === 'articles' && <ArticlesView />}
+        {currentView === 'stats' && <StatsView leads={leads} />}
         </Suspense>
       </main>
 

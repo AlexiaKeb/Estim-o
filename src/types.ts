@@ -84,6 +84,9 @@ export interface MandateDetails {
   durationMonths?: number; // ex: 3 mois
   signedBy?: string; // ex: "Céline (Conseillère Référente)"
   notes?: string;
+  /** Vente conclue (acte signé) : date et honoraires réellement encaissés, pour les statistiques */
+  soldDate?: string;
+  saleFee?: number;
 }
 
 export interface LeadActivity {
