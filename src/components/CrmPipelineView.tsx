@@ -611,8 +611,8 @@ export const CrmPipelineView: React.FC<Props> = ({
               {([
                 ['ALL', 'Tous', leads.length],
                 ['LEAD', 'Leads', pipeLeads.length],
-                ['RDV', 'RDV fixés (R1)', pipeVisits.length],
-                ['MANDAT', 'Mandats (R2)', pipeMandates.length],
+                ['RDV', 'RDV fixés', pipeVisits.length],
+                ['MANDAT', 'Mandats', pipeMandates.length],
                 ['VENTE', 'Ventes', pipeSold.length],
               ] as const).map(([k, label, n]) => (
                 <button
