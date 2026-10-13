@@ -1621,33 +1621,6 @@ export const CrmPipelineView: React.FC<Props> = ({
                 )}
               </div>
 
-              {/* Lead Key Specs */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Bien & Surface</div>
-                  <div className="text-xs font-bold text-slate-900 mt-1">
-                    {selectedLeadDrawer.propertyType} • {selectedLeadDrawer.surface} m²
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">{selectedLeadDrawer.city}</div>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Valorisation Estimée</div>
-                  <div className="text-sm font-extrabold text-blue-600 mt-1">
-                    {selectedLeadDrawer.estimatedValue.toLocaleString('fr-FR')} €
-                  </div>
-                  <div className="text-[10px] text-slate-400">Avis de valeur initial</div>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs col-span-2 sm:col-span-1">
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Motif & Délai</div>
-                  <div className="text-xs font-bold text-slate-900 mt-1">
-                    {selectedLeadDrawer.motive}
-                  </div>
-                  <div className="text-[11px] text-slate-500">{selectedLeadDrawer.timeframe}</div>
-                </div>
-              </div>
-
               {/* Status Selector */}
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
