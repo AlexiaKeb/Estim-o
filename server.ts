@@ -909,22 +909,58 @@ async function startServer() {
   app.post("/api/relances/schedule-bulk", requireAgent, rateLimit("relance-bulk", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client) return res.status(503).json({ success: false, error: "Base de données non configurée." });
-    const { leadIds, subject, message, sendAt, step } = req.body || {};
-    const when = new Date(sendAt);
+    const { leadIds, subject, message, sendAt, step, steps } = req.body || {};
     if (!Array.isArray(leadIds) || !leadIds.length || leadIds.length > 200 || !leadIds.every((i: any) => isUuidStr(i))) return res.status(400).json({ success: false, error: "Contacts invalides." });
-    if (typeof message !== "string" || message.trim().length < 5 || isNaN(when.getTime()) || when.getTime() < Date.now()) return res.status(400).json({ success: false, error: "Message ou date invalide." });
-    const rows = leadIds.map((id: string) => ({
-      lead_id: id,
-      step: typeof step === "string" ? step.slice(0, 80) : "Envoi groupé programmé",
-      channel: "Email",
-      subject: typeof subject === "string" ? subject.slice(0, 200) : null,
-      message: message.slice(0, 5000),
-      send_at: when.toISOString(),
-      status: "programme",
-    }));
+    // One message (subject / message / sendAt) or a sequence (steps: [{ subject, message, sendAt, step }])
+    const list: Array<{ subject?: string; message: string; sendAt: string; step?: string }> = Array.isArray(steps) ? steps : [{ subject, message, sendAt, step }];
+    if (!list.length || list.length > 12 || leadIds.length * list.length > 1000) return res.status(400).json({ success: false, error: "Trop de messages d'un coup." });
+    const now = Date.now();
+    let skipped = 0;
+    const rows: any[] = [];
+    for (const it of list) {
+      const when = new Date(it?.sendAt);
+      if (typeof it?.message !== "string" || it.message.trim().length < 5 || isNaN(when.getTime())) return res.status(400).json({ success: false, error: "Message ou date invalide." });
+      if (when.getTime() < now - 5 * 60 * 1000) { skipped++; continue; }
+      for (const id of leadIds) {
+        rows.push({
+          lead_id: id,
+          step: typeof it.step === "string" ? it.step.slice(0, 80) : "Envoi groupé programmé",
+          channel: "Email",
+          subject: typeof it.subject === "string" ? it.subject.slice(0, 200) : null,
+          message: it.message.slice(0, 5000),
+          send_at: when.toISOString(),
+          status: "programme",
+        });
+      }
+    }
+    if (!rows.length) return res.status(400).json({ success: false, error: "Toutes les dates choisies sont déjà passées." });
     const { error } = await client.from("relances").insert(rows);
     if (error) return res.status(500).json({ success: false, error: error.message });
-    res.json({ success: true, scheduled: rows.length });
+    res.json({ success: true, scheduled: rows.length, contacts: leadIds.length, skipped });
+  });
+
+  // Upcoming programmed messages (advisor follow-up screen) and cancellation of one of them
+  app.get("/api/relances/scheduled", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.json({ items: [] });
+    const { data } = await client
+      .from("relances")
+      .select("id, lead_id, step, subject, send_at, status")
+      .eq("status", "programme")
+      .order("send_at", { ascending: true })
+      .limit(300);
+    const rows: any[] = data || [];
+    const ids = [...new Set(rows.map((r) => r.lead_id).filter(Boolean))];
+    const { data: leads } = ids.length ? await client.from("leads").select("id, nom").in("id", ids) : { data: [] as any[] };
+    const names = new Map<string, string>((leads || []).map((l: any) => [l.id, l.nom]));
+    res.json({ items: rows.filter((r) => names.has(r.lead_id)).map((r) => ({ id: r.id, leadName: names.get(r.lead_id), step: r.step || "", subject: r.subject || "", sendAt: r.send_at })) });
+  });
+  app.delete("/api/relances/scheduled/:id", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const { error } = await client.from("relances").delete().eq("id", req.params.id).in("status", ["programme", "a_faire"]);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
   });
 
   app.get("/api/relances/lead/:leadId", requireAgent, async (req: Request, res: Response) => {

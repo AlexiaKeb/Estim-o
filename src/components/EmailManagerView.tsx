@@ -57,6 +57,13 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [customs, setCustoms] = useState<CustomTpl[]>([]);
   // Modèle sélectionné : intégré (index), personnalisé (id) ou nouveau message (null)
   const [current, setCurrent] = useState<{ kind: 'builtin'; i: number } | { kind: 'custom'; id: string } | null>({ kind: 'builtin', i: 0 });
+  // Quand envoyer : tout de suite, à une date, ou en séquence (plusieurs messages espacés de quelques jours)
+  const [when, setWhen] = useState<'now' | 'date' | 'seq'>('now');
+  const [steps, setSteps] = useState<Array<{ delay: number; subject: string; body: string }>>([]);
+  const [active, setActive] = useState(0);
+  const [view, setView] = useState<'compose' | 'follow'>('compose');
+  const [upcoming, setUpcoming] = useState<Array<{ id: string; leadName: string; subject: string; sendAt: string }> | null>(null);
+  const [sentLogs, setSentLogs] = useState<Array<{ id: string; leadName: string; subject: string; status: string; sentAt: string }> | null>(null);
   const [tplName, setTplName] = useState('');
   const [tplMsg, setTplMsg] = useState<string | null>(null);
   const [subject, setSubject] = useState(TEMPLATES.lead[0].subject);
@@ -83,6 +90,37 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const chosen = list.filter((l) => selected.has(l.id));
   const targets = chosen.filter(sendable);
 
+  const seq = when === 'seq';
+  const curSubject = seq ? steps[active]?.subject ?? '' : subject;
+  const curBody = seq ? steps[active]?.body ?? '' : body;
+  const setCurSubject = (v: string) => (seq ? setSteps((st) => st.map((x, i) => (i === active ? { ...x, subject: v } : x))) : setSubject(v));
+  const setCurBody = (v: string | ((b: string) => string)) =>
+    seq
+      ? setSteps((st) => st.map((x, i) => (i === active ? { ...x, body: typeof v === 'function' ? v(x.body) : v } : x)))
+      : setBody(v as any);
+  const addStep = (sub: string, bod: string) => {
+    setSteps((st) => {
+      const delay = st.length ? st[st.length - 1].delay + 3 : 0;
+      setActive(st.length);
+      return [...st, { delay, subject: sub, body: bod }];
+    });
+  };
+  const switchWhen = (w: 'now' | 'date' | 'seq') => {
+    setWhen(w);
+    setReport(null);
+    if (w === 'seq' && steps.length === 0) {
+      setSteps([{ delay: 0, subject, body }]);
+      setActive(0);
+    }
+  };
+  const recommended = () => {
+    const list = TEMPLATES[stage];
+    const delays = [0, 3, 7, 14, 21];
+    setSteps(list.map((t, i) => ({ delay: delays[i] ?? delays[delays.length - 1] + (i - delays.length + 1) * 7, subject: t.subject, body: t.body })));
+    setActive(0);
+    setWhen('seq');
+  };
+
   const pickStage = (s: Stage) => {
     setStage(s);
     setSelected(new Set());
@@ -92,9 +130,13 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     setTplMsg(null);
     setSubject(TEMPLATES[s][0].subject);
     setBody(TEMPLATES[s][0].body);
+    setSteps([]);
+    setActive(0);
+    if (when === 'seq') setWhen('now');
     setReport(null);
   };
   const pickTemplate = (i: number) => {
+    if (seq) { addStep(TEMPLATES[stage][i].subject, TEMPLATES[stage][i].body); return; }
     setTplIdx(i);
     setCurrent({ kind: 'builtin', i });
     setTplName('');
@@ -103,6 +145,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     setBody(TEMPLATES[stage][i].body);
   };
   const pickCustom = (t: CustomTpl) => {
+    if (seq) { addStep(t.subject, t.body); return; }
     setCurrent({ kind: 'custom', id: t.id });
     setTplName(t.label);
     setTplMsg(null);
@@ -110,6 +153,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     setBody(t.body);
   };
   const newMessage = () => {
+    if (seq) { addStep('', 'Bonjour {Prénom},\n\n'); return; }
     setCurrent(null);
     setTplName('');
     setTplMsg(null);
@@ -130,6 +174,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   };
   const saveTemplate = async () => {
     const label = tplName.trim();
+    const subject = curSubject;
+    const body = curBody;
     if (!label || body.trim().length < 5) { setTplMsg('Donnez un nom au message et écrivez son contenu.'); return; }
     const existing = current?.kind === 'custom' ? customs.find((c) => c.id === current.id) : undefined;
     const tpl: CustomTpl = { id: existing?.id || `t-${Date.now()}`, stage, label, subject, body };
@@ -221,11 +267,108 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     setBusy(false);
   };
 
+  const loadFollow = () => {
+    fetch('/api/relances/scheduled', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setUpcoming(d.items || [])).catch(() => setUpcoming([]));
+    fetch('/api/relances/history', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setSentLogs((d.logs || []).map((l: any) => ({ id: l.id, leadName: l.leadName, subject: l.subject, status: l.status, sentAt: l.sentAt })))).catch(() => setSentLogs([]));
+  };
+  useEffect(() => { if (view === 'follow') loadFollow(); }, [view]);
+  const cancelScheduled = async (id: string) => {
+    await fetch(`/api/relances/scheduled/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
+    setUpcoming((u) => (u || []).filter((x) => x.id !== id));
+  };
+
+  const launchSequence = async () => {
+    const valid = steps.filter((st) => st.body.trim().length >= 5 && st.subject.trim());
+    if (!targets.length || !valid.length || valid.length !== steps.length) {
+      setReport({ ok: false, text: 'Chaque message de la séquence doit avoir un objet et un texte.' });
+      return;
+    }
+    const [hh, mm] = (time || '09:30').split(':').map(Number);
+    const base = date ? new Date(`${date}T00:00:00`) : new Date();
+    const at = (delay: number) => {
+      const d = new Date(base);
+      d.setDate(d.getDate() + delay);
+      d.setHours(hh || 9, mm || 0, 0, 0);
+      return d;
+    };
+    const immediate = !date && steps[0].delay === 0; // sans date de départ, le premier message part tout de suite
+    if (!window.confirm(`Lancer la séquence de ${steps.length} message(s) pour ${targets.length} contact(s) ?${immediate ? ' Le premier message part tout de suite.' : ''}`)) return;
+    setBusy(true);
+    setReport(null);
+    let sentNow = 0;
+    let lastErr = '';
+    if (immediate) {
+      for (const l of targets) {
+        try {
+          const r = await fetch('/api/relances/send', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadId: l.id, subject: steps[0].subject, message: steps[0].body, step: 'Séquence • message 1' }) });
+          const d = await r.json().catch(() => ({}));
+          if (r.ok && d.success) sentNow++;
+          else { lastErr = d.error || "L'envoi a échoué."; if (r.status === 429 || r.status === 503) break; }
+        } catch { lastErr = 'Serveur injoignable.'; break; }
+      }
+    }
+    const rest = steps.map((st, i) => ({ st, i })).filter(({ i }) => !(immediate && i === 0));
+    let scheduled = 0;
+    if (rest.length) {
+      try {
+        const r = await fetch('/api/relances/schedule-bulk', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leadIds: targets.map((l) => l.id), steps: rest.map(({ st, i }) => ({ subject: st.subject, message: st.body, sendAt: at(st.delay).toISOString(), step: `Séquence • message ${i + 1} (J+${st.delay})` })) }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.success) scheduled = d.scheduled; else lastErr = d.error || 'Programmation impossible.';
+      } catch { lastErr = 'Serveur injoignable.'; }
+    }
+    setBusy(false);
+    setReport({ ok: !lastErr, text: `${immediate ? `${sentNow} e-mail(s) envoyé(s) tout de suite. ` : ''}${scheduled ? `${scheduled} envoi(s) programmé(s) pour la suite (voir l'onglet Suivi).` : ''}${lastErr ? ` ${lastErr}` : ''}`.trim() });
+  };
+
   const field = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/20';
   const nextLabel: Record<Stage, string> = { lead: 'Passer en R1', r1: 'Passer en R2', r2: 'Passer en Mandat', mandat: 'Passer en Vente', vente: '' };
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-5">
+      <div className="flex justify-center gap-2" role="tablist" aria-label="Outil e-mail">
+        {([['compose', 'Écrire & envoyer'], ['follow', 'Suivi : programmés & envoyés']] as const).map(([k, l]) => (
+          <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`px-4 py-2 rounded-lg text-sm font-bold ${view === k ? 'bg-[#0f1f3d] text-white' : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'}`}>{l}</button>
+        ))}
+      </div>
+
+      {view === 'follow' ? (
+        <div className="grid md:grid-cols-2 gap-4">
+          <section className="bg-white rounded-2xl border border-stone-200 p-4">
+            <h2 className="text-base font-bold text-stone-900">À venir</h2>
+            <p className="text-xs text-stone-500 mb-3">Messages programmés, y compris les séquences. Vous pouvez en annuler un.</p>
+            {upcoming === null ? <Loader2 className="w-4 h-4 animate-spin" /> : upcoming.length === 0 ? <p className="text-sm text-stone-400">Rien de programmé.</p> : (
+              <ul className="divide-y divide-stone-100 max-h-[32rem] overflow-y-auto">
+                {upcoming.map((u) => (
+                  <li key={u.id} className="py-2 flex items-center gap-2 text-sm">
+                    <div className="min-w-0 flex-1"><p className="font-semibold text-stone-900 truncate">{u.leadName}</p><p className="text-xs text-stone-500 truncate">{u.subject || 'Sans objet'} • {new Date(u.sendAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p></div>
+                    <button type="button" onClick={() => cancelScheduled(u.id)} className="text-xs underline text-rose-700 shrink-0">Annuler</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <section className="bg-white rounded-2xl border border-stone-200 p-4">
+            <h2 className="text-base font-bold text-stone-900">Envoyés</h2>
+            <p className="text-xs text-stone-500 mb-3">Les 100 derniers messages.</p>
+            {sentLogs === null ? <Loader2 className="w-4 h-4 animate-spin" /> : sentLogs.length === 0 ? <p className="text-sm text-stone-400">Aucun message envoyé.</p> : (
+              <ul className="divide-y divide-stone-100 max-h-[32rem] overflow-y-auto">
+                {sentLogs.map((l) => (
+                  <li key={l.id} className="py-2 text-sm">
+                    <p className="font-semibold text-stone-900 truncate">{l.leadName} {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
+                    <p className="text-xs text-stone-500 truncate">{l.subject || 'Sans objet'} • {new Date(l.sentAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      ) : (
+      <>
       <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-lg sm:text-xl font-extrabold text-stone-900 flex items-center gap-2"><Mail className="w-5 h-5" /> Gestionnaire d'e-mails</h1>
@@ -309,21 +452,51 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
         </div>
 
         <div className="bg-white rounded-2xl border border-stone-200 p-4 space-y-3">
-          <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex flex-wrap items-end gap-3 text-xs">
-            <div><div className="font-bold text-stone-500 uppercase mb-1">Canal</div><span className="inline-block rounded bg-[#0f1f3d] text-white font-bold px-3 py-1.5">E-mail</span> <span className="text-stone-400 ml-1">SMS et WhatsApp : pas encore connectés</span></div>
-            <div><label htmlFor="bulk-date" className="font-bold text-stone-500 uppercase block mb-1">Date (optionnel)</label><input id="bulk-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded border border-stone-300 px-2 py-1" /></div>
-            <div><label htmlFor="bulk-time" className="font-bold text-stone-500 uppercase block mb-1">Heure</label><input id="bulk-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded border border-stone-300 px-2 py-1" /></div>
+          <div className="rounded-xl bg-stone-50 border border-stone-200 p-3 space-y-3">
+            <div className="text-[11px] font-bold uppercase text-stone-500">Quand l'envoyer ? <span className="normal-case font-normal text-stone-400">(canal : e-mail, SMS et WhatsApp pas encore connectés)</span></div>
+            <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Quand envoyer">
+              {([['now', 'Maintenant'], ['date', 'À une date'], ['seq', 'En séquence (plusieurs messages)']] as const).map(([k, l]) => (
+                <button key={k} type="button" role="tab" aria-selected={when === k} onClick={() => switchWhen(k)} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${when === k ? 'bg-[#0f1f3d] text-white' : 'bg-white border border-stone-300 text-stone-700 hover:bg-stone-100'}`}>{l}</button>
+              ))}
+            </div>
+            {when !== 'now' && (
+              <div className="flex flex-wrap items-end gap-3 text-xs">
+                <div><label htmlFor="bulk-date" className="font-bold text-stone-500 uppercase block mb-1">{seq ? 'Départ (J+0)' : 'Date'}</label><input id="bulk-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded border border-stone-300 px-2 py-1" /></div>
+                <div><label htmlFor="bulk-time" className="font-bold text-stone-500 uppercase block mb-1">Heure</label><input id="bulk-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded border border-stone-300 px-2 py-1" /></div>
+                {seq && <p className="text-stone-500 max-w-xs">{date ? 'Tous les messages sont programmés à partir de cette date.' : 'Sans date de départ, le premier message (J+0) part tout de suite.'}</p>}
+              </div>
+            )}
+            {seq && (
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {steps.map((st, i) => (
+                    <button key={i} type="button" onClick={() => setActive(i)} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold border ${active === i ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-100'}`}>Message {i + 1} • J+{st.delay}</button>
+                  ))}
+                  <button type="button" onClick={() => addStep('', 'Bonjour {Prénom},\n\n')} className="rounded-lg px-2.5 py-1.5 text-xs font-bold border border-dashed border-stone-400 text-stone-600 hover:bg-stone-100">+ Ajouter</button>
+                  <button type="button" onClick={recommended} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-sky-700 underline">Séquence conseillée</button>
+                </div>
+                {steps[active] && (
+                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                    <label className="flex items-center gap-1.5 font-semibold text-stone-700">Envoyé au jour J+
+                      <input type="number" min={0} max={365} value={steps[active].delay} onChange={(e) => setSteps((st) => st.map((x, i) => (i === active ? { ...x, delay: Math.max(0, Math.min(365, Number(e.target.value) || 0)) } : x)))} className="w-16 rounded border border-stone-300 px-2 py-1" aria-label="Délai en jours" />
+                    </label>
+                    {steps.length > 1 && <button type="button" onClick={() => { setSteps((st) => st.filter((_, i) => i !== active)); setActive(0); }} className="underline text-rose-700">Retirer ce message</button>}
+                    <span className="text-stone-400">Cliquez un message de la liste de gauche pour l'ajouter à la séquence.</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div>
             <label htmlFor="bulk-subject" className="text-xs font-bold text-stone-600">Objet de l'e-mail</label>
-            <input id="bulk-subject" className={field} value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <input id="bulk-subject" className={field} value={curSubject} onChange={(e) => setCurSubject(e.target.value)} />
           </div>
           <div>
             <label htmlFor="bulk-body" className="text-xs font-bold text-stone-600">Corps du message</label>
-            <textarea id="bulk-body" rows={9} className={field} value={body} onChange={(e) => setBody(e.target.value)} />
+            <textarea id="bulk-body" rows={9} className={field} value={curBody} onChange={(e) => setCurBody(e.target.value)} />
             <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[11px]">
               <span className="text-stone-500">Balises :</span>
-              {VARS.map((v) => <button key={v} type="button" onClick={() => setBody((b) => `${b}${v}`)} className="rounded border border-sky-200 bg-sky-50 text-sky-800 px-2 py-0.5 font-semibold">+ {v}</button>)}
+              {VARS.map((v) => <button key={v} type="button" onClick={() => setCurBody((b) => `${b}${v}`)} className="rounded border border-sky-200 bg-sky-50 text-sky-800 px-2 py-0.5 font-semibold">+ {v}</button>)}
             </div>
           </div>
           <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 flex flex-wrap items-end gap-2">
@@ -338,15 +511,26 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
           <div className="rounded-xl bg-[#0f1f3d] text-white p-3 flex flex-wrap items-center justify-between gap-3">
             <span className="text-xs font-semibold">⚡ Action groupée : {targets.length} contact(s){chosen.length !== targets.length ? ` (${chosen.length - targets.length} sans e-mail valide ignoré(s))` : ''}</span>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={schedule} disabled={busy || !targets.length || !date} className="rounded-lg bg-white/15 hover:bg-white/25 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5"><CalendarClock className="w-4 h-4" /> Programmer</button>
-              <button type="button" onClick={sendNow} disabled={busy || !targets.length} className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
-                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Envoyer maintenant à {targets.length}
-              </button>
+              {when === 'now' && (
+                <button type="button" onClick={sendNow} disabled={busy || !targets.length} className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
+                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Envoyer maintenant à {targets.length}
+                </button>
+              )}
+              {when === 'date' && (
+                <button type="button" onClick={schedule} disabled={busy || !targets.length || !date} className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5"><CalendarClock className="w-4 h-4" /> Programmer pour {targets.length}</button>
+              )}
+              {when === 'seq' && (
+                <button type="button" id="btn-launch-seq" onClick={launchSequence} disabled={busy || !targets.length || steps.length === 0} className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
+                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Lancer la séquence ({steps.length}) pour {targets.length}
+                </button>
+              )}
             </div>
           </div>
           {status && <p className="text-[11px] text-stone-400">Limite d'envoi : {status.sentLast24h} / {status.dailyLimit} e-mails sur 24 h. Les variables sont remplacées contact par contact.</p>}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };
