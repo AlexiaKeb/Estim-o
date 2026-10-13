@@ -328,12 +328,48 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const field = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/20';
   const nextLabel: Record<Stage, string> = { lead: 'Passer en R1', r1: 'Passer en R2', r2: 'Passer en Mandat', mandat: 'Passer en Vente', vente: '' };
 
+  const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?';
+  const first = targets[0] || chosen[0];
+  const fill = (t: string) =>
+    t
+      .replace(/\{Pr[ée]nom\}/g, first ? first.name.split(' ')[0] : 'Prénom')
+      .replace(/\{Nom\}/g, first?.name || 'Nom Prénom')
+      .replace(/\{Adresse\}/g, first?.address || first?.city || 'adresse du bien')
+      .replace(/\{Ville\}/g, first?.city || 'Ville')
+      .replace(/\{TypeBien\}/g, (first?.propertyType || 'bien').toLowerCase())
+      .replace(/\{PrixEstime\}/g, first?.estimatedValue ? `${first.estimatedValue.toLocaleString('fr-FR')} €` : 'votre estimation')
+      .replace(/\{Motif\}/g, first?.motive || 'votre projet');
+  const stageStyle: Record<Stage, string> = {
+    lead: 'from-sky-500 to-sky-600',
+    r1: 'from-amber-500 to-amber-600',
+    r2: 'from-orange-500 to-orange-600',
+    mandat: 'from-violet-500 to-violet-600',
+    vente: 'from-emerald-500 to-emerald-600',
+  };
+  const stepNo = (n: number, t: string, sub?: string) => (
+    <div className="flex items-center gap-3 mb-4">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f1f3d] text-white text-sm font-extrabold shadow-sm">{n}</span>
+      <div><h2 className="text-base font-bold text-stone-900 leading-tight">{t}</h2>{sub && <p className="text-xs text-stone-500">{sub}</p>}</div>
+    </div>
+  );
+  const whenOptions: Array<['now' | 'date' | 'seq', string, string, string]> = [
+    ['now', '⚡', 'Maintenant', "L'e-mail part tout de suite"],
+    ['date', '📅', 'À une date', 'Choisissez le jour et l\'heure'],
+    ['seq', '🔁', 'En séquence', 'Plusieurs e-mails espacés de quelques jours'],
+  ];
+
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-5">
-      <div className="flex justify-center gap-2" role="tablist" aria-label="Outil e-mail">
-        {([['compose', 'Écrire & envoyer'], ['follow', 'Suivi : programmés & envoyés']] as const).map(([k, l]) => (
-          <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`px-4 py-2 rounded-lg text-sm font-bold ${view === k ? 'bg-[#0f1f3d] text-white' : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'}`}>{l}</button>
-        ))}
+    <div className="w-full max-w-6xl mx-auto space-y-6">
+      <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-6 shadow-md flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-extrabold flex items-center gap-2"><Mail className="w-6 h-6 text-amber-300" /> Vos e-mails</h1>
+          <p className="text-sm text-slate-300 mt-0.5">Choisissez vos contacts, écrivez, envoyez. Un seul endroit.</p>
+        </div>
+        <div className="inline-flex rounded-xl bg-white/10 p-1" role="tablist" aria-label="Outil e-mail">
+          {([['compose', 'Écrire & envoyer'], ['follow', 'Suivi']] as const).map(([k, l]) => (
+            <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${view === k ? 'bg-white text-[#0f1f3d] shadow-sm' : 'text-slate-200 hover:text-white'}`}>{l}</button>
+          ))}
+        </div>
       </div>
 
       {view === 'follow' ? (
@@ -369,165 +405,177 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
         </div>
       ) : (
       <>
-      <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-lg sm:text-xl font-extrabold text-stone-900 flex items-center gap-2"><Mail className="w-5 h-5" /> Gestionnaire d'e-mails</h1>
-          <span className="text-xs bg-sky-50 text-sky-800 border border-sky-200 rounded-full px-2.5 py-0.5">{AGENT.name} • Lyon &amp; Beaujolais</span>
-        </div>
-        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Étape du pipeline">
-          {STAGES.map((s, i) => (
-            <button key={s.key} type="button" role="tab" aria-selected={stage === s.key} onClick={() => pickStage(s.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${stage === s.key ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
-              {i + 1}. {s.label} ({byStage[s.key].length})
+      {status && (!status.emailConfigured || !status.baseUrlConfigured) && (
+        <p className="rounded-2xl border border-amber-300 bg-amber-50 text-amber-900 text-sm p-3">L'envoi d'e-mails n'est pas encore configuré sur le serveur (Resend / APP_URL). Vous pouvez préparer vos messages, mais ils ne partiront pas.</p>
+      )}
+
+      {/* 1. CONTACTS */}
+      <section className="rounded-3xl bg-white border border-stone-200 shadow-sm p-5 sm:p-6">
+        {stepNo(1, 'À qui ?', 'Choisissez une étape, puis cochez les contacts.')}
+        <div className="flex flex-wrap gap-2 mb-4" role="tablist" aria-label="Étape du pipeline">
+          {STAGES.map((st) => (
+            <button key={st.key} type="button" role="tab" aria-selected={stage === st.key} onClick={() => pickStage(st.key)}
+              className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${stage === st.key ? `bg-gradient-to-r ${stageStyle[st.key]} text-white shadow-md` : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
+              {st.label} <span className={`ml-1 rounded-full px-2 py-0.5 text-xs ${stage === st.key ? 'bg-white/25' : 'bg-white'}`}>{byStage[st.key].length}</span>
             </button>
           ))}
         </div>
-      </div>
-
-      {status && (!status.emailConfigured || !status.baseUrlConfigured) && (
-        <p className="rounded-xl border border-amber-300 bg-amber-50 text-amber-900 text-sm p-3">L'envoi d'e-mails n'est pas encore configuré sur le serveur (Resend / APP_URL). Vous pouvez préparer vos messages, mais ils ne partiront pas.</p>
-      )}
-
-      <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-stone-200 flex items-center justify-between text-sm">
-          <span className="font-bold text-stone-800">Sélectionner le ou les contacts</span>
-          <span className="text-xs font-semibold text-emerald-700">{chosen.length} sélectionné(s)</span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[720px]">
-            <thead className="text-[11px] uppercase text-stone-500 bg-stone-50">
-              <tr>
-                <th className="p-3 w-10"><input type="checkbox" aria-label="Tout sélectionner" checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(list.map((l) => l.id)))} /></th>
-                <th className="p-3 text-left">Contact</th><th className="p-3 text-left">Bien &amp; localisation</th><th className="p-3 text-left">Estimation</th><th className="p-3 text-left">Téléphone</th><th className="p-3 text-left">Statut</th><th className="p-3 text-right">Évolution</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-stone-400">Aucun contact à cette étape.</td></tr>}
+        {list.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-400">Aucun contact à cette étape.</p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-3 text-sm">
+              <label className="flex items-center gap-2 font-semibold text-stone-700 cursor-pointer"><input type="checkbox" aria-label="Tout sélectionner" checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(list.map((l) => l.id)))} className="h-4 w-4" /> Tout sélectionner</label>
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ${chosen.length ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-500'}`}>{chosen.length} sélectionné{chosen.length > 1 ? 's' : ''}</span>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[26rem] overflow-y-auto pr-1">
               {list.map((l) => {
-                const st = STAGES.find((s) => s.key === stage)!;
+                const on = selected.has(l.id);
                 return (
-                  <tr key={l.id} className={`border-t border-stone-100 ${selected.has(l.id) ? 'bg-sky-50' : ''}`}>
-                    <td className="p-3"><input type="checkbox" aria-label={`Sélectionner ${l.name}`} checked={selected.has(l.id)} onChange={() => toggle(l.id)} /></td>
-                    <td className="p-3 font-semibold text-stone-900">{l.name}{!sendable(l) && <span className="ml-2 text-[10px] font-normal text-rose-600" title="Adresse e-mail ou fiche non enregistrée">sans e-mail valide</span>}</td>
-                    <td className="p-3 text-stone-700">{l.propertyType} {l.surface} m² • {l.city}</td>
-                    <td className="p-3 font-semibold">{l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} €` : '—'}</td>
-                    <td className="p-3 text-stone-600 whitespace-nowrap">{l.phone}</td>
-                    <td className="p-3"><span className={`text-[10px] font-bold rounded px-1.5 py-0.5 ${st.badgeCls}`}>{st.badge}</span></td>
-                    <td className="p-3 text-right">
-                      {stage === 'vente' ? <span className="text-xs text-emerald-700 font-semibold">✓ Transaction clôturée</span> : (
-                        <button type="button" onClick={() => advance(l)} className="rounded-lg border border-stone-300 bg-white hover:bg-stone-50 text-xs font-semibold px-2.5 py-1.5">{nextLabel[stage]} →</button>
-                      )}
-                    </td>
-                  </tr>
+                  <div key={l.id} onClick={() => toggle(l.id)} className={`cursor-pointer rounded-2xl border-2 p-3 transition-all ${on ? 'border-sky-500 bg-sky-50 shadow-sm' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                    <div className="flex items-start gap-3">
+                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${stageStyle[stage]} text-white text-sm font-extrabold`}>{initials(l.name)}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-bold text-stone-900">{l.name}</p>
+                        <p className="truncate text-xs text-stone-500">{l.propertyType} {l.surface} m² • {l.city}</p>
+                        <p className="text-xs font-semibold text-stone-700">{l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} €` : '—'}</p>
+                      </div>
+                      <input type="checkbox" aria-label={`Sélectionner ${l.name}`} checked={on} onChange={() => toggle(l.id)} onClick={(e) => e.stopPropagation()} className="mt-1 h-4 w-4" />
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
+                      <span className="truncate text-stone-500">{sendable(l) ? l.email : <span className="font-semibold text-rose-600">pas d'e-mail valide</span>}</span>
+                      {stage !== 'vente' && <button type="button" onClick={(e) => { e.stopPropagation(); advance(l); }} className="shrink-0 font-semibold text-sky-700 underline">{nextLabel[stage]} →</button>}
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </div>
+          </>
+        )}
+      </section>
 
-      <div className="grid lg:grid-cols-[18rem_1fr] gap-4">
-        <div className="bg-white rounded-2xl border border-stone-200 p-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-bold uppercase text-stone-500">Messages ({TEMPLATES[stage].length + customs.filter((c) => c.stage === stage).length})</div>
-            <button type="button" id="btn-new-mail" onClick={newMessage} className="inline-flex items-center gap-1 rounded-lg bg-[#0f1f3d] hover:bg-[#1a3060] text-white text-xs font-bold px-2.5 py-1.5"><Plus className="w-3.5 h-3.5" /> Nouveau</button>
-          </div>
-          <div className="space-y-2">
-            {TEMPLATES[stage].map((t, i) => (
-              <button key={t.label} type="button" onClick={() => pickTemplate(i)} className={`w-full text-left rounded-xl border p-2.5 text-sm ${current?.kind === 'builtin' && current.i === i ? 'border-sky-500 bg-sky-50' : 'border-stone-200 hover:bg-stone-50'}`}>
-                <span className="inline-flex w-5 h-5 mr-2 items-center justify-center rounded-full bg-[#0f1f3d] text-white text-[11px] font-bold">{i + 1}</span>
-                <span className="font-semibold text-stone-800">{t.label}</span>
-              </button>
-            ))}
-            {customs.filter((c) => c.stage === stage).map((c) => (
-              <div key={c.id} className={`flex items-center gap-1 rounded-xl border p-1 ${current?.kind === 'custom' && current.id === c.id ? 'border-sky-500 bg-sky-50' : 'border-stone-200'}`}>
-                <button type="button" onClick={() => pickCustom(c)} className="flex-1 text-left text-sm p-1.5 min-w-0">
-                  <span className="inline-block mr-2 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5">À moi</span>
-                  <span className="font-semibold text-stone-800">{c.label}</span>
-                </button>
-                <button type="button" onClick={() => deleteTemplate(c)} aria-label={`Supprimer ${c.label}`} className="p-1.5 text-stone-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            ))}
-          </div>
+      {/* 2. MESSAGE */}
+      <section className="rounded-3xl bg-white border border-stone-200 shadow-sm p-5 sm:p-6">
+        {stepNo(2, 'Quel message ?', seq ? 'Cliquez un message pour l\'ajouter à la séquence, ou écrivez le vôtre.' : 'Choisissez un message prêt à l\'emploi ou écrivez le vôtre.')}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {TEMPLATES[stage].map((t, i) => (
+            <button key={t.label} type="button" onClick={() => pickTemplate(i)} className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-all ${!seq && current?.kind === 'builtin' && current.i === i ? 'border-sky-500 bg-sky-50 text-sky-800' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}>{t.label}</button>
+          ))}
+          {customs.filter((c) => c.stage === stage).map((c) => (
+            <span key={c.id} className={`inline-flex items-center rounded-full border pl-3.5 pr-1.5 py-1 text-sm font-semibold ${!seq && current?.kind === 'custom' && current.id === c.id ? 'border-sky-500 bg-sky-50 text-sky-800' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>
+              <button type="button" onClick={() => pickCustom(c)}>{c.label}</button>
+              <button type="button" onClick={() => deleteTemplate(c)} aria-label={`Supprimer ${c.label}`} className="ml-1 rounded-full p-1 text-stone-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+            </span>
+          ))}
+          <button type="button" id="btn-new-mail" onClick={newMessage} className="inline-flex items-center gap-1 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] text-white text-sm font-bold px-3.5 py-1.5"><Plus className="w-4 h-4" /> Nouveau</button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-stone-200 p-4 space-y-3">
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-3 space-y-3">
-            <div className="text-[11px] font-bold uppercase text-stone-500">Quand l'envoyer ? <span className="normal-case font-normal text-stone-400">(canal : e-mail, SMS et WhatsApp pas encore connectés)</span></div>
-            <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Quand envoyer">
-              {([['now', 'Maintenant'], ['date', 'À une date'], ['seq', 'En séquence (plusieurs messages)']] as const).map(([k, l]) => (
-                <button key={k} type="button" role="tab" aria-selected={when === k} onClick={() => switchWhen(k)} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${when === k ? 'bg-[#0f1f3d] text-white' : 'bg-white border border-stone-300 text-stone-700 hover:bg-stone-100'}`}>{l}</button>
+        {seq && (
+          <div className="mb-4 rounded-2xl bg-stone-50 border border-stone-200 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-500">Votre séquence</p>
+              <button type="button" onClick={recommended} className="text-xs font-bold text-sky-700 underline">Utiliser la séquence conseillée</button>
+            </div>
+            <ol className="flex flex-wrap items-stretch gap-2">
+              {steps.map((st, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <button type="button" onClick={() => setActive(i)} className={`rounded-2xl border-2 px-3 py-2 text-left transition-all ${active === i ? 'border-sky-500 bg-white shadow-md' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                    <span className="block text-[10px] font-extrabold uppercase text-sky-700">Jour J+{st.delay}</span>
+                    <span className="block max-w-[11rem] truncate text-sm font-semibold text-stone-800">{st.subject || `Message ${i + 1}`}</span>
+                  </button>
+                  {i < steps.length - 1 && <span className="text-stone-300">→</span>}
+                </li>
               ))}
-            </div>
-            {when !== 'now' && (
-              <div className="flex flex-wrap items-end gap-3 text-xs">
-                <div><label htmlFor="bulk-date" className="font-bold text-stone-500 uppercase block mb-1">{seq ? 'Départ (J+0)' : 'Date'}</label><input id="bulk-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded border border-stone-300 px-2 py-1" /></div>
-                <div><label htmlFor="bulk-time" className="font-bold text-stone-500 uppercase block mb-1">Heure</label><input id="bulk-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded border border-stone-300 px-2 py-1" /></div>
-                {seq && <p className="text-stone-500 max-w-xs">{date ? 'Tous les messages sont programmés à partir de cette date.' : 'Sans date de départ, le premier message (J+0) part tout de suite.'}</p>}
-              </div>
-            )}
-            {seq && (
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {steps.map((st, i) => (
-                    <button key={i} type="button" onClick={() => setActive(i)} className={`rounded-lg px-2.5 py-1.5 text-xs font-bold border ${active === i ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-100'}`}>Message {i + 1} • J+{st.delay}</button>
-                  ))}
-                  <button type="button" onClick={() => addStep('', 'Bonjour {Prénom},\n\n')} className="rounded-lg px-2.5 py-1.5 text-xs font-bold border border-dashed border-stone-400 text-stone-600 hover:bg-stone-100">+ Ajouter</button>
-                  <button type="button" onClick={recommended} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-sky-700 underline">Séquence conseillée</button>
-                </div>
-                {steps[active] && (
-                  <div className="flex flex-wrap items-center gap-3 text-xs">
-                    <label className="flex items-center gap-1.5 font-semibold text-stone-700">Envoyé au jour J+
-                      <input type="number" min={0} max={365} value={steps[active].delay} onChange={(e) => setSteps((st) => st.map((x, i) => (i === active ? { ...x, delay: Math.max(0, Math.min(365, Number(e.target.value) || 0)) } : x)))} className="w-16 rounded border border-stone-300 px-2 py-1" aria-label="Délai en jours" />
-                    </label>
-                    {steps.length > 1 && <button type="button" onClick={() => { setSteps((st) => st.filter((_, i) => i !== active)); setActive(0); }} className="underline text-rose-700">Retirer ce message</button>}
-                    <span className="text-stone-400">Cliquez un message de la liste de gauche pour l'ajouter à la séquence.</span>
-                  </div>
-                )}
+              <li><button type="button" onClick={() => addStep('', 'Bonjour {Prénom},\n\n')} className="h-full rounded-2xl border-2 border-dashed border-stone-300 px-4 py-2 text-sm font-bold text-stone-500 hover:bg-white">+ Ajouter</button></li>
+            </ol>
+            {steps[active] && (
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                <label className="flex items-center gap-2 font-semibold text-stone-700">Envoyé au jour J+
+                  <input type="number" min={0} max={365} value={steps[active].delay} onChange={(e) => setSteps((st) => st.map((x, i) => (i === active ? { ...x, delay: Math.max(0, Math.min(365, Number(e.target.value) || 0)) } : x)))} className="w-20 rounded-lg border border-stone-300 px-2 py-1.5" aria-label="Délai en jours" />
+                </label>
+                {steps.length > 1 && <button type="button" onClick={() => { setSteps((st) => st.filter((_, i) => i !== active)); setActive(0); }} className="text-xs font-semibold text-rose-700 underline">Retirer ce message</button>}
               </div>
             )}
           </div>
+        )}
+
+        <div className="grid lg:grid-cols-2 gap-5">
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="bulk-subject" className="text-xs font-bold uppercase tracking-wider text-stone-500">Objet</label>
+              <input id="bulk-subject" className={field} value={curSubject} onChange={(e) => setCurSubject(e.target.value)} placeholder="Ex : Votre estimation à {Ville}" />
+            </div>
+            <div>
+              <label htmlFor="bulk-body" className="text-xs font-bold uppercase tracking-wider text-stone-500">Message</label>
+              <textarea id="bulk-body" rows={10} className={field} value={curBody} onChange={(e) => setCurBody(e.target.value)} />
+              <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px]">
+                <span className="text-stone-500">Insérer :</span>
+                {VARS.map((v) => <button key={v} type="button" onClick={() => setCurBody((b) => `${b}${v}`)} className="rounded-full border border-sky-200 bg-sky-50 text-sky-800 px-2.5 py-1 font-semibold hover:bg-sky-100">{v}</button>)}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-end gap-2 rounded-2xl bg-stone-50 border border-stone-200 p-3">
+              <div className="flex-1 min-w-[10rem]">
+                <label htmlFor="tpl-name" className="text-[10px] font-bold uppercase text-stone-500 block mb-1">Garder ce message pour plus tard</label>
+                <input id="tpl-name" className={field} value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Nom du message" />
+              </div>
+              <button type="button" id="btn-save-tpl" onClick={saveTemplate} className="rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-3 py-2.5 flex items-center gap-1.5"><Save className="w-4 h-4" /> {current?.kind === 'custom' && !seq ? 'Mettre à jour' : 'Enregistrer'}</button>
+              {tplMsg && <p role="status" className="basis-full text-xs text-stone-600">{tplMsg}</p>}
+            </div>
+          </div>
+
           <div>
-            <label htmlFor="bulk-subject" className="text-xs font-bold text-stone-600">Objet de l'e-mail</label>
-            <input id="bulk-subject" className={field} value={curSubject} onChange={(e) => setCurSubject(e.target.value)} />
-          </div>
-          <div>
-            <label htmlFor="bulk-body" className="text-xs font-bold text-stone-600">Corps du message</label>
-            <textarea id="bulk-body" rows={9} className={field} value={curBody} onChange={(e) => setCurBody(e.target.value)} />
-            <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[11px]">
-              <span className="text-stone-500">Balises :</span>
-              {VARS.map((v) => <button key={v} type="button" onClick={() => setCurBody((b) => `${b}${v}`)} className="rounded border border-sky-200 bg-sky-50 text-sky-800 px-2 py-0.5 font-semibold">+ {v}</button>)}
+            <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Aperçu{first ? ` pour ${first.name}` : ''}</p>
+            <div className="rounded-2xl border border-stone-200 bg-gradient-to-b from-stone-50 to-white p-4 shadow-inner min-h-[16rem]">
+              <p className="text-sm font-bold text-stone-900 border-b border-stone-200 pb-2 mb-3">{fill(curSubject) || <span className="text-stone-300">Objet de l'e-mail</span>}</p>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-stone-700">{fill(curBody)}</p>
+              <p className="mt-4 text-[11px] text-stone-400">Votre signature, votre téléphone et le lien de désinscription sont ajoutés automatiquement.</p>
             </div>
           </div>
-          <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 flex flex-wrap items-end gap-2">
-            <div className="flex-1 min-w-[12rem]">
-              <label htmlFor="tpl-name" className="text-[10px] font-bold uppercase text-stone-500 block mb-1">Nom du message (pour le retrouver)</label>
-              <input id="tpl-name" className={field} value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Ex : Relance après visite" />
-            </div>
-            <button type="button" id="btn-save-tpl" onClick={saveTemplate} className="rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-3 py-2.5 flex items-center gap-1.5"><Save className="w-4 h-4" /> {current?.kind === 'custom' ? 'Mettre à jour' : 'Enregistrer ce message'}</button>
-            {tplMsg && <p role="status" className="basis-full text-xs text-stone-600">{tplMsg}</p>}
-          </div>
-          {report && <p role="status" className={`text-sm rounded-lg p-2.5 ${report.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>{report.text}</p>}
-          <div className="rounded-xl bg-[#0f1f3d] text-white p-3 flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs font-semibold">⚡ Action groupée : {targets.length} contact(s){chosen.length !== targets.length ? ` (${chosen.length - targets.length} sans e-mail valide ignoré(s))` : ''}</span>
-            <div className="flex flex-wrap gap-2">
-              {when === 'now' && (
-                <button type="button" onClick={sendNow} disabled={busy || !targets.length} className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
-                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Envoyer maintenant à {targets.length}
-                </button>
-              )}
-              {when === 'date' && (
-                <button type="button" onClick={schedule} disabled={busy || !targets.length || !date} className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5"><CalendarClock className="w-4 h-4" /> Programmer pour {targets.length}</button>
-              )}
-              {when === 'seq' && (
-                <button type="button" id="btn-launch-seq" onClick={launchSequence} disabled={busy || !targets.length || steps.length === 0} className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
-                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Lancer la séquence ({steps.length}) pour {targets.length}
-                </button>
-              )}
-            </div>
-          </div>
-          {status && <p className="text-[11px] text-stone-400">Limite d'envoi : {status.sentLast24h} / {status.dailyLimit} e-mails sur 24 h. Les variables sont remplacées contact par contact.</p>}
         </div>
+      </section>
+
+      {/* 3. QUAND */}
+      <section className="rounded-3xl bg-white border border-stone-200 shadow-sm p-5 sm:p-6">
+        {stepNo(3, 'Quand ?', 'E-mail uniquement pour le moment (SMS et WhatsApp pas encore connectés).')}
+        <div className="grid sm:grid-cols-3 gap-3" role="tablist" aria-label="Quand envoyer">
+          {whenOptions.map(([k, icon, label, hint]) => (
+            <button key={k} type="button" role="tab" aria-selected={when === k} onClick={() => switchWhen(k)} className={`rounded-2xl border-2 p-4 text-left transition-all ${when === k ? 'border-sky-500 bg-sky-50 shadow-md' : 'border-stone-200 hover:border-stone-300'}`}>
+              <span className="text-2xl">{icon}</span>
+              <span className="block mt-1 font-extrabold text-stone-900">{label}</span>
+              <span className="block text-xs text-stone-500">{hint}</span>
+            </button>
+          ))}
+        </div>
+        {when !== 'now' && (
+          <div className="mt-4 flex flex-wrap items-end gap-4 rounded-2xl bg-stone-50 border border-stone-200 p-4 text-sm">
+            <div><label htmlFor="bulk-date" className="block text-[11px] font-bold uppercase text-stone-500 mb-1">{seq ? 'Premier envoi (J+0)' : 'Date'}</label><input id="bulk-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2" /></div>
+            <div><label htmlFor="bulk-time" className="block text-[11px] font-bold uppercase text-stone-500 mb-1">Heure</label><input id="bulk-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2" /></div>
+            {seq && <p className="text-xs text-stone-500 max-w-xs">{date ? 'Tous les messages sont programmés à partir de cette date.' : 'Sans date, le premier message part tout de suite et les suivants sont programmés.'}</p>}
+          </div>
+        )}
+      </section>
+
+      {report && <p role="status" className={`rounded-2xl p-3 text-sm font-semibold ${report.ok ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>{report.text}</p>}
+
+      {/* ACTION */}
+      <div className="sticky bottom-3 z-10 rounded-3xl bg-[#0f1f3d] text-white p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold">{targets.length} contact{targets.length > 1 ? 's' : ''} prêt{targets.length > 1 ? 's' : ''}{chosen.length !== targets.length ? ` • ${chosen.length - targets.length} sans e-mail valide ignoré(s)` : ''}</p>
+          {status && <p className="text-[11px] text-slate-300">Limite d'envoi : {status.sentLast24h} / {status.dailyLimit} e-mails sur 24 h</p>}
+        </div>
+        {when === 'now' && (
+          <button type="button" onClick={sendNow} disabled={busy || !targets.length} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2">
+            {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Envoyer maintenant à {targets.length}
+          </button>
+        )}
+        {when === 'date' && (
+          <button type="button" onClick={schedule} disabled={busy || !targets.length || !date} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2"><CalendarClock className="w-5 h-5" /> Programmer pour {targets.length}</button>
+        )}
+        {when === 'seq' && (
+          <button type="button" id="btn-launch-seq" onClick={launchSequence} disabled={busy || !targets.length || steps.length === 0} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2">
+            {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Lancer la séquence ({steps.length}) pour {targets.length}
+          </button>
+        )}
       </div>
       </>
       )}
