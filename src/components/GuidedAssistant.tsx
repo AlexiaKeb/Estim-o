@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Bot, CalendarDays, CheckCircle2, Loader2, Send, ShieldCheck, TrendingUp } from 'lucide-react';
+import { ArrowRight, Bot, CalendarDays, Check, CheckCircle2, Loader2, Lock, Send, ShieldCheck, TrendingUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Lead, ValuationInputs, ValuationResult } from '../types';
 import { AGENT } from '../data/siteContent';
@@ -156,6 +156,8 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
 
   const contactDone = step !== 'address' && step !== 'type' && step !== 'surface' && step !== 'rooms' && step !== 'timeframe' && step !== 'motive' && step !== 'contact' && step !== 'computing';
 
+  const expanded = Boolean(result && lead);
+
   // Keep the conversation (not the page) scrolled to the latest message
   useEffect(() => {
     const el = scrollRef.current;
@@ -163,6 +165,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     // Once the estimate is shown, keep its top in view: the price is the hook, the slots stay under it
     const card = el.querySelector<HTMLElement>('#assistant-result');
     const lastResult = messages.map((m) => m.result).lastIndexOf(true);
+    if (card && expanded) {
+      if (lastResult >= messages.length - 1 && !typing) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     if (card && lastResult >= messages.length - 3) el.scrollTo({ top: Math.max(0, card.offsetTop - 12), behavior: 'smooth' });
     else el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [messages, typing, step]);
@@ -605,31 +611,76 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
   // Rendering --------------------------------------------------------------------------------------------
   const resultCard =
     result && lead ? (
-      <div className="rounded-2xl bg-white border border-stone-200 shadow-md p-4 sm:p-5 space-y-2 w-full">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
-          <TrendingUp className="w-3.5 h-3.5" />
-          Estimation indicative (IA)
-        </span>
-        <div className="pt-2 pb-1">
-          <div className="flex items-center justify-between text-lg sm:text-xl font-bold text-[#0f1f3d]">
-            <span>{fmt(result.lowPrice)} €</span>
-            <span>{fmt(result.highPrice)} €</span>
+      <div className="rounded-2xl bg-white border border-stone-200 shadow-md p-4 sm:p-6 space-y-5 w-full">
+        <div className="text-center space-y-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold uppercase tracking-wider">
+            <TrendingUp className="w-3.5 h-3.5" />
+            Estimation indicative (IA)
+          </span>
+          <div className="text-2xl sm:text-3xl font-extrabold text-[#0f1f3d] tracking-tight">
+            {fmt(result.lowPrice)} € – {fmt(result.highPrice)} €
           </div>
-          <div className="relative my-3 h-3 rounded-full bg-gradient-to-r from-emerald-200 via-amber-200 to-emerald-200">
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-white border border-amber-300 text-[11px] font-bold text-amber-700 blur-[1.5px] select-none whitespace-nowrap" aria-hidden="true">
-              ? Prix juste ?
-            </span>
+          <p className="text-sm text-stone-600 leading-snug">
+            La base DVF donne des moyennes. Votre logement se situe quelque part dans cette amplitude :
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 p-3 sm:p-4 space-y-3">
+          <div className="flex justify-between gap-3 text-xs sm:text-sm">
+            <div>
+              <div className="font-bold text-stone-800">📉 Décote</div>
+              <div className="text-[11px] text-stone-500">Travaux, bruit, vis-à-vis</div>
+            </div>
+            <div className="text-right">
+              <div className="font-bold text-stone-800">📈 Plus-value</div>
+              <div className="text-[11px] text-stone-500">Lumière, vue, état irréprochable</div>
+            </div>
           </div>
+          <div className="relative h-3 rounded-full bg-gradient-to-r from-rose-300 via-amber-200 to-emerald-300">
+            <button
+              type="button"
+              onClick={() => onOpenBooking?.(bookingInfo())}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-full bg-[#0f1f3d] text-white text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-2 shadow-lg whitespace-nowrap"
+            >
+              <Lock className="w-3.5 h-3.5" /> <span className="sm:hidden">Valeur réelle sur place</span><span className="hidden sm:inline">Valeur réelle à déterminer sur place</span>
+            </button>
+          </div>
+          <div className="h-2" aria-hidden="true" />
           <p className="sr-only">Fourchette de {fmt(result.lowPrice)} à {fmt(result.highPrice)} euros.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-stone-100 border border-stone-200 p-4 space-y-2">
+            <div className="font-bold text-sm text-[#0f1f3d]">🤖 Ce que voit l'algorithme (IA)</div>
+            <ul className="text-sm text-stone-700 space-y-1">
+              {['Surface en m²', 'Code postal / quartier', 'Historique des ventes DVF'].map((t) => (
+                <li key={t} className="flex gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />{t}</li>
+              ))}
+            </ul>
+            <p className="text-xs italic text-stone-500">Une vision théorique, sans visite.</p>
+          </div>
+          <div className="rounded-2xl bg-sky-50 border border-sky-200 p-4 space-y-2">
+            <div className="font-bold text-sm text-[#0f1f3d]">🏠 Ce que valide {AGENT.firstName} sur place</div>
+            <ul className="text-sm text-stone-700 space-y-1">
+              {['Luminosité, exposition & vue', 'Agencement & potentiel du bien', 'Qualité des prestations & matériaux', 'Demande réelle des acheteurs du secteur'].map((t) => (
+                <li key={t} className="flex gap-2"><Lock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-1" />{t}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="space-y-2">
           <button
             type="button"
             onClick={() => onOpenBooking?.(bookingInfo())}
-            className="w-full mt-1 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-[#0f1f3d] text-sm font-semibold px-3 py-2.5 transition-colors"
+            className="w-full rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold text-base sm:text-lg py-4 px-4 shadow-lg transition-colors flex items-center justify-center gap-2"
           >
-            Seule la visite de {AGENT.firstName} permet de débloquer le point exact dans cette fourchette.
+            <Lock className="w-5 h-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
           </button>
+          <p className="text-center text-xs text-stone-500">Visite offerte et sans engagement · avis de valeur sous 48h</p>
         </div>
-        <div className="text-xs text-stone-600">
+
+        <div className="text-xs text-stone-500 text-center">
           ~{fmt(result.avgM2)} €/m² · {result.propertyType} de {result.surface} m² à {result.city}
         </div>
         <ValuationEvidence result={result} />
@@ -864,7 +915,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     <div
       id="assistant-panel"
       className="rounded-3xl border border-stone-200 bg-white shadow-xl overflow-hidden flex flex-col max-w-3xl mx-auto w-full"
-      style={{ maxHeight: 'min(90vh, 880px)' }}
+      style={expanded ? undefined : { maxHeight: 'min(90vh, 880px)' }}
     >
       <header className="bg-[#0f1f3d] text-white px-4 sm:px-5 py-3.5 flex items-center gap-3">
         <div className="relative">
@@ -894,10 +945,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         </div>
       )}
 
-      <div ref={scrollRef} className="relative min-h-0 overflow-y-auto px-4 sm:px-5 py-5 space-y-3 bg-stone-50 transition-[max-height]" aria-live="polite">
+      <div ref={scrollRef} className={`relative min-h-0 ${expanded ? '' : 'overflow-y-auto'} px-4 sm:px-5 py-5 space-y-3 bg-stone-50`} aria-live="polite">
         {messages.map((m) =>
           m.result ? (
-            <div key={m.id} id="assistant-result" className="max-w-[96%] space-y-3">{resultCard}</div>
+            <div key={m.id} id="assistant-result" className="w-full space-y-3 scroll-mt-4">{resultCard}</div>
           ) : (
             <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : 'flex'}>
               <div
@@ -934,7 +985,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         )}
       </div>
 
-      <div className="border-t border-stone-200 bg-white px-4 sm:px-5 py-4 space-y-3 shrink-0 max-h-[52vh] overflow-y-auto">
+      <div className={`border-t border-stone-200 bg-white px-4 sm:px-5 py-4 space-y-3 shrink-0 ${expanded ? '' : 'max-h-[52vh] overflow-y-auto'}`}>
         {!typing || step === 'computing' ? composer : <div className="h-10" />}
         {contactDone && step !== 'computing' && (
           <form

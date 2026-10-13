@@ -426,10 +426,10 @@ export const CalendarBookingModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in">
+      <div className="bg-white sm:rounded-3xl sm:border border-slate-200 shadow-2xl w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[94vh] overflow-y-auto relative">
         {/* Header */}
-        <div className="bg-stone-900 text-white p-6 md:p-7 flex items-start justify-between">
+        <div className="bg-stone-900 text-white p-5 md:p-7 flex items-start justify-between sticky top-0 z-10">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-semibold uppercase tracking-wider mb-2">
               <HeartHandshake className="w-3.5 h-3.5" />
@@ -629,7 +629,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
             </form>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6 max-h-[72vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
             {/* Error Notification Banner */}
             {bookingError && (
               <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-3 shadow-xs animate-in fade-in">
