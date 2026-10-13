@@ -5,8 +5,8 @@ type Key = 'price' | 'rate' | 'fee' | 'net';
 
 const LABELS: Record<Key, { label: string; unit: string; hint: string }> = {
   price: { label: 'Prix de vente (FAI)', unit: '€', hint: 'Prix affiché, honoraires inclus' },
-  rate: { label: 'Commission', unit: '%', hint: 'Honoraires en % du prix de vente' },
-  fee: { label: 'Montant de la commission', unit: '€', hint: 'Honoraires en euros' },
+  rate: { label: 'Commission agence', unit: '%', hint: 'Honoraires en % du prix de vente' },
+  fee: { label: 'Montant commission agence', unit: '€', hint: 'Honoraires en euros' },
   net: { label: 'Prix net vendeur', unit: '€', hint: 'Ce que touche le vendeur' },
 };
 

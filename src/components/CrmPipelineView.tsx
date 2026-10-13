@@ -54,7 +54,7 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className={card}><span className={lab}>Prix de vente final</span><div className="text-sm font-extrabold text-stone-900 mt-1">{price ? `${price.toLocaleString('fr-FR')} €` : '—'}</div></div>
           <div className={card}>
-            <span className={lab}>Ma commission</span>
+            <span className={lab}>Commission agence</span>
             <div className="text-sm font-extrabold text-stone-900 mt-1">{fee.toLocaleString('fr-FR')} €</div>
             {price && fee ? <div className="text-[10px] text-stone-400 mt-0.5">{((fee / price) * 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} % du prix</div> : null}
           </div>
@@ -73,7 +73,7 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
       </div>
       <CommissionFields initial={{ price: m.sellingPrice || undefined }} onResult={setRes} />
       <div>
-        <label htmlFor="sale-net-fee" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Commission nette (€) • à saisir à la main</label>
+        <label htmlFor="sale-net-fee" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Commission nette (€) • ce que vous touchez, à saisir à la main</label>
         <div className="relative max-w-xs">
           <input id="sale-net-fee" inputMode="decimal" value={netFee} onChange={(e) => setNetFee(e.target.value)} placeholder="Ce que vous touchez réellement" className="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 pr-9 text-base font-bold" />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 font-semibold">€</span>
@@ -88,7 +88,7 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
       >
         🏁 Enregistrer la vente
       </button>
-      <p className="text-[11px] text-stone-500">Indiquez le prix de vente final et votre commission (en € ou en %) : les deux autres champs se calculent.</p>
+      <p className="text-[11px] text-stone-500">Indiquez le prix de vente final et la commission de l'agence (en € ou en %) : les deux autres champs se calculent.</p>
     </div>
   );
 };
@@ -258,7 +258,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 
     let actionLabel = '';
     if (mandateData.soldDate) {
-      actionLabel = `Vente conclue le ${mandateData.soldDate} (prix ${(updatedMandate.salePrice || 0).toLocaleString('fr-FR')} €, ma commission ${(updatedMandate.saleFee || 0).toLocaleString('fr-FR')} €)`;
+      actionLabel = `Vente conclue le ${mandateData.soldDate} (prix ${(updatedMandate.salePrice || 0).toLocaleString('fr-FR')} €, commission agence ${(updatedMandate.saleFee || 0).toLocaleString('fr-FR')} €)`;
     } else if (mandateData.soldDate === '') {
       actionLabel = 'Vente annulée (retour au mandat signé)';
     } else if (updatedMandate.status === 'signed') {
