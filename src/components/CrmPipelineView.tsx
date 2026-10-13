@@ -34,10 +34,11 @@ const Visit2Box: React.FC<{ lead: Lead; onSave: (v: Lead['visit2'] | undefined) 
 };
 
 /** Vente conclue : date, prix de vente final et commission de Céline (champs liés : prix, %, commission, net vendeur). */
-const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number, salePrice?: number, ratePercent?: number) => void }> = ({ lead, onSave }) => {
+const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number, salePrice?: number, ratePercent?: number, netFee?: number) => void }> = ({ lead, onSave }) => {
   const m = lead.mandate!;
   const [date, setDate] = useState(m.soldDate || new Date().toISOString().slice(0, 10));
   const [res, setRes] = useState<CommissionResult | null>(null);
+  const [netFee, setNetFee] = useState('');
   if (m.soldDate) {
     const price = m.salePrice || 0;
     const fee = m.saleFee || 0;
@@ -49,6 +50,7 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
             {price ? `Prix de vente : ${price.toLocaleString('fr-FR')} € • ` : ''}Ma commission : {fee.toLocaleString('fr-FR')} €
             {price && fee ? ` (${((fee / price) * 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %) • Net vendeur : ${(price - fee).toLocaleString('fr-FR')} €` : ''}
           </p>
+          {m.saleNetFee ? <p>Ma commission nette : <strong>{m.saleNetFee.toLocaleString('fr-FR')} €</strong></p> : null}
         </div>
         <button type="button" onClick={() => onSave('', 0)} className="text-xs underline text-emerald-900">Annuler la vente</button>
       </div>
@@ -62,11 +64,18 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
         <input id="sale-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
       </div>
       <CommissionFields initial={{ price: m.sellingPrice || undefined }} onResult={setRes} />
+      <div>
+        <label htmlFor="sale-net-fee" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Commission nette (€) • à saisir à la main</label>
+        <div className="relative max-w-xs">
+          <input id="sale-net-fee" inputMode="decimal" value={netFee} onChange={(e) => setNetFee(e.target.value)} placeholder="Ce que vous touchez réellement" className="w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 pr-9 text-base font-bold" />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 font-semibold">€</span>
+        </div>
+      </div>
       <button
         type="button"
         id="btn-save-sale"
         disabled={!res || !date}
-        onClick={() => res && date && onSave(date, Math.round(res.fee), Math.round(res.price), Math.round(res.rate * 100) / 100)}
+        onClick={() => res && date && onSave(date, Math.round(res.fee), Math.round(res.price), Math.round(res.rate * 100) / 100, Math.round(Number(netFee.replace(/\s/g, '').replace(',', '.')) || 0) || undefined)}
         className="rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold px-4 py-2"
       >
         🏁 Enregistrer la vente
@@ -1511,7 +1520,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-stone-900 flex items-center gap-2">
-                        <span>Statut du Mandat & Honoraires</span>
+                        <span>Statut du mandat & vente</span>
                         {selectedLeadDrawer.mandate?.status === 'signed' && (
                           <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
                             selectedLeadDrawer.mandate.type === 'exclusive'
@@ -1523,7 +1532,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                         )}
                       </h4>
                       <p className="text-[11px] text-stone-500">
-                        Définissez le type de mandat, les honoraires d'agence et le numéro de registre
+                        Définissez le type de mandat, puis enregistrez la vente
                       </p>
                     </div>
                   </div>
@@ -1598,7 +1607,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   <SaleBox
                     key={selectedLeadDrawer.id + (selectedLeadDrawer.mandate?.soldDate || '')}
                     lead={selectedLeadDrawer}
-                    onSave={(soldDate, saleFee, salePrice, ratePercent) => handleUpdateLeadMandate(selectedLeadDrawer, { soldDate, saleFee, salePrice, feeRatePercent: ratePercent })}
+                    onSave={(soldDate, saleFee, salePrice, ratePercent, saleNetFee) => handleUpdateLeadMandate(selectedLeadDrawer, { soldDate, saleFee, salePrice, feeRatePercent: ratePercent, saleNetFee })}
                   />
                 )}
 

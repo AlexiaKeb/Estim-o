@@ -89,6 +89,8 @@ export interface MandateDetails {
   saleFee?: number;
   /** Prix de vente final (acte) */
   salePrice?: number;
+  /** Commission nette de la conseillère (saisie à la main) */
+  saleNetFee?: number;
 }
 
 export interface LeadActivity {
