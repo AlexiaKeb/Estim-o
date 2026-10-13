@@ -882,14 +882,15 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-stone-800">
-              {BRAND.name}
+              {BRAND.name} – Céline LEVRAT – Expertise Immobilière
             </span>
             <span>•</span>
             <span>Estimation gratuite et sans engagement</span>
             <span>•</span>
             <a href="/blog" className="hover:text-stone-800 underline-offset-2 hover:underline">Conseils</a>
             <a href="/mentions-legales" className="hover:text-stone-800 underline-offset-2 hover:underline">Mentions légales</a>
-            <a href="/confidentialite" className="hover:text-stone-800 underline-offset-2 hover:underline">Confidentialité</a>
+            <a href="/confidentialite" className="hover:text-stone-800 underline-offset-2 hover:underline">Politique de confidentialité</a>
+            <a href="tel:+33603580316" className="hover:text-stone-800 underline-offset-2 hover:underline">Contact</a>
           </div>
 
           <div className="flex items-center gap-4 text-stone-500">

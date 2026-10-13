@@ -20,6 +20,7 @@ export const PreVisitBrief: React.FC<Props> = ({ lead, onBrief }) => {
     q?.ownership && OWNERSHIP[q.ownership],
     q?.mandate && MANDATE[q.mandate],
     q?.occupancy && OCCUPANCY[q.occupancy],
+    q?.profession ? `Activité : ${q.profession}` : null,
     q?.expectedPrice ? `Prix espéré : ${q.expectedPrice.toLocaleString('fr-FR')} €` : null,
   ].filter(Boolean) as string[];
 

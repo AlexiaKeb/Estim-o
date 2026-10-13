@@ -59,15 +59,15 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
         <div className="space-y-6 min-w-0">
           <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-amber-200 bg-white/10 border border-white/15 rounded-full px-3 py-1">
             <MapPin className="w-3.5 h-3.5" />
-            Lyon, Villeurbanne, Beaujolais et 50 km autour
+            Région Lyonnaise &amp; Beaujolais
           </p>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05] [text-wrap:balance]">
-            Combien vaut vraiment <span className="text-amber-300">votre bien</span> à&nbsp;Lyon et autour&nbsp;?
+            Quelle est la <span className="text-amber-300">valeur réelle</span> de votre bien à&nbsp;Lyon et sa région&nbsp;?
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-            Une estimation appuyée sur les ventes réelles de votre quartier, confirmée sur place par {AGENT.firstName}, conseillère locale. Gratuit et sans engagement.
+            Obtenez une estimation basée sur les ventes réelles de votre quartier, affinée sur place par {AGENT.firstName}, votre conseillère de proximité.
           </p>
 
           <form onSubmit={start} className="rounded-2xl bg-white shadow-2xl shadow-black/30 p-2 sm:p-3 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-2xl text-stone-900" aria-label="Démarrer l'estimation">
@@ -98,7 +98,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
           </form>
 
           <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-200">
-            {['Résultat en 2 minutes', '100 % gratuit', 'Sans engagement'].map((t) => (
+            {['Estimation en 2 minutes', '100 % gratuit', 'Sans engagement'].map((t) => (
               <li key={t} className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
                 {t}
@@ -122,11 +122,11 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
           )}
           <div className="p-6 space-y-4">
             <div>
-              <div className="text-lg font-semibold">{AGENT.name}</div>
-              <div className="text-sm text-stone-600">Conseillère immobilière indépendante</div>
+              <div className="text-lg font-semibold">{AGENT.firstName} {AGENT.name.split(' ').slice(1).join(' ').toUpperCase()}</div>
+              <div className="text-sm text-stone-600">Votre experte immobilière locale</div>
             </div>
             <p className="text-sm text-stone-600 leading-relaxed">
-              C'est {AGENT.firstName} qui vous accompagne, de l'estimation jusqu'à la visite. Pas de centre d'appels.
+              Un accompagnement sur mesure, de l'estimation jusqu'à la signature. Un seul interlocuteur direct, sans intermédiaire ni centre d'appels.
             </p>
             <dl className="text-sm space-y-2 border-t border-stone-200 pt-4">
               <div className="flex gap-2">
@@ -135,7 +135,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
               </div>
               <div className="flex gap-2">
                 <Clock className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                <dd className="text-stone-700">Visite de découverte gratuite, sans engagement</dd>
+                <dd className="text-stone-700">Déplacement &amp; rendez-vous offerts</dd>
               </div>
             </dl>
             <a
@@ -143,7 +143,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0f1f3d] hover:bg-[#1a3060] px-4 py-3 text-sm font-semibold text-white transition-colors"
             >
               <Phone className="w-4 h-4 text-amber-300" />
-              {AGENT.phone}
+              Appeler {AGENT.firstName} au {AGENT.phone}
             </a>
           </div>
         </aside>
@@ -180,18 +180,18 @@ const H2: React.FC<{ id: string; children: React.ReactNode; light?: boolean }> =
 const STEPS = [
   {
     icon: Home,
-    title: "Répondez à l'assistant",
-    text: "Adresse, surface, projet : l'assistant IA de Céline vous guide en quelques clics et affiche votre fourchette de prix.",
+    title: 'Évaluez votre bien en ligne',
+    text: "Indiquez l'adresse, la surface et les caractéristiques de votre logement. L'assistant calcule immédiatement une première fourchette de prix.",
   },
   {
     icon: MessageSquare,
     title: 'Choisissez votre créneau',
-    text: `L'assistant vous montre les disponibilités réelles de ${AGENT.firstName} et réserve la visite avec vous.`,
+    text: `Accédez directement aux disponibilités de ${AGENT.firstName} et fixez un rendez-vous selon votre agenda, en quelques secondes.`,
   },
   {
     icon: CheckCircle2,
-    title: 'Faites confirmer sur place',
-    text: 'Une visite sur place, offerte. Vous repartez avec un avis de valeur argumenté.',
+    title: `Validez l'estimation lors de la visite de ${AGENT.firstName}`,
+    text: `L'estimation IA n'est qu'un indicateur. Seule la visite physique de ${AGENT.firstName} sur place permet de prendre en compte la réalité de votre bien. Sous 48h, elle vous remet votre dossier d'estimation complet et argumenté.`,
   },
 ];
 
@@ -199,8 +199,8 @@ export const HowItWorks: React.FC = () => (
   <Band tone="white">
     <section aria-labelledby="how-title">
       <div className="text-center max-w-2xl mx-auto">
-        <Eyebrow>Simple et rapide</Eyebrow>
-        <H2 id="how-title">Comment ça se passe</H2>
+        <Eyebrow>Votre estimation en 3 étapes</Eyebrow>
+        <H2 id="how-title">Comment obtenir l'estimation de votre bien ?</H2>
       </div>
       <ol className="mt-12 grid md:grid-cols-3 gap-10 md:gap-8 relative">
         <div aria-hidden className="hidden md:block absolute top-8 left-[16%] right-[16%] border-t-2 border-dashed border-amber-300" />
@@ -223,29 +223,29 @@ export const WhyOnSite: React.FC = () => (
   <Band tone="navy">
     <section aria-labelledby="why-title" className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
       <div className="min-w-0">
-        <Eyebrow light>Simulation ou visite ?</Eyebrow>
-        <H2 id="why-title" light>Pourquoi une simulation ne suffit pas</H2>
+        <Eyebrow light>Estimation en ligne vs estimation sur place</Eyebrow>
+        <H2 id="why-title" light>Pourquoi l'estimation en ligne doit être confirmée sur place&nbsp;?</H2>
         <p className="mt-4 text-lg text-slate-300 leading-relaxed">
-          Un algorithme compare des mètres carrés. Il ne voit pas la lumière de votre séjour, la qualité de la rénovation, le calme de la rue ou la vue. Ce sont ces détails qui font la différence au moment de négocier.
+          Un algorithme compare des données froides. Il ne perçoit ni la luminosité de votre séjour, ni la qualité des matériaux, ni le charme d'un jardin ou le calme du quartier. En région lyonnaise comme dans le Beaujolais, ce sont précisément ces prestations qui déclenchent un coup de cœur et valorisent votre prix au m².
         </p>
       </div>
       <div className="grid sm:grid-cols-2 gap-4 min-w-0">
         <div className="rounded-2xl bg-white/5 border border-white/15 p-5">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">En ligne · 2 minutes</p>
-          <h3 className="mt-1 text-lg font-bold text-white">La simulation</h3>
+          <h3 className="mt-1 text-lg font-bold text-white">La simulation automatique</h3>
           <ul className="mt-3 space-y-2 text-sm text-slate-300">
-            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />Fondée sur les ventes réelles</li>
-            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />Un repère indicatif</li>
-            <li className="flex gap-2 text-slate-400"><span className="w-4 text-center shrink-0">–</span>Ne voit pas l'état réel du bien</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />Base de données DVF des ventes réelles</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />Fixe une première fourchette de prix</li>
+            <li className="flex gap-2 text-slate-400"><span className="w-4 text-center shrink-0">–</span>Ne prend pas en compte l'état du bien</li>
           </ul>
         </div>
         <div className="rounded-2xl bg-white text-stone-800 border-2 border-amber-400 p-5 shadow-xl sm:-translate-y-2">
           <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Gratuite · sans engagement</p>
-          <h3 className="mt-1 text-lg font-bold text-[#0f1f3d]">La visite sur place</h3>
+          <h3 className="mt-1 text-lg font-bold text-[#0f1f3d]">L'expertise sur place par {AGENT.firstName}</h3>
           <ul className="mt-3 space-y-2 text-sm text-stone-700">
-            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Tient compte de votre bien réel</li>
-            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Un avis argumenté, chiffre par chiffre</li>
-            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Vous gardez la décision</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Analyse de la vue, de l'exposition et des travaux</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Avis de valeur détaillé</li>
+            <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Rendez-vous offert, sans aucun engagement</li>
           </ul>
         </div>
       </div>
@@ -297,9 +297,9 @@ export const FaqSection: React.FC = () => {
     <Band tone="cream">
       <section aria-labelledby="faq-title" className="grid lg:grid-cols-[1fr_1.7fr] gap-10 lg:gap-14">
         <div>
-          <Eyebrow>FAQ</Eyebrow>
-          <H2 id="faq-title">Vos questions</H2>
-          <p className="mt-4 text-stone-600 leading-relaxed">Une autre question ? {AGENT.firstName} vous répond directement.</p>
+          <Eyebrow>Questions fréquentes</Eyebrow>
+          <H2 id="faq-title">Toutes les réponses sur votre estimation</H2>
+          <p className="mt-4 text-stone-600 leading-relaxed">Une question spécifique ? {AGENT.firstName} vous répond directement par téléphone.</p>
           <a href={AGENT.phoneHref} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0f1f3d] hover:bg-[#1a3060] text-white font-semibold px-5 py-3 transition-colors">
             <Phone className="w-4 h-4 text-amber-300" />
             {AGENT.phone}
@@ -344,15 +344,15 @@ export const FinalCta: React.FC = () => (
         <img src={AGENT.photoUrl} alt={AGENT.name} width={160} height={160} loading="lazy" className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white shadow-xl shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight [text-wrap:balance]">Prêt à connaître la valeur de votre bien&nbsp;?</h2>
-        <p className="mt-3 text-lg text-[#0f1f3d]/80 max-w-xl">Deux minutes pour la simulation, une visite gratuite pour affiner. {AGENT.firstName} s'occupe du reste.</p>
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight [text-wrap:balance]">Prêt à connaître la valeur réelle de votre bien&nbsp;?</h2>
+        <p className="mt-3 text-lg text-[#0f1f3d]/80 max-w-xl">2 minutes pour la simulation en ligne, une visite offerte pour valider. {AGENT.firstName} s'occupe de tout.</p>
       </div>
       <button
         type="button"
         onClick={scrollToSimulator}
         className="inline-flex items-center gap-2 rounded-xl bg-[#0f1f3d] hover:bg-[#1a3060] text-white font-bold px-7 py-4 text-base shadow-xl transition-colors shrink-0"
       >
-        Estimer mon bien gratuitement
+        Lancer mon estimation gratuite
         <ArrowRight className="w-5 h-5" />
       </button>
     </section>
@@ -471,20 +471,24 @@ export const ZoneSection: React.FC = () => (
   <Band tone="cream">
     <section aria-labelledby="zone-title" className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-14 items-center">
       <div>
-        <Eyebrow>Zone d'intervention</Eyebrow>
-        <H2 id="zone-title">Estimation immobilière à Lyon, Villeurbanne et en Beaujolais</H2>
+        <Eyebrow>Secteur d'expertise</Eyebrow>
+        <H2 id="zone-title">Une estimation humaine, bien au-delà des algorithmes</H2>
         <p className="mt-4 text-stone-600 leading-relaxed">
-          {AGENT.name} accompagne les propriétaires de la métropole lyonnaise et du Beaujolais, jusqu'à 50 km autour de Lyon. Votre estimation en ligne s'appuie sur les ventes réellement enregistrées par l'État (base DVF) autour de votre adresse. La visite permet ensuite de tenir compte de ce qu'aucune base de données ne voit : l'état du bien, la luminosité, l'étage, la vue, les travaux réalisés.
+          Une IA calcule des prix au m². {AGENT.firstName} connaît la vraie valeur de votre logement : elle croise les ventes réelles de votre secteur (base DVF) avec ce qu'aucun ordinateur ne peut évaluer, la luminosité, la vue, l'étage, l'agencement et le coup de cœur du bien. C'est cette étude sur le terrain qui garantit un avis de valeur juste pour vendre efficacement.
         </p>
       </div>
-      <ul className="grid grid-cols-2 gap-3">
-        {['Lyon', 'Villeurbanne', 'Caluire-et-Cuire', 'Bron', 'Écully', 'Villefranche-sur-Saône'].map((c) => (
+      <ul className="grid gap-3">
+        {[
+          'Métropole de Lyon (Grand Lyon, Nord & Ouest Lyonnais)',
+          "Val de Saône & Monts d'Or",
+          'Beaujolais & Pierres Dorées',
+          'Villefranche & alentours',
+        ].map((c) => (
           <li key={c} className="flex items-center gap-2 rounded-xl bg-white border border-stone-200 px-4 py-3.5 font-semibold text-[#0f1f3d]">
             <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
             {c}
           </li>
         ))}
-        <li className="col-span-2 rounded-xl border border-dashed border-stone-300 px-4 py-3 text-sm text-stone-600">Beaujolais et communes alentour</li>
       </ul>
     </section>
   </Band>
@@ -502,10 +506,10 @@ export const BlogTeaser: React.FC = () => (
     <section aria-labelledby="blog-teaser-title">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Eyebrow>Conseils</Eyebrow>
-          <H2 id="blog-teaser-title">Préparer votre vente</H2>
+          <Eyebrow>L'avis de l'expert</Eyebrow>
+          <H2 id="blog-teaser-title">Comment valoriser et vendre votre logement à sa vraie valeur</H2>
         </div>
-        <a href="/blog" className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0f1f3d] underline underline-offset-4">Tous les conseils <ArrowRight className="w-4 h-4" /></a>
+        <a href="/blog" className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0f1f3d] underline underline-offset-4">Tous les conseils d'experts <ArrowRight className="w-4 h-4" /></a>
       </div>
       <ul className="mt-8 grid md:grid-cols-3 gap-5">
         {TEASER.map(([slug, cat, title]) => (

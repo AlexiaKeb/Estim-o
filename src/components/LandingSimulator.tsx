@@ -34,8 +34,8 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
 
       <section id="simulateur" aria-label="Votre estimation avec l'assistant" className="scroll-mt-20 space-y-4">
         <div className="text-center space-y-1">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">Votre estimation, pas à pas</h2>
-          <p className="text-stone-600 text-sm sm:text-base">L'assistant vous guide jusqu'à la visite. Quelques clics suffisent.</p>
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
+          <p className="text-stone-600 text-sm sm:text-base">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
         </div>
         <GuidedAssistant seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={onOpenBooking} onLeadReady={setLeadInfo} />
       </section>

@@ -10,6 +10,7 @@ export interface Qualification {
   mandate?: Mandate;
   occupancy?: Occupancy;
   expectedPrice?: number | null;
+  profession?: string;
   answeredAt?: string;
 }
 
@@ -95,5 +96,7 @@ export function sanitizeQualification(body: any): Qualification {
   if (OCCUPANCY.includes(body?.occupancy)) q.occupancy = body.occupancy;
   const price = Number(body?.expectedPrice ?? body?.expected_price);
   if (isFinite(price) && price >= 20000 && price <= 20000000) q.expectedPrice = Math.round(price);
+  const job = typeof body?.profession === "string" ? body.profession.replace(/\s+/g, " ").trim().slice(0, 80) : "";
+  if (job) q.profession = job;
   return q;
 }

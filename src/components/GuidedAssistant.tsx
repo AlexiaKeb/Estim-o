@@ -3,6 +3,7 @@ import { ArrowRight, Bot, CalendarDays, CheckCircle2, Loader2, Send, ShieldCheck
 import confetti from 'canvas-confetti';
 import { Lead, ValuationInputs, ValuationResult } from '../types';
 import { AGENT } from '../data/siteContent';
+import { isValidFrPhone } from '../utils/phone';
 import { fetchCalSlotsDetailed, syncLeadToSupabase } from '../lib/supabaseService';
 import { getAttribution, trackConversion } from '../utils/tracking';
 import { renderRichText } from '../utils/richText';
@@ -16,6 +17,7 @@ type Step =
   | 'address'
   | 'type'
   | 'surface'
+  | 'land'
   | 'rooms'
   | 'timeframe'
   | 'motive'
@@ -25,7 +27,8 @@ type Step =
   | 'q_ownership'
   | 'q_mandate'
   | 'q_occupancy'
-  | 'q_price';
+  | 'q_price'
+  | 'q_job';
 
 interface Msg {
   id: string;
@@ -76,9 +79,9 @@ const MANDATE: Array<[string, string]> = [
   ['exclusif', 'Oui, mandat exclusif'],
 ];
 const OCCUPANCY: Array<[string, string]> = [
-  ['occupe', 'Je l\'habite'],
-  ['libre', 'Il est libre'],
-  ['loue', 'Il est loué'],
+  ['occupe', 'Habité'],
+  ['libre', 'Libre'],
+  ['loue', 'Loué'],
 ];
 
 const DEFAULT_INPUTS: ValuationInputs = {
@@ -139,6 +142,9 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
   const [cityText, setCityText] = useState('');
   const [postalText, setPostalText] = useState('');
   const [surfaceText, setSurfaceText] = useState('');
+  const [landText, setLandText] = useState('');
+  const [land, setLand] = useState<number | null>(null);
+  const [jobText, setJobText] = useState('');
   const [priceText, setPriceText] = useState('');
   const [freeText, setFreeText] = useState('');
   const [slots, setSlots] = useState<Record<string, string[]> | null>(null);
@@ -168,7 +174,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         setTyping(false);
         setMessages((m) => [...m, { id: nextId(), role: 'assistant', text, result: opts?.result }]);
         resolve();
-      }, opts?.delay ?? 550);
+      }, opts?.delay ?? 800 + Math.floor(Math.random() * 700));
     });
   }, []);
   const userSays = (text: string, rewind?: Step) => setMessages((m) => [...m, { id: nextId(), role: 'user', text, rewind }]);
@@ -180,7 +186,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       const i = m.findIndex((x) => x.id === msg.id);
       return i < 0 ? m : m.slice(0, i);
     });
-    const early: Step[] = ['address', 'type', 'surface', 'rooms', 'timeframe', 'motive', 'contact'];
+    const early: Step[] = ['address', 'type', 'surface', 'land', 'rooms', 'timeframe', 'motive', 'contact'];
     if (early.includes(msg.rewind)) setResult(null);
     setStep(msg.rewind);
   };
@@ -190,9 +196,8 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (started.current) return;
     started.current = true;
     void say(
-      `Bonjour ! Je suis l'assistant virtuel de ${AGENT.firstName} (une intelligence artificielle). Je vous guide en 2 minutes : votre estimation, puis un rendez-vous avec ${AGENT.firstName} si vous le souhaitez.`,
-      { delay: 300 },
-    ).then(() => say("Pour commencer, quelle est l'adresse du bien à estimer ?", { delay: 450 }));
+      `Bonjour ! Je suis l'assistant virtuel (IA) de ${AGENT.firstName}. En 2 minutes, nous évaluons la valeur de votre bien immobilier en Région Lyonnaise ou dans le Beaujolais.`,
+    ).then(() => say("Pour commencer, quelle est l'adresse du bien à estimer ?"));
   }, [say]);
 
   // The hero search hands over an address: confirm it and move on
@@ -271,6 +276,21 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (!s || s < 8 || s > 1000) return;
     setInputs((p) => ({ ...p, surface: s }));
     userSays(`${s} m²`, 'surface');
+    if (inputs.propertyType === 'house') {
+      setStep('land');
+      await say('Et quelle est la superficie du terrain, en m² ? (facultatif)');
+      return;
+    }
+    setLand(null);
+    setStep('rooms');
+    await say('Et combien de pièces principales ?');
+  };
+
+  const submitLand = async (skip: boolean) => {
+    const n = Number(landText.replace(/[^\d]/g, ''));
+    const value = !skip && n > 0 ? n : null;
+    setLand(value);
+    userSays(value ? `Terrain : ${fmt(value)} m²` : 'Je ne sais pas', 'land');
     setStep('rooms');
     await say('Et combien de pièces principales ?');
   };
@@ -286,7 +306,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     setTimeframe(v);
     userSays(label, 'timeframe');
     setStep('motive');
-    await say(v === 'Curiosité' ? "Très bien, c'est un bon moment pour connaître la valeur de son bien. Qu'est-ce qui vous amène ?" : 'Merci. Qu\'est-ce qui motive ce projet ?');
+    await say(v === 'Curiosité' ? "Très bien, connaître la valeur de son bien est une bonne démarche, même sans projet précis. Quelle est la raison de votre démarche ?" : "Merci. Qu'est-ce qui motive ce projet ?");
   };
 
   const chooseMotive = async (v: Motive, label: string) => {
@@ -319,7 +339,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     const phone = contact.phone.trim();
     const email = contact.email.trim();
     if (name.length < 2) return setContactError('Indiquez votre prénom et votre nom.');
-    if (phone.replace(/\D/g, '').length < 8) return setContactError('Indiquez un numéro de téléphone valide.');
+    if (!isValidFrPhone(phone)) return setContactError('Indiquez un numéro de téléphone français valide (ex : 06 12 34 56 78) : Céline doit pouvoir vous joindre.');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setContactError('Indiquez une adresse e-mail valide.');
     if (!contact.consent) return setContactError('Merci de cocher la case de consentement pour continuer.');
     setContactError(null);
@@ -362,7 +382,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             periodTo: res.periodTo,
           }
         : undefined,
-      notes: `Lead capturé par l'assistant (parcours conversationnel). Projet : ${motive} (${timeframe}). Bien : ${typeLabel} ${inputs.surface} m², ${inputs.rooms} pièces à ${inputs.city}.${
+      notes: `Lead capturé par l'assistant (parcours conversationnel). Projet : ${motive} (${timeframe}). Bien : ${typeLabel} ${inputs.surface} m²${land ? `, terrain ${fmt(land)} m²` : ''}, ${inputs.rooms} pièces à ${inputs.city}.${
         res ? ` Fourchette affichée : ${fmt(res.lowPrice)} € - ${fmt(res.highPrice)} €.` : ' Estimation non calculée (service indisponible).'
       }`,
       tasks: [
@@ -441,7 +461,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     phone: contact.phone.trim(),
     email: contact.email.trim(),
     city: inputs.city,
-    address: inputs.address || inputs.city,
+    address: inputs.address ? `${inputs.address}, ${inputs.postalCode} ${inputs.city}` : `${inputs.postalCode} ${inputs.city}`,
     surface: inputs.surface,
     propertyType: inputs.propertyType === 'apartment' ? 'Appartement' : 'Maison',
     estimatedValue: result?.estimatedAvg,
@@ -495,11 +515,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       await say('Et votre bien est…');
     } else {
       setStep('q_price');
-      await say(
-        result
-          ? `Dernière question, facultative : avez-vous un prix en tête ? (L'estimation est de ${fmt(result.lowPrice)} à ${fmt(result.highPrice)} €.)`
-          : 'Dernière question, facultative : avez-vous un prix en tête pour ce bien ?',
-      );
+      await say('Avez-vous déjà un prix en tête pour votre bien ?');
     }
   };
 
@@ -511,6 +527,16 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         userSays(`${fmt(price)} €`, 'q_price');
       }
     } else userSays('Pas de prix en tête');
+    setStep('q_job');
+    await say("Un dernier mot sur vous : quelle est votre activité professionnelle ? (Facultatif, simple curiosité pour mieux vous connaître avant notre rencontre)");
+  };
+
+  const finishJob = async (skip: boolean) => {
+    const job = jobText.trim().slice(0, 80);
+    if (!skip && job) {
+      sendQualification({ profession: job });
+      userSays(job, 'q_job');
+    } else userSays('Je préfère passer');
     setStep('offer');
     await say(`Merci, c'est transmis à ${AGENT.firstName} : elle arrivera préparée. Il ne reste qu'à choisir votre créneau.`);
   };
@@ -565,15 +591,14 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
 
   const pitchCard = (
     <div className="rounded-2xl bg-[#0f1f3d] text-white p-4 sm:p-5 shadow-lg border-l-4 border-amber-400 w-full">
-      <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1.5">À savoir avant de partir</p>
+      <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1.5">Pourquoi prendre rendez-vous ?</p>
       <p className="text-[15px] sm:text-base leading-relaxed">
-        <strong className="text-white">C'est un repère :</strong> seule une visite tient compte de l'état réel, de la lumière, de l'étage ou de la vue.{' '}
-        {AGENT.firstName} vous propose une <strong className="text-amber-300">visite gratuite et sans engagement</strong>.
+        <strong className="text-white">Ce montant est un premier indicateur.</strong> Seule une visite physique sur place permet de fixer le prix juste, la clé d'une vente réussie. {AGENT.firstName} étudie votre bien et vous remet un <strong className="text-amber-300">avis de valeur complet sous 48h</strong>.
       </p>
       <p className="mt-2 text-[15px] sm:text-base leading-relaxed">
         <strong className="text-white">{AGENT.firstName} vous contactera personnellement</strong> pour tout organiser et répondre à vos questions.
       </p>
-      <p className="mt-1.5 text-sm font-semibold text-amber-200">Choisissez un créneau ci-dessous ↓</p>
+      <p className="mt-1.5 text-sm font-semibold text-amber-200">Réservez votre visite offerte et sans engagement ↓</p>
     </div>
   );
 
@@ -583,10 +608,26 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       <div className="rounded-2xl bg-white border border-stone-200 shadow-md p-4 sm:p-5 space-y-2 w-full">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
           <TrendingUp className="w-3.5 h-3.5" />
-          Votre estimation
+          Estimation indicative (IA)
         </span>
-        <div className="text-2xl sm:text-3xl font-bold text-[#0f1f3d] tracking-tight">
-          {fmt(result.lowPrice)} € – {fmt(result.highPrice)} €
+        <div className="pt-2 pb-1">
+          <div className="flex items-center justify-between text-lg sm:text-xl font-bold text-[#0f1f3d]">
+            <span>{fmt(result.lowPrice)} €</span>
+            <span>{fmt(result.highPrice)} €</span>
+          </div>
+          <div className="relative my-3 h-3 rounded-full bg-gradient-to-r from-emerald-200 via-amber-200 to-emerald-200">
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-white border border-amber-300 text-[11px] font-bold text-amber-700 blur-[1.5px] select-none whitespace-nowrap" aria-hidden="true">
+              ? Prix juste ?
+            </span>
+          </div>
+          <p className="sr-only">Fourchette de {fmt(result.lowPrice)} à {fmt(result.highPrice)} euros.</p>
+          <button
+            type="button"
+            onClick={() => onOpenBooking?.(bookingInfo())}
+            className="w-full mt-1 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-[#0f1f3d] text-sm font-semibold px-3 py-2.5 transition-colors"
+          >
+            Seule la visite de {AGENT.firstName} permet de débloquer le point exact dans cette fourchette.
+          </button>
         </div>
         <div className="text-xs text-stone-600">
           ~{fmt(result.avgM2)} €/m² · {result.propertyType} de {result.surface} m² à {result.city}
@@ -735,9 +776,37 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             }}
             className="flex flex-wrap gap-2 items-center"
           >
-            <input className={`${field} flex-1 min-w-[10rem]`} inputMode="numeric" placeholder="Ex : 350 000" value={priceText} onChange={(e) => setPriceText(e.target.value)} aria-label="Prix espéré en euros" />
+            <input className={`${field} flex-1 min-w-[10rem]`} inputMode="numeric" placeholder={result ? `Ex : ${fmt(Math.round(result.estimatedAvg / 1000) * 1000)}` : 'Ex : 350 000'} value={priceText} onChange={(e) => setPriceText(e.target.value)} aria-label="Prix espéré en euros" />
             <Chip strong onClick={() => void finishQuestions(false)}>Valider</Chip>
             <Chip onClick={() => void finishQuestions(true)}>Passer</Chip>
+          </form>
+        );
+      case 'land':
+        return (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submitLand(false);
+            }}
+            className="flex flex-wrap gap-2 items-center"
+          >
+            <input className={`${field} flex-1 min-w-[10rem]`} inputMode="numeric" placeholder="Ex : 600" value={landText} onChange={(e) => setLandText(e.target.value)} aria-label="Superficie du terrain en mètres carrés" autoFocus />
+            <Chip strong onClick={() => void submitLand(false)}>OK</Chip>
+            <Chip onClick={() => void submitLand(true)}>Je ne sais pas</Chip>
+          </form>
+        );
+      case 'q_job':
+        return (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void finishJob(false);
+            }}
+            className="flex flex-wrap gap-2 items-center"
+          >
+            <input className={`${field} flex-1 min-w-[10rem]`} maxLength={80} placeholder="Ex : infirmière, artisan, retraité…" value={jobText} onChange={(e) => setJobText(e.target.value)} aria-label="Activité professionnelle (facultatif)" />
+            <Chip strong onClick={() => void finishJob(false)}>Valider</Chip>
+            <Chip onClick={() => void finishJob(true)}>Passer</Chip>
           </form>
         );
       case 'offer':
@@ -753,7 +822,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               <div className="rounded-2xl border border-amber-300 bg-amber-50/60 p-3 sm:p-4 space-y-3">
                 <p className="text-sm font-semibold text-[#0f1f3d] flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-amber-600" />
-                  Prochains créneaux de {AGENT.firstName}
+                  Disponibilités de {AGENT.firstName} pour votre visite sur place
                 </p>
                 {days.map((d) => (
                   <div key={d.date} className="space-y-1.5">
@@ -776,9 +845,9 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             )}
             <div className="flex flex-wrap gap-2">
               <Chip strong disabled={slots === null && !slotsFailed} onClick={() => onOpenBooking?.(bookingInfo())}>
-                {days.length > 0 ? 'Voir tous les créneaux' : 'Réserver ma visite gratuite'}
+                {days.length > 0 ? 'Voir tous les créneaux disponibles' : 'Réserver ma visite gratuite'}
               </Chip>
-              {!qAnswers.ownership && <Chip onClick={startQuestions}>Préparer ma visite en 3 questions</Chip>}
+              {!qAnswers.ownership && <Chip onClick={startQuestions}>Préparer le rendez-vous (3 questions)</Chip>}
             </div>
             {slotsFailed && (
               <p className="text-sm text-stone-600">
@@ -806,10 +875,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-sm flex items-center gap-2">
-            Assistant de {AGENT.firstName}
+            Assistant Estimation de {AGENT.firstName}
             <span className="text-[10px] font-bold bg-white/15 border border-white/20 rounded-full px-2 py-0.5 text-amber-200">IA</span>
           </div>
-          <div className="text-xs text-slate-300">Estimation gratuite · réponse en 2 minutes</div>
+          <div className="text-xs text-slate-300">100 % gratuit · Données DVF officielles · Réponse en 2 min</div>
         </div>
         <a href={AGENT.phoneHref} className="text-xs text-slate-200 hover:text-white underline underline-offset-4 whitespace-nowrap">
           {AGENT.phone}
@@ -818,7 +887,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
 
       {result && lead && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-5 py-2 flex items-baseline justify-between gap-3" aria-label="Rappel de votre estimation">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800">Votre estimation</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800">Estimation indicative (IA)</span>
           <span className="text-base sm:text-lg font-bold text-[#0f1f3d] whitespace-nowrap">
             {fmt(result.lowPrice)} – {fmt(result.highPrice)} €
           </span>

@@ -42,7 +42,16 @@ export const BookingConfirmationView: React.FC<Props> = ({
     info_taxe: false,
     info_copro: false,
     info_plan: false,
+    info_dpe: false,
   });
+  const firstName = (confirmedLead.name || '').trim().split(/\s+/)[0] || '';
+  const PREP_ITEMS: Array<[string, string, string]> = [
+    ['info_travaux', '1. Travaux réalisés ou à prévoir', 'Rénovations récentes ou travaux envisagés (toiture, ravalement, chaudière, ascenseur...).'],
+    ['info_taxe', '2. Taxe foncière', 'Le montant annuel approximatif.'],
+    ['info_copro', '3. Charges de copropriété (si appartement)', 'Le montant moyen trimestriel ou annuel des charges courantes.'],
+    ['info_plan', '4. Plan du logement (si disponible)', 'Un plan ou même un schéma aide à apprécier la distribution des espaces.'],
+    ['info_dpe', '5. Diagnostic technique & DPE (si disponibles)', 'Les diagnostics déjà réalisés.'],
+  ];
 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [copiedCalendar, setCopiedCalendar] = useState(false);
@@ -65,7 +74,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
   // Generate Google Calendar Link
   const handleAddToGoogleCalendar = () => {
-    const title = encodeURIComponent(`Visite de découverte Agent Estimation - ${confirmedLead.name}`);
+    const title = encodeURIComponent(`Visite d'estimation Agent Estimation - ${confirmedLead.name}`);
     const details = encodeURIComponent(
       `Rendez-vous de découverte et estimation avec Céline (Agent Estimation).\n\nBien : ${confirmedLead.propertyType} (${confirmedLead.surface} m²)\nLieu : ${confirmedLead.address || confirmedLead.city}\nObjectif : Faire connaissance, découvrir votre projet et échanger sur les spécificités du bien pour établir votre avis de valeur.\nPour modifier votre créneau, contactez directement Céline au 06 03 58 03 16`
     );
@@ -92,7 +101,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
       'PRODID:-//Agent Estimation//RDV Decouverte//FR',
       'BEGIN:VEVENT',
       `SUMMARY:Visite découverte & estimation - ${confirmedLead.name}`,
-      `DESCRIPTION:Visite de découverte avec Céline. Découvrir votre projet et analyser le bien pour établir l'avis de valeur. Tél Céline: 06 03 58 03 16`,
+      `DESCRIPTION:Visite sur place avec Céline pour analyser le bien et préparer votre avis de valeur sous 48h. Tél Céline: 06 03 58 03 16`,
       `LOCATION:${confirmedLead.address || confirmedLead.city}`,
       `DTSTART:${dateStr}T${timeStr}`,
       `DTEND:${dateStr}T${(parseInt(timeStr.slice(0, 2)) + 1).toString().padStart(2, '0')}${timeStr.slice(2)}`,
@@ -116,24 +125,44 @@ export const BookingConfirmationView: React.FC<Props> = ({
   const faqItems = [
     {
       q: "Que dois-je préparer pour la visite ?",
-      a: "Céline vous précisera les documents utiles. En général : le titre de propriété, la dernière taxe foncière, les diagnostics déjà réalisés (dont le DPE) et, en copropriété, les derniers procès-verbaux d'assemblée et le montant des charges. Les avoir sous la main permet un avis plus précis et plus rapide.",
+      a: "Rien d'obligatoire. Si vous les avez, Céline apprécie de pouvoir consulter : la taxe foncière, les charges de copropriété, le plan du logement, les diagnostics (dont le DPE) et la liste des travaux réalisés. Sinon, elle vous guidera sur place.",
     },
     {
-      q: "Comment se déroule l'évaluation après la visite ?",
-      a: "Après la visite, Céline confronte les éléments relevés sur place avec les données des transactions récentes de votre secteur pour établir un avis de valeur argumenté, qu'elle vous présente ensuite."
+      q: "Comment est établie mon estimation après le passage de Céline ?",
+      a: "Après la visite, Céline confronte les éléments relevés sur place (état, luminosité, étage, vue, prestations) avec les transactions récentes de votre secteur pour établir un avis de valeur argumenté, qu'elle vous remet sous 48h.",
     },
     {
-      q: "Combien de temps dure cette visite de découverte ?",
-      a: "Prévoyez environ 1 heure d'échange convivial. Céline découvre les lieux avec vous, écoute vos souhaits, vos échéances et répond en toute transparence à toutes vos questions."
+      q: "Dois-je ranger ou nettoyer mon logement avant la visite ?",
+      a: "Pas besoin d'une mise en scène : Céline a besoin de voir votre logement tel qu'il est, avec ses atouts réels. Un logement simplement aéré et accessible suffit.",
     },
     {
-      q: "J'ai un imprévu, comment modifier mon créneau de visite ?",
-      a: "Pour modifier ou reporter votre créneau, il vous suffit d'appeler directement Céline par téléphone au 06 03 58 03 16. Elle adaptera l'horaire selon vos disponibilités."
-    }
+      q: "Mon conjoint ou mes proches peuvent-ils être présents ?",
+      a: "Bien sûr, c'est même recommandé si le bien est détenu à plusieurs : chacun peut poser ses questions et exprimer ses attentes.",
+    },
+    {
+      q: "Que se passe-t-il après la remise de l'avis de valeur sous 48h ?",
+      a: "Vous êtes libre de la suite : l'avis de valeur est gratuit et sans engagement. Vous pouvez en discuter avec Céline, prendre le temps de la réflexion, ou lui demander de vous accompagner dans votre projet de vente.",
+    },
+    {
+      q: "Combien de temps dure la visite sur place ?",
+      a: "Comptez environ 30 à 45 minutes. Céline visite les lieux avec vous, écoute votre projet et répond à toutes vos questions.",
+    },
+    {
+      q: "J'ai un imprévu : puis-je modifier ou annuler mon rendez-vous ?",
+      a: "Oui, sans aucune justification. Appelez directement Céline au 06 03 58 03 16 : elle adaptera l'horaire selon vos disponibilités.",
+    },
   ];
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300 pb-12">
+      <div className="text-center space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-wider text-stone-500">Estimation Immobilière Région Lyonnaise &amp; Beaujolais</div>
+        <ol className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-stone-500">
+          <li>1. Estimation IA</li>
+          <li>2. Choix du créneau</li>
+          <li className="font-bold text-emerald-700">3. Visite confirmée</li>
+        </ol>
+      </div>
       {/* 1. TOP CONFIRMATION BANNER */}
       <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-stone-800 shadow-xl relative overflow-hidden">
         <div className="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -143,7 +172,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Rendez-vous confirmé & sécurisé
+              ✓ Rendez-vous confirmé
             </span>
 
             <div className="flex items-center gap-2 text-stone-400 text-xs">
@@ -154,10 +183,10 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
-              Merci {confirmedLead.name}, votre visite d'expertise est planifiée !
+              {firstName}, votre visite sur place est bien confirmée !
             </h1>
             <p className="text-sm sm:text-base text-stone-300 max-w-2xl leading-relaxed">
-              Votre créneau a bien été réservé avec votre conseillère dédiée. Céline vous attend à l'adresse du bien : <strong className="text-amber-300 font-semibold">{confirmedLead.address || confirmedLead.city}</strong>.
+              Céline se rendra à l'adresse indiquée <strong className="text-amber-300 font-semibold">{confirmedLead.address || confirmedLead.city}</strong> pour réaliser l'analyse complète de votre bien et préparer votre avis de valeur.
             </p>
           </div>
 
@@ -168,7 +197,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 <Calendar className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Date retenue</div>
+                <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Date du rendez-vous</div>
                 <div className="text-sm sm:text-base font-bold text-white mt-0.5">{cleanFormattedDate}</div>
                 <div className="text-xs text-amber-300 font-medium mt-0.5 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
@@ -182,7 +211,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 <MapPin className="w-5 h-5 text-emerald-400" />
               </div>
               <div className="min-w-0">
-                <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Lieu de rendez-vous</div>
+                <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Adresse de la visite</div>
                 <div className="text-sm font-bold text-white mt-0.5 truncate">{confirmedLead.address || confirmedLead.city}</div>
                 <div className="text-xs text-stone-400 mt-0.5">
                   {confirmedLead.propertyType} • {confirmedLead.surface} m²
@@ -195,10 +224,10 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 <ShieldCheck className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Type d'échange</div>
-                <div className="text-sm font-bold text-white mt-0.5">{confirmedLead.meetingType || "Visite d'expertise in situ"}</div>
+                <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Votre visite</div>
+                <div className="text-sm font-bold text-white mt-0.5">Expertise sur place par Céline</div>
                 <div className="text-xs text-emerald-400 font-semibold mt-0.5">
-                  100% Offert & Sans engagement
+                  100 % offerte & sans engagement
                 </div>
               </div>
             </div>
@@ -230,7 +259,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 onClick={onModifyBooking}
                 className="py-2.5 px-4 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-300 text-xs font-medium border border-stone-700/80 transition-all ml-auto"
               >
-                Modifier mon créneau
+                Modifier ou annuler le rendez-vous
               </button>
             )}
           </div>
@@ -244,10 +273,10 @@ export const BookingConfirmationView: React.FC<Props> = ({
           <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                Votre interlocutrice dédiée
+                Votre conseillère dédiée
               </span>
               <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                Assignée à votre dossier
+                Dossier attribué
               </span>
             </div>
 
@@ -260,13 +289,13 @@ export const BookingConfirmationView: React.FC<Props> = ({
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-stone-900">Céline</h3>
-                <p className="text-xs font-medium text-amber-700">Conseillère immobilière indépendante</p>
+                <h3 className="text-lg font-bold text-stone-900">Céline LEVRAT</h3>
+                <p className="text-xs font-medium text-amber-700">Experte immobilière locale</p>
               </div>
             </div>
 
             <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 rounded-2xl p-4 border border-stone-200/70 italic">
-              « Bonjour {confirmedLead.name} ! Cette première visite est avant tout une phase de découverte : nous allons faire connaissance, échanger en toute simplicité sur votre projet et vos attentes. Après notre échange, j'établirai un avis de valeur argumenté, au plus juste du marché local. »
+              « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste sous 48h. »
             </p>
 
             <div className="space-y-2 pt-1">
@@ -275,7 +304,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 className="w-full py-3 px-4 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
               >
                 <PhoneCall className="w-4 h-4 text-emerald-400" />
-                <span>Joindre Céline au 06 03 58 03 16</span>
+                <span className="flex flex-col items-center leading-tight"><span>Appeler Céline</span><span>06 03 58 03 16</span></span>
               </a>
 
               <div className="text-center">
@@ -290,13 +319,13 @@ export const BookingConfirmationView: React.FC<Props> = ({
           <div className="bg-stone-900 text-white rounded-3xl p-5 sm:p-6 border border-stone-800 shadow-sm space-y-3">
             <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
               <Compass className="w-4 h-4" />
-              <span>Secteur d'Intervention Garanti</span>
+              <span>Secteur d'expertise</span>
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-white">Lyon, Villeurbanne & Rayon 50 km (Beaujolais inclus)</h4>
+              <h4 className="text-sm font-bold text-white">Région Lyonnaise & Beaujolais</h4>
               <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                Céline intervient exclusivement sur la métropole lyonnaise, Villeurbanne et le Beaujolais jusqu'à 50 km autour de Lyon pour garantir une maîtrise parfaite des micromarchés locaux.
+                Céline intervient exclusivement sur la Région Lyonnaise et le Beaujolais afin de vous garantir une parfaite maîtrise des micromarchés locaux.
               </p>
             </div>
           </div>
@@ -310,105 +339,43 @@ export const BookingConfirmationView: React.FC<Props> = ({
               <div>
                 <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-500" />
-                  Phase découverte : Faire connaissance & échanger sur votre projet
+                  Préparer votre visite : les éléments utiles
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Voici les informations et documents utiles à avoir sous la main le jour de la visite :
+                  Pour optimiser notre rendez-vous, vous pouvez préparer ces quelques éléments si vous les avez (rien d'obligatoire).
                 </p>
               </div>
             </div>
 
             {/* Checklist items */}
             <div className="space-y-3">
-              <div
-                onClick={() => toggleCheck('info_travaux')}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                  checklist.info_travaux 
-                    ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
-                    : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={checklist.info_travaux}
-                  onChange={() => {}}
-                  className="w-4 h-4 text-emerald-600 rounded border-stone-300 mt-0.5 cursor-pointer"
-                />
-                <div className="text-xs">
-                  <div className="font-semibold">1. Travaux déjà votés ou à prévoir</div>
-                  <div className="text-stone-500 text-[11px] mt-0.5">Y a-t-il eu des rénovations récentes ou des travaux votés/envisagés (toiture, ravalement, chaudière, ascenseur...) ?</div>
+              {PREP_ITEMS.map(([key, title, hint]) => (
+                <div
+                  key={key}
+                  onClick={() => toggleCheck(key)}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                    checklist[key]
+                      ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950'
+                      : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
+                  }`}
+                >
+                  <input type="checkbox" checked={!!checklist[key]} onChange={() => {}} className="w-4 h-4 text-emerald-600 rounded border-stone-300 mt-0.5 cursor-pointer" />
+                  <div className="text-xs">
+                    <div className="font-semibold">{title}</div>
+                    <div className="text-stone-500 text-[11px] mt-0.5">{hint}</div>
+                  </div>
                 </div>
-              </div>
-
-              <div
-                onClick={() => toggleCheck('info_taxe')}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                  checklist.info_taxe 
-                    ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
-                    : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={checklist.info_taxe}
-                  onChange={() => {}}
-                  className="w-4 h-4 text-emerald-600 rounded border-stone-300 mt-0.5 cursor-pointer"
-                />
-                <div className="text-xs">
-                  <div className="font-semibold">2. Montant de la taxe foncière</div>
-                  <div className="text-stone-500 text-[11px] mt-0.5">Le montant annuel approximatif de votre taxe foncière.</div>
-                </div>
-              </div>
-
-              <div
-                onClick={() => toggleCheck('info_copro')}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                  checklist.info_copro 
-                    ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
-                    : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={checklist.info_copro}
-                  onChange={() => {}}
-                  className="w-4 h-4 text-emerald-600 rounded border-stone-300 mt-0.5 cursor-pointer"
-                />
-                <div className="text-xs">
-                  <div className="font-semibold">3. Charges de copropriété (si applicable)</div>
-                  <div className="text-stone-500 text-[11px] mt-0.5">Le montant moyen trimestriel ou annuel des charges courantes.</div>
-                </div>
-              </div>
-
-              <div
-                onClick={() => toggleCheck('info_plan')}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                  checklist.info_plan 
-                    ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950' 
-                    : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={checklist.info_plan}
-                  onChange={() => {}}
-                  className="w-4 h-4 text-emerald-600 rounded border-stone-300 mt-0.5 cursor-pointer"
-                />
-                <div className="text-xs">
-                  <div className="font-semibold">4. Avez-vous un plan du bien ? (C'est encore mieux !)</div>
-                  <div className="text-stone-500 text-[11px] mt-0.5">Un plan d'architecte ou même un schéma aide grandement Céline à apprécier la distribution des espaces.</div>
-                </div>
-              </div>
+              ))}
             </div>
 
             {/* Team Evaluation Highlight */}
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-stone-800 space-y-1.5 mt-2">
               <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
                 <Award className="w-4 h-4 text-amber-600" />
-                <span>Un avis de valeur argumenté</span>
+                <span>Votre avis de valeur sous 48h</span>
               </div>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Après cette visite de découverte, Céline analyse le bien à la lumière des transactions récentes de votre secteur. Vous recevez un avis objectif, argumenté et corrélé aux réalités du marché local.
+                Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez sous 48h un avis de valeur argumenté, au plus juste du marché local.
               </p>
             </div>
           </div>
@@ -417,7 +384,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
           <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-4">
             <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-stone-700" />
-              Questions fréquentes sur votre visite
+              Tout savoir sur le déroulement de votre visite
             </h3>
 
             <div className="space-y-2.5">

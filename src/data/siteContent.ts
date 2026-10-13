@@ -17,7 +17,7 @@ export const AGENT = {
   phoneHref: 'tel:+33603580316',
   // Durée de la visite : DOIT être identique à la durée de l'événement dans Cal.com
   visitMinutes: 60,
-  zone: 'Lyon, Villeurbanne, Beaujolais et jusqu\'à 50 km autour',
+  zone: 'Région Lyonnaise & Beaujolais',
   // URL ou data: URI d'une vraie photo de Céline (très fort levier de confiance). Vide = initiales.
   photoUrl: '/celine.jpg',
 };
@@ -67,35 +67,47 @@ export const KEY_FIGURES: KeyFigure[] = [];
 
 export const FAQ: Array<{ q: string; a: string }> = [
   {
-    q: 'La visite est-elle vraiment gratuite et sans engagement ?',
-    a: `Oui. La visite de découverte est offerte et ne vous engage à rien. Céline vous indiquera les quelques documents utiles à avoir sous la main.`,
+    q: 'La visite sur place est-elle réellement gratuite et sans engagement ?',
+    a: "Absolument. La visite à votre domicile est 100 % offerte et ne vous engage à rien. Céline vient analyser les atouts de votre bien sur place et vous indiquera simplement les quelques documents utiles à préparer (taxe foncière, métrage, diagnostics si disponibles).",
   },
   {
-    q: 'Pourquoi une visite, alors que je peux avoir un prix en ligne ?',
-    a: 'Une simulation en ligne donne un repère. Elle ne voit ni la luminosité, ni les finitions, ni le calme, ni les travaux réalisés. Ce sont ces détails qui permettent de défendre la valeur haute de votre bien face aux acheteurs.',
+    q: "Pourquoi faire une visite alors que j'ai déjà un prix avec l'IA ?",
+    a: "L'estimation en ligne offre une première fourchette indicative. Mais sur le terrain, le prix juste est la clé d'une vente réussie : vendre au bon prix permet d'attirer des acheteurs qualifiés, d'éviter les négociations agressives et de concrétiser la vente dans les meilleurs délais. Seule la visite de Céline permet d'ajuster ce prix juste en analysant l'état réel, la luminosité et les atouts uniques de votre logement.",
   },
   {
-    q: "D'où viennent les prix de l'estimation ?",
-    a: "Des ventes réellement enregistrées par l'État (base Demandes de valeurs foncières, DVF), autour de votre adresse. Quand trop peu de ventes comparables existent, le site l'indique et affiche une fourchette plus large, à affiner en visite.",
+    q: "Sur quelles données repose l'estimation en ligne ?",
+    a: "L'outil s'appuie sur la base officielle DVF (Demandes de Valeurs Foncières) de l'État, qui recense les prix réels constatés lors des ventes récentes chez le notaire dans votre secteur, et non sur de simples prix d'annonces surévalués.",
   },
   {
-    q: 'Combien de temps faut-il pour obtenir une estimation ?',
-    a: "Environ 2 minutes en ligne : quelques questions sur votre bien et votre projet, puis votre fourchette de prix s'affiche.",
+    q: 'Sous quel délai vais-je recevoir mon estimation ?',
+    a: "La simulation en ligne vous donne un résultat immédiat en 2 minutes. Suite à la visite sur place, Céline prend le temps d'analyser le marché local et vous remet un avis de valeur détaillé sous 48h.",
   },
   {
-    q: 'Dois-je avoir décidé de vendre ?',
-    a: 'Non. Beaucoup de propriétaires viennent simplement comparer, anticiper ou préparer un projet à plusieurs mois. Connaître la valeur de son bien permet de décider sereinement.',
+    q: "Comment est calculée l'estimation lors de la visite ?",
+    a: "Céline réalise une analyse comparative de marché en croisant les caractéristiques de votre bien (surface, état, prestations) avec les ventes réelles très récentes du secteur et la concurrence actuelle.",
   },
   {
-    q: 'J\'ai déjà une estimation d\'une autre agence. Est-ce utile ?',
-    a: 'Oui, comparer est une excellente démarche. Un second avis permet de vérifier qu\'un prix n\'a pas été sous-évalué pour vendre vite, ni sur-évalué pour obtenir un mandat.',
+    q: "La visite m'engage-t-elle à vous confier la vente de mon bien ?",
+    a: "Non, aucunement. La visite et la remise de l'avis de valeur sont 100 % gratuites et sans obligation d'exclusivité ni de mandat de vente. Vous restez totalement libre de la suite.",
   },
   {
-    q: 'Quelles communes sont couvertes ?',
-    a: 'Lyon, Villeurbanne, le Beaujolais et les communes jusqu\'à 50 km autour de Lyon. Pour un projet particulier, appelez directement Céline.',
+    q: "Que se passe-t-il après avoir validé l'étape en ligne ?",
+    a: "Dès la validation de vos informations, vous recevez une première fourchette de prix. Si vous avez choisi un créneau, Céline vous recontacte directement pour confirmer le rendez-vous.",
   },
   {
-    q: 'Que deviennent mes coordonnées ?',
-    a: 'Elles servent uniquement à vous transmettre votre estimation et à organiser la visite si vous le souhaitez. Vous pouvez demander leur suppression à tout moment.',
+    q: 'Faut-il avoir un projet de vente immédiat pour demander une estimation ?',
+    a: "Pas du tout. Que vous souhaitiez vendre prochainement, anticiper une succession, arbitrer un patrimoine ou simplement connaître la valeur actuelle de votre logement, l'estimation reste gratuite et confidentielle.",
+  },
+  {
+    q: "J'ai déjà une estimation d'une autre agence : quel est l'intérêt d'un second avis ?",
+    a: "Un second avis permet de sécuriser votre projet. Céline étudie votre bien au regard des ventes réelles du secteur et de la concurrence actuelle. Vous obtenez ainsi une évaluation neutre, objective et fondée sur la réalité du marché, sans surévaluation artificielle pour décrocher un mandat.",
+  },
+  {
+    q: "Quelles sont les communes couvertes par l'expertise de Céline ?",
+    a: "Céline intervient sur l'ensemble de la Région Lyonnaise et du Beaujolais (notamment le Val de Saône, les Monts d'Or, Chasselay, Anse, Villefranche-sur-Saône et les communes avoisinantes).",
+  },
+  {
+    q: 'Que deviennent mes données personnelles ?',
+    a: "Vos informations restent strictement confidentielles. Elles servent uniquement à vous transmettre votre estimation et à planifier le rendez-vous si vous le souhaitez. Elles ne sont jamais revendues à des tiers.",
   },
 ];
