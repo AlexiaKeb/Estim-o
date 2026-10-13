@@ -740,6 +740,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </div>
 
                   {/* MANDATE STATUS BADGE (Mobile) */}
+                  {(mandate?.status === 'signed' || mandate?.type === 'in_negotiation' || mandate?.status === 'pending_signature') && (
                   <div className="p-2 rounded-lg border text-xs flex items-center justify-between gap-2 bg-stone-50/70 border-stone-200">
                     <div className="flex items-center gap-1.5 font-medium">
                       <Award className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
@@ -767,6 +768,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                       </span>
                     )}
                   </div>
+                  )}
 
                   {/* 1-Tap Quick Action Copy Bar (Mobile Optimized, No Wrapping) */}
                   <div
@@ -930,8 +932,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                 <thead>
                   <tr className="bg-stone-50/70 border-b border-stone-200/80 text-stone-500 font-medium uppercase tracking-wider text-[10px]">
                     <th className="py-3 px-4">Prospect & Contact</th>
-                    <th className="py-3 px-4">Bien & Localisation</th>
-                    <th className="py-3 px-4">Mandat & Statut</th>
+                    <th className="py-3 px-4">Bien</th>
                     <th className="py-3 px-4">Motif & Délai</th>
                     <th className="py-3 px-4">Dernière Action Réalisée</th>
                     <th className="py-3 px-4">Avancement Dossier</th>
@@ -1026,63 +1027,10 @@ export const CrmPipelineView: React.FC<Props> = ({
                             )}
                             <span>{lead.propertyType} • {lead.surface} m²</span>
                           </div>
-                          <div className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5" onClick={(e) => e.stopPropagation()}>
+                          <div className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
                             <MapPin className="w-3 h-3 text-stone-400 flex-shrink-0" />
-                            <span className="truncate max-w-[170px]" title={lead.address || lead.city}>
-                              {lead.address || lead.city}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyValue(`row-addr-${lead.id}`, lead.address || lead.city)}
-                              className="text-stone-400 hover:text-stone-700 p-0.5"
-                              title="Copier l'adresse"
-                            >
-                              {copiedField === `row-addr-${lead.id}` ? (
-                                <Check className="w-2.5 h-2.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-2.5 h-2.5" />
-                              )}
-                            </button>
+                            <span>{lead.city}</span>
                           </div>
-                        </td>
-
-                        {/* DEDICATED COLUMN: MANDAT & HONORAIRES (EXCLUSIF VS SIMPLE) */}
-                        <td className="py-3.5 px-4">
-                          {mandate?.status === 'signed' ? (
-                            <div className="space-y-1">
-                              {mandate.type === 'exclusive' ? (
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300/80 text-amber-950 font-bold text-[11px] shadow-2xs">
-                                  <Award className="w-3.5 h-3.5 text-amber-600 fill-amber-500/30" />
-                                  <span>🌟 EXCLUSIF SIGNÉ</span>
-                                </div>
-                              ) : (
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-300/80 text-blue-950 font-bold text-[11px] shadow-2xs">
-                                  <FileText className="w-3.5 h-3.5 text-blue-600" />
-                                  <span>📄 SIMPLE SIGNÉ</span>
-                                </div>
-                              )}
-                              <div className="text-[10px] text-stone-600 font-medium flex items-center gap-1.5">
-                                <span>N° {mandate.mandateNumber}</span>
-                                <span>•</span>
-                                <strong className="text-stone-900 font-bold">{(mandate.feeAmount || 0).toLocaleString('fr-FR')} €</strong>
-                                <span className="text-stone-400">({mandate.feeRatePercent || 4.5}%)</span>
-                              </div>
-                            </div>
-                          ) : mandate?.type === 'in_negotiation' || mandate?.status === 'pending_signature' ? (
-                            <div className="space-y-0.5">
-                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-50 border border-purple-200 text-purple-900 font-semibold text-[11px]">
-                                <Clock className="w-3 h-3 text-purple-600" />
-                                <span>⏳ Négo {mandate.type === 'exclusive' ? 'Exclusif' : 'Simple'}</span>
-                              </div>
-                              <div className="text-[10px] text-stone-500">
-                                Objectif {(mandate.feeAmount || Math.round(lead.estimatedValue * 0.045)).toLocaleString('fr-FR')} €
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-stone-400 text-[11px] font-normal flex items-center gap-1">
-                              <span>⚪ Pas de mandat</span>
-                            </div>
-                          )}
                         </td>
 
                         {/* Motive & Timeframe */}
