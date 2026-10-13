@@ -1621,69 +1621,6 @@ export const CrmPipelineView: React.FC<Props> = ({
                 )}
               </div>
 
-              {/* DEDICATED BANNER: DERNIÈRE ACTION EFFECTUÉE & QUICK LOGGER */}
-              <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-                  <div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                      <Clock className="w-3 h-3 text-blue-400" />
-                      Dernière Action Enregistrée dans le CRM
-                    </div>
-                    <div className="text-sm font-bold text-white mt-0.5 flex items-center gap-2">
-                      {getActionIcon(selectedLeadDrawer.lastAction?.type)}
-                      <span>{selectedLeadDrawer.lastAction?.label || 'Simulation en ligne validée par le prospect'}</span>
-                    </div>
-                  </div>
-                  <span className="text-xs font-medium text-slate-400 bg-slate-800 px-2.5 py-1 rounded-lg self-start sm:self-auto">
-                    {selectedLeadDrawer.lastAction?.date || selectedLeadDrawer.createdAt}
-                  </span>
-                </div>
-
-                {/* Agent Quick Action Buttons (1-click logger) */}
-                <div>
-                  <div className="text-[11px] text-slate-300 font-semibold mb-2">
-                    Enregistrer une nouvelle action immédiate :
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogAction(selectedLeadDrawer, 'call', 'Appel téléphonique passé au vendeur')}
-                      className="py-1.5 px-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Phone className="w-3.5 h-3.5 text-amber-400" />
-                      <span>📞 Appel passé</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogAction(selectedLeadDrawer, 'email', 'Email d\'étude de marché envoyé')}
-                      className="py-1.5 px-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Mail className="w-3.5 h-3.5 text-purple-400" />
-                      <span>✉️ Email envoyé</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogAction(selectedLeadDrawer, 'sms', 'SMS de relance / confirmation envoyé')}
-                      className="py-1.5 px-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
-                      <span>💬 SMS envoyé</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuickLogAction(selectedLeadDrawer, 'visit', 'Visite d\'estimation sur place réalisée')}
-                      className="py-1.5 px-2 bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <Home className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>🏡 Visite faite</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               {/* Lead Key Specs */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-2xs">
