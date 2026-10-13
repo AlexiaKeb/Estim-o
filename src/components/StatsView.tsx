@@ -94,7 +94,11 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
     const fromKey = from ? monthKey(from) : '';
     const budget = Object.entries(spend || {}).filter(([k]) => !fromKey || k >= fromKey).reduce((a, [, v]) => a + (Number(v) || 0), 0);
     const ads = inPeriod.filter(isAds);
-    return { inPeriod, visits, mandates, sales, revenue, budget, ads };
+    const archived = inPeriod.filter((l) => l.archive);
+    const lostMandates = archived.filter((l) => l.archive?.kind === 'mandat_perdu');
+    const byStage: Record<string, number> = {};
+    archived.forEach((l) => { const k = l.archive!.stage; byStage[k] = (byStage[k] || 0) + 1; });
+    return { inPeriod, visits, mandates, sales, revenue, budget, ads, archived, lostMandates, byStage };
   }, [leads, period, spend]);
 
   const L = s.inPeriod.length;
@@ -133,6 +137,28 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
         <p className="mt-4 text-sm text-stone-700">
           <strong>Taux global lead ⇒ vente :</strong> {pct(S, L)}. Une vente se déclare dans la fiche du dossier, après la signature du mandat (bouton « Enregistrer la vente »).
         </p>
+      </section>
+
+      {/* Dossiers archivés et mandats perdus */}
+      <section aria-labelledby="archive-title" className="rounded-2xl bg-white border border-stone-200 p-5 space-y-4">
+        <h2 id="archive-title" className="text-sm font-bold uppercase tracking-wider text-stone-700">Dossiers archivés &amp; mandats perdus</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500">Dossiers archivés</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{s.archived.length}</p><p className="text-xs text-stone-500">{pct(s.archived.length, L)} des leads</p></div>
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-4"><p className="text-[11px] font-bold uppercase text-rose-700">Mandats perdus</p><p className="mt-1 text-2xl font-extrabold text-rose-900">{s.lostMandates.length}</p><p className="text-xs text-rose-700">{pct(s.lostMandates.length, M + s.lostMandates.filter((l) => !hasMandate(l)).length)} des mandats visés</p></div>
+          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 md:col-span-2">
+            <p className="text-[11px] font-bold uppercase text-stone-500">Perdus à quelle étape ?</p>
+            <p className="mt-1 text-sm text-stone-800">
+              {s.archived.length === 0 ? 'Aucun dossier archivé sur la période.' : (['lead', 'r1', 'r2', 'mandat', 'vente'] as const).map((k) => `${{ lead: 'Lead', r1: 'R1', r2: 'R2', mandat: 'Mandat', vente: 'Vente' }[k]} : ${s.byStage[k] || 0}`).join(' • ')}
+            </p>
+          </div>
+        </div>
+        {s.archived.length > 0 && (
+          <ul className="text-sm text-stone-700 space-y-1">
+            {s.archived.slice(0, 8).map((l) => (
+              <li key={l.id}>• <strong>{l.name}</strong> ({l.city}) : {l.archive!.kind === 'mandat_perdu' ? 'mandat perdu' : 'archivé'}{l.archive!.reason ? `, ${l.archive!.reason}` : ''}</li>
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* Coût / Leads / CA */}

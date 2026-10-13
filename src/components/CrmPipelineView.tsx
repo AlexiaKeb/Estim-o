@@ -156,7 +156,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
-  const [mandateFilter, setMandateFilter] = useState<'ALL' | 'lead' | 'r1' | 'r2' | 'mandat' | 'vente'>('ALL');
+  const [mandateFilter, setMandateFilter] = useState<'ALL' | 'lead' | 'r1' | 'r2' | 'mandat' | 'vente' | 'archive'>('ALL');
   const [activeTab, setActiveTab] = useState<'leads' | 'action_plan'>('leads');
   const [selectedLeadDrawer, setSelectedLeadDrawer] = useState<Lead | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -215,7 +215,7 @@ export const CrmPipelineView: React.FC<Props> = ({
     
     const matchesStatus = statusFilter === 'ALL' || l.status === statusFilter;
 
-    const matchesMandate = mandateFilter === 'ALL' || mandateFilter === stageOf(l);
+    const matchesMandate = mandateFilter === 'archive' ? Boolean(l.archive) : !l.archive && (mandateFilter === 'ALL' || mandateFilter === stageOf(l));
 
     return matchesSearch && matchesStatus && matchesMandate;
   });
@@ -229,12 +229,37 @@ export const CrmPipelineView: React.FC<Props> = ({
   const signedSimpleLeads = leads.filter((l) => l.mandate?.status === 'signed' && l.mandate?.type === 'simple');
   const negotiationLeads = leads.filter((l) => l.mandate?.type === 'in_negotiation' || l.mandate?.status === 'pending_signature');
   const signedMandatesCount = signedExclusiveLeads.length + signedSimpleLeads.length;
-  const pipeSold = leads.filter((l) => stageOf(l) === 'vente');
-  const pipeMandates = leads.filter((l) => stageOf(l) === 'mandat');
-  const pipeR2 = leads.filter((l) => stageOf(l) === 'r2');
-  const pipeVisits = leads.filter((l) => stageOf(l) === 'r1');
-  const pipeLeads = leads.filter((l) => stageOf(l) === 'lead');
+  const activeLeads = leads.filter((l) => !l.archive);
+  const archivedLeads = leads.filter((l) => l.archive);
+  const pipeSold = activeLeads.filter((l) => stageOf(l) === 'vente');
+  const pipeMandates = activeLeads.filter((l) => stageOf(l) === 'mandat');
+  const pipeR2 = activeLeads.filter((l) => stageOf(l) === 'r2');
+  const pipeVisits = activeLeads.filter((l) => stageOf(l) === 'r1');
+  const pipeLeads = activeLeads.filter((l) => stageOf(l) === 'lead');
 
+
+  const archiveLead = (lead: Lead, kind: 'mandat_perdu' | 'autre') => {
+    const reason = window.prompt(kind === 'mandat_perdu' ? 'Mandat perdu : pourquoi ? (facultatif, par exemple « signé avec une autre agence »)' : 'Archiver ce dossier : motif ? (facultatif)', '');
+    if (reason === null) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const updated: Lead = {
+      ...lead,
+      archive: { date: today, kind, reason: reason.trim() || undefined, stage: stageOf(lead) },
+      activities: [{ id: `act-${Date.now()}`, type: 'note', label: `${kind === 'mandat_perdu' ? 'Mandat perdu' : 'Dossier archivé'}${reason.trim() ? ` : ${reason.trim()}` : ''}`, date: "À l'instant" }, ...(lead.activities || [])],
+    };
+    onUpdateLead?.(updated);
+    setSelectedLeadDrawer(updated);
+  };
+
+  const restoreLead = (lead: Lead) => {
+    const updated: Lead = {
+      ...lead,
+      archive: undefined,
+      activities: [{ id: `act-${Date.now()}`, type: 'note', label: 'Dossier réactivé', date: "À l'instant" }, ...(lead.activities || [])],
+    };
+    onUpdateLead?.(updated);
+    setSelectedLeadDrawer(updated);
+  };
 
   // Update Mandate Handler
   const handleUpdateLeadMandate = (
@@ -656,12 +681,13 @@ export const CrmPipelineView: React.FC<Props> = ({
             <div className="flex items-center gap-1.5 pt-2 border-t border-stone-100 overflow-x-auto scrollbar-none">
               <span className="text-xs font-semibold text-stone-600 mr-1 whitespace-nowrap flex-shrink-0">Étape :</span>
               {([
-                ['ALL', 'Tous', leads.length],
+                ['ALL', 'Tous', activeLeads.length],
                 ['lead', 'Leads', pipeLeads.length],
                 ['r1', 'R1', pipeVisits.length],
                 ['r2', 'R2', pipeR2.length],
                 ['mandat', 'Mandat', pipeMandates.length],
                 ['vente', 'Vente', pipeSold.length],
+                ['archive', 'Archivés', archivedLeads.length],
               ] as const).map(([k, label, n]) => (
                 <button
                   key={k}
@@ -1331,6 +1357,16 @@ export const CrmPipelineView: React.FC<Props> = ({
             {/* Modal Body */}
             <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1 bg-slate-50/50">
               
+              {selectedLeadDrawer.archive && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-300 bg-stone-100 p-3">
+                  <p className="text-sm text-stone-800">
+                    <strong>🗄️ {selectedLeadDrawer.archive.kind === 'mandat_perdu' ? 'Mandat perdu' : 'Dossier archivé'}</strong> le {frDate(selectedLeadDrawer.archive.date)}
+                    {selectedLeadDrawer.archive.reason ? ` • ${selectedLeadDrawer.archive.reason}` : ''}
+                  </p>
+                  <button type="button" onClick={() => restoreLead(selectedLeadDrawer)} className="text-xs font-bold underline text-stone-800">Réactiver le dossier</button>
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -1341,6 +1377,16 @@ export const CrmPipelineView: React.FC<Props> = ({
                   <Mail className="w-4 h-4" />
                   Envoyer un e-mail à {selectedLeadDrawer.name.split(' ')[0]}
                 </button>
+                {!selectedLeadDrawer.archive && (
+                  <button
+                    type="button"
+                    id="btn-archive-lead"
+                    onClick={() => archiveLead(selectedLeadDrawer, 'autre')}
+                    className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-sm font-semibold px-4 py-2.5"
+                  >
+                    🗄️ Archiver
+                  </button>
+                )}
                 {onDeleteLead && (
                   <button
                     type="button"
@@ -1593,6 +1639,14 @@ export const CrmPipelineView: React.FC<Props> = ({
                         </button>
                       );
                     })}
+                    <button
+                      type="button"
+                      id="btn-mandate-lost"
+                      onClick={() => archiveLead(selectedLeadDrawer, 'mandat_perdu')}
+                      className="px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-rose-700 hover:bg-rose-50 border border-rose-300"
+                    >
+                      Mandat perdu
+                    </button>
                     {selectedLeadDrawer.mandate?.status === 'signed' && !selectedLeadDrawer.mandate?.soldDate && (
                       <button
                         type="button"

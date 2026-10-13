@@ -66,7 +66,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   const byStage = useMemo(() => {
     const m: Record<Stage, Lead[]> = { lead: [], r1: [], r2: [], mandat: [], vente: [] };
-    leads.forEach((l) => m[stageOf(l)].push(l));
+    leads.filter((l) => !l.archive).forEach((l) => m[stageOf(l)].push(l));
     return m;
   }, [leads]);
 

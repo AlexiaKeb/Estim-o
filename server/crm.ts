@@ -13,6 +13,7 @@ export const CRM_KEYS = [
   "status",
   "meetingType",
   "visit1",
+  "archive",
   "visit2",
   "autoRelances",
 ] as const;
@@ -114,6 +115,7 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     meetingTime: meeting?.time || crm.visit1?.time,
     meetingType: crm.meetingType || (meeting || crm.visit1?.date ? "Visite estimation à domicile" : undefined),
     visit1: crm.visit1,
+    archive: crm.archive,
     createdAt: relative(row.created_at),
     createdAtIso: row.created_at,
     conversationHistory: history,
