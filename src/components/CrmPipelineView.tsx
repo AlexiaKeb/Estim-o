@@ -4,29 +4,30 @@ import { CommissionFields, type CommissionResult } from './CommissionCalculator'
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
 
-/** Seconde visite (R2) : date et heure fixées par la conseillère depuis la fiche. */
-const Visit2Box: React.FC<{ lead: Lead; onSave: (v: Lead['visit2'] | undefined) => void }> = ({ lead, onSave }) => {
-  const [date, setDate] = useState(lead.visit2?.date || '');
-  const [time, setTime] = useState(lead.visit2?.time || '10:00');
+/** Rendez-vous R1 / R2 : date et heure, fixés à la main depuis la fiche (le R1 peut aussi venir de la réservation en ligne). */
+const VisitBox: React.FC<{ title: string; idPrefix: string; value?: { date: string; time?: string }; note?: string; onSave: (v: { date: string; time?: string } | undefined) => void }> = ({ title, idPrefix, value, note, onSave }) => {
+  const [date, setDate] = useState(value?.date || '');
+  const [time, setTime] = useState(value?.time || '10:00');
   return (
     <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-3 space-y-2">
-      <div className="text-[11px] font-bold uppercase tracking-wider text-orange-800">R2 • Seconde visite</div>
-      {lead.visit2?.date ? (
+      <div className="text-[11px] font-bold uppercase tracking-wider text-orange-800">{title}</div>
+      {note && <p className="text-xs text-stone-600">{note}</p>}
+      {value?.date ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-stone-900">📅 {frDate(lead.visit2.date)}{lead.visit2.time ? ` à ${lead.visit2.time}` : ''}</p>
-          <button type="button" onClick={() => onSave(undefined)} className="text-xs underline text-stone-600">Retirer le R2</button>
+          <p className="text-sm font-semibold text-stone-900">📅 {frDate(value.date)}{value.time ? ` à ${value.time}` : ''}</p>
+          <button type="button" onClick={() => onSave(undefined)} className="text-xs underline text-stone-600">Retirer</button>
         </div>
       ) : (
         <div className="flex flex-wrap items-end gap-2">
           <div>
-            <label htmlFor="r2-date" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Date</label>
-            <input id="r2-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm bg-white" />
+            <label htmlFor={`${idPrefix}-date`} className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Date</label>
+            <input id={`${idPrefix}-date`} type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm bg-white" />
           </div>
           <div>
-            <label htmlFor="r2-time" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Heure</label>
-            <input id="r2-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm bg-white" />
+            <label htmlFor={`${idPrefix}-time`} className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Heure</label>
+            <input id={`${idPrefix}-time`} type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm bg-white" />
           </div>
-          <button type="button" id="btn-save-r2" disabled={!date} onClick={() => onSave({ date, time })} className="rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-40 text-white text-xs font-bold px-4 py-2">Fixer le R2</button>
+          <button type="button" id={`btn-save-${idPrefix}`} disabled={!date} onClick={() => onSave({ date, time })} className="rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-40 text-white text-xs font-bold px-4 py-2">Ajouter</button>
         </div>
       )}
     </div>
@@ -1359,15 +1360,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                 )}
               </div>
 
-              <PreVisitBrief
-                lead={selectedLeadDrawer}
-                onBrief={(brief) => {
-                  const updated = { ...selectedLeadDrawer, brief };
-                  onUpdateLead?.(updated);
-                  setSelectedLeadDrawer(updated);
-                }}
-              />
-
+              {/* 1. COORDONNÉES */}
               {/* DEDICATED QUICK-COPY BAR FOR EXTERNAL TOOLS (CRM, WHATSAPP, PHONE) */}
               <div className="bg-white rounded-2xl border-2 border-blue-500/30 p-4 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
@@ -1497,9 +1490,49 @@ export const CrmPipelineView: React.FC<Props> = ({
                 </div>
               </div>
 
-              <Visit2Box
-                key={`${selectedLeadDrawer.id}-${selectedLeadDrawer.visit2?.date || ''}`}
+              {/* 2. PRÉ-VISITE + R1 */}
+              <div className="space-y-3">
+              <PreVisitBrief
                 lead={selectedLeadDrawer}
+                onBrief={(brief) => {
+                  const updated = { ...selectedLeadDrawer, brief };
+                  onUpdateLead?.(updated);
+                  setSelectedLeadDrawer(updated);
+                }}
+              />
+
+                <VisitBox
+                  key={`r1-${selectedLeadDrawer.id}-${selectedLeadDrawer.meetingDate || ''}`}
+                  title="R1 • Visite d'estimation"
+                  idPrefix="r1"
+                  value={selectedLeadDrawer.meetingBooked && selectedLeadDrawer.meetingDate ? { date: selectedLeadDrawer.meetingDate, time: selectedLeadDrawer.meetingTime } : undefined}
+                  note={selectedLeadDrawer.meetingBooked && !selectedLeadDrawer.visit1 ? 'Réservé en ligne par le client.' : selectedLeadDrawer.visit1 ? 'Ajouté manuellement.' : "Le client n'a pas réservé en ligne : vous pouvez ajouter le R1 à la main."}
+                  onSave={(v) => {
+                    if (!v && !selectedLeadDrawer.visit1) {
+                      window.alert("Ce R1 a été réservé en ligne par le client : il se modifie depuis l'agenda (Cal.com).");
+                      return;
+                    }
+                    const updated = {
+                      ...selectedLeadDrawer,
+                      visit1: v,
+                      meetingBooked: Boolean(v),
+                      meetingDate: v?.date,
+                      meetingTime: v?.time,
+                      meetingType: v ? ('Visite estimation à domicile' as const) : undefined,
+                      activities: [{ id: `act-${Date.now()}`, type: 'visit', label: v ? `R1 fixé le ${frDate(v.date)}${v.time ? ` à ${v.time}` : ''}` : 'R1 retiré', date: "À l'instant" }, ...(selectedLeadDrawer.activities || [])],
+                    } as Lead;
+                    onUpdateLead?.(updated);
+                    setSelectedLeadDrawer(updated);
+                  }}
+                />
+              </div>
+
+              {/* 3. R2 */}
+              <VisitBox
+                key={`r2-${selectedLeadDrawer.id}-${selectedLeadDrawer.visit2?.date || ''}`}
+                title="R2 • Seconde visite"
+                idPrefix="r2"
+                value={selectedLeadDrawer.visit2}
                 onSave={(v) => {
                   const updated = {
                     ...selectedLeadDrawer,
@@ -1511,7 +1544,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                 }}
               />
 
-              {/* DEDICATED MANDATE STATUS & MANAGEMENT CARD (EXCLUSIF VS SIMPLE) */}
+              {/* 4. MANDAT */}
               <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-3">
                   <div className="flex items-center gap-2">
@@ -1602,16 +1635,6 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {/* Vente conclue : alimente les statistiques (taux de transformation et chiffre d'affaires) */}
-                {selectedLeadDrawer.mandate?.status === 'signed' && (
-                  <SaleBox
-                    key={selectedLeadDrawer.id + (selectedLeadDrawer.mandate?.soldDate || '')}
-                    lead={selectedLeadDrawer}
-                    onSave={(soldDate, saleFee, salePrice, ratePercent, saleNetFee) => handleUpdateLeadMandate(selectedLeadDrawer, { soldDate, saleFee, salePrice, feeRatePercent: ratePercent, saleNetFee })}
-                  />
-                )}
-
-
                 {/* Mandate Metrics Grid */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
@@ -1638,6 +1661,20 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <div className="text-[10px] text-stone-400 mt-0.5">{selectedLeadDrawer.mandate?.soldDate ? 'Renseigné à la vente' : 'Prix FAI indicatif'}</div>
                   </div>
                 </div>
+              </div>
+
+              {/* 5. VENTE */}
+              <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs space-y-3">
+                <h4 className="text-sm font-bold text-stone-900">5 • Vente</h4>
+                {selectedLeadDrawer.mandate?.status === 'signed' ? (
+                  <SaleBox
+                    key={selectedLeadDrawer.id + (selectedLeadDrawer.mandate?.soldDate || '')}
+                    lead={selectedLeadDrawer}
+                    onSave={(soldDate, saleFee, salePrice, ratePercent, saleNetFee) => handleUpdateLeadMandate(selectedLeadDrawer, { soldDate, saleFee, salePrice, feeRatePercent: ratePercent, saleNetFee })}
+                  />
+                ) : (
+                  <p className="text-xs text-stone-500">La vente s'enregistre une fois le mandat signé.</p>
+                )}
               </div>
 
               {/* DEDICATED BANNER: DERNIÈRE ACTION EFFECTUÉE & QUICK LOGGER */}
@@ -1699,114 +1736,6 @@ export const CrmPipelineView: React.FC<Props> = ({
                       <Home className="w-3.5 h-3.5 text-emerald-400" />
                       <span>🏡 Visite faite</span>
                     </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* ACTION PLAN SECTION: CE QUI A ÉTÉ FAIT vs CE QU'IL RESTE À FAIRE */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <ListTodo className="w-4 h-4 text-blue-600" />
-                    <h4 className="text-sm font-bold text-slate-900">
-                      Plan d'Action du Dossier : Ce qui a été fait & Ce qu'il reste à faire
-                    </h4>
-                  </div>
-                  <span className="text-xs font-bold text-blue-600">
-                    {(selectedLeadDrawer.tasks || []).filter((t) => t.done).length} / {(selectedLeadDrawer.tasks || []).length} étapes terminées
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Left Column: Ce qui a été fait */}
-                  <div className="space-y-2 bg-emerald-50/50 p-3.5 rounded-2xl border border-emerald-100">
-                    <div className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <Check className="w-4 h-4 text-emerald-600" />
-                      <span>✅ Ce qui a été fait</span>
-                    </div>
-
-                    <div className="space-y-1.5 pt-1">
-                      {(selectedLeadDrawer.tasks || [])
-                        .filter((t) => t.done)
-                        .map((t) => (
-                          <div
-                            key={t.id}
-                            className="flex items-start gap-2 bg-white p-2.5 rounded-xl border border-emerald-200/80 shadow-2xs"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleToggleTask(selectedLeadDrawer, t.id)}
-                              className="mt-0.5 text-emerald-600 hover:text-slate-400 transition-colors"
-                              title="Cliquer pour rouvrir cette tâche"
-                            >
-                              <CheckSquare className="w-4 h-4" />
-                            </button>
-                            <span className="text-xs font-medium text-slate-600 line-through flex-1">
-                              {t.label}
-                            </span>
-                          </div>
-                        ))}
-                      {(selectedLeadDrawer.tasks || []).filter((t) => t.done).length === 0 && (
-                        <div className="text-xs text-slate-400 italic p-2">Aucune tâche terminée pour l'instant.</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Column: Ce qu'il reste à faire */}
-                  <div className="space-y-2 bg-amber-50/50 p-3.5 rounded-2xl border border-amber-100">
-                    <div className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-amber-600" />
-                      <span>⏳ Ce qu'il reste à faire</span>
-                    </div>
-
-                    <div className="space-y-1.5 pt-1">
-                      {(selectedLeadDrawer.tasks || [])
-                        .filter((t) => !t.done)
-                        .map((t) => (
-                          <div
-                            key={t.id}
-                            className="flex items-start justify-between gap-2 bg-white hover:bg-amber-50/40 p-2.5 rounded-xl border border-amber-200/80 shadow-2xs transition-colors"
-                          >
-                            <div className="flex items-start gap-2 flex-1">
-                              <button
-                                type="button"
-                                onClick={() => handleToggleTask(selectedLeadDrawer, t.id)}
-                                className="mt-0.5 text-slate-400 hover:text-emerald-600 transition-colors"
-                                title="Cliquer pour valider cette tâche"
-                              >
-                                <Square className="w-4 h-4" />
-                              </button>
-                              <span className="text-xs font-semibold text-slate-800">{t.label}</span>
-                            </div>
-                            {t.dueDate && (
-                              <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded whitespace-nowrap">
-                                {t.dueDate}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                    </div>
-
-                    {/* Add Custom Task Input */}
-                    <div className="pt-2 flex gap-1.5">
-                      <input
-                        type="text"
-                        placeholder="Ajouter une tâche personnalisée..."
-                        value={newTaskInput}
-                        onChange={(e) => setNewTaskInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleAddNewTask(selectedLeadDrawer);
-                        }}
-                        className="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleAddNewTask(selectedLeadDrawer)}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
