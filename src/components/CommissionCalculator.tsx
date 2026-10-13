@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calculator, Copy, Check, RotateCcw } from 'lucide-react';
 
 type Key = 'price' | 'rate' | 'fee' | 'net';
@@ -16,9 +16,11 @@ const parse = (t: string): number | null => {
 };
 
 const round = (n: number, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
-const show = (n: number, key: Key) => n.toLocaleString('fr-FR', { maximumFractionDigits: key === 'rate' ? 2 : 0 });
+export const showNum = (n: number, key: Key) => n.toLocaleString('fr-FR', { maximumFractionDigits: key === 'rate' ? 2 : 0 });
 
 /** Calcule les deux champs manquants à partir des deux derniers champs saisis. */
+export type CommissionResult = Record<Key, number>;
+
 function solve(a: Key, av: number, b: Key, bv: number): Record<Key, number> | null {
   const v: Partial<Record<Key, number>> = { [a]: av, [b]: bv };
   const has = (k: Key) => v[k] !== undefined;
@@ -38,16 +40,18 @@ function solve(a: Key, av: number, b: Key, bv: number): Record<Key, number> | nu
   return out;
 }
 
-export const CommissionCalculator: React.FC = () => {
-  const [texts, setTexts] = useState<Record<Key, string>>({ price: '350000', rate: '4', fee: '', net: '' });
+/** Les quatre champs liés (prix, %, commission, net) : deux saisis, deux calculés. */
+export const CommissionFields: React.FC<{ initial?: { price?: number; rate?: number }; onResult?: (r: CommissionResult | null) => void }> = ({ initial, onResult }) => {
+  const [texts, setTexts] = useState<Record<Key, string>>({ price: initial?.price ? String(initial.price) : '', rate: initial?.rate ? String(initial.rate) : '', fee: '', net: '' });
   // Les deux derniers champs modifiés sont la source ; les deux autres sont calculés
   const [inputs, setInputs] = useState<[Key, Key]>(['price', 'rate']);
-  const [copied, setCopied] = useState(false);
 
   const a = parse(texts[inputs[0]]);
   const b = parse(texts[inputs[1]]);
   const result = a !== null && b !== null ? solve(inputs[0], a, inputs[1], b) : null;
   const invalid = a !== null && b !== null && !result;
+  const sig = result ? `${result.price}|${result.rate}|${result.fee}|${result.net}` : '';
+  useEffect(() => { onResult?.(result); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [sig]);
 
   const edit = (k: Key, value: string) => {
     setTexts((t) => ({ ...t, [k]: value }));
@@ -57,25 +61,8 @@ export const CommissionCalculator: React.FC = () => {
   const shown = (k: Key) => (inputs.includes(k) ? texts[k] : result ? String(round(result[k], k === 'rate' ? 2 : 0)) : '');
   const isCalc = (k: Key) => !inputs.includes(k);
 
-  const summary = result
-    ? `Prix de vente : ${show(result.price, 'price')} € • Commission : ${show(result.rate, 'rate')} % (${show(result.fee, 'fee')} €) • Prix net vendeur : ${show(result.net, 'net')} €`
-    : '';
-
-  const copy = () => {
-    if (!summary) return;
-    navigator.clipboard?.writeText(summary).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-5">
-      <div className="bg-white rounded-2xl border border-stone-200 p-5">
-        <h1 className="text-xl font-extrabold text-stone-900 flex items-center gap-2"><Calculator className="w-5 h-5" /> Calculatrice de commission</h1>
-        <p className="text-sm text-stone-500 mt-1">Renseignez deux champs, quels qu'ils soient : les deux autres se calculent automatiquement. Modifiez-en un autre à tout moment pour changer la base du calcul.</p>
-      </div>
-
+    <>
       <div className="bg-white rounded-2xl border border-stone-200 p-5 grid sm:grid-cols-2 gap-4">
         {(['price', 'rate', 'fee', 'net'] as Key[]).map((k) => (
           <div key={k}>
@@ -101,18 +88,45 @@ export const CommissionCalculator: React.FC = () => {
 
       {invalid && <p role="alert" className="rounded-xl bg-rose-50 text-rose-800 text-sm p-3">Ces deux valeurs sont incompatibles (par exemple un net supérieur au prix de vente, ou une commission au-dessus de 100 %).</p>}
 
+    </>
+  );
+};
+
+export const CommissionCalculator: React.FC = () => {
+  const [result, setResult] = useState<CommissionResult | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+  const summary = result
+    ? `Prix de vente : ${showNum(result.price, 'price')} € • Commission : ${showNum(result.rate, 'rate')} % (${showNum(result.fee, 'fee')} €) • Prix net vendeur : ${showNum(result.net, 'net')} €`
+    : '';
+
+  const copy = () => {
+    if (!summary) return;
+    navigator.clipboard?.writeText(summary).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="w-full max-w-3xl mx-auto space-y-5">
+      <div className="bg-white rounded-2xl border border-stone-200 p-5">
+        <h1 className="text-xl font-extrabold text-stone-900 flex items-center gap-2"><Calculator className="w-5 h-5" /> Calculatrice de commission</h1>
+        <p className="text-sm text-stone-500 mt-1">Renseignez deux champs, quels qu'ils soient : les deux autres se calculent automatiquement. Modifiez-en un autre à tout moment pour changer la base du calcul.</p>
+      </div>
+      <CommissionFields key={resetKey} initial={resetKey ? {} : { price: 350000, rate: 4 }} onResult={setResult} />
       {result && (
         <div className="rounded-2xl bg-[#0f1f3d] text-white p-5 space-y-3">
           <div className="grid sm:grid-cols-3 gap-3 text-center">
-            <div><div className="text-[11px] uppercase text-slate-300">Prix de vente</div><div className="text-xl font-extrabold">{show(result.price, 'price')} €</div></div>
-            <div><div className="text-[11px] uppercase text-amber-300">Commission {show(result.rate, 'rate')} %</div><div className="text-xl font-extrabold text-amber-300">{show(result.fee, 'fee')} €</div></div>
-            <div><div className="text-[11px] uppercase text-slate-300">Net vendeur</div><div className="text-xl font-extrabold">{show(result.net, 'net')} €</div></div>
+            <div><div className="text-[11px] uppercase text-slate-300">Prix de vente</div><div className="text-xl font-extrabold">{showNum(result.price, 'price')} €</div></div>
+            <div><div className="text-[11px] uppercase text-amber-300">Commission {showNum(result.rate, 'rate')} %</div><div className="text-xl font-extrabold text-amber-300">{showNum(result.fee, 'fee')} €</div></div>
+            <div><div className="text-[11px] uppercase text-slate-300">Net vendeur</div><div className="text-xl font-extrabold">{showNum(result.net, 'net')} €</div></div>
           </div>
           <div className="flex flex-wrap justify-center gap-2 pt-1">
             <button type="button" onClick={copy} className="rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? 'Copié' : 'Copier le résumé'}
             </button>
-            <button type="button" onClick={() => { setTexts({ price: '', rate: '', fee: '', net: '' }); setInputs(['price', 'rate']); }} className="rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
+            <button type="button" onClick={() => setResetKey((k) => k + 1)} className="rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
               <RotateCcw className="w-4 h-4" /> Effacer
             </button>
           </div>

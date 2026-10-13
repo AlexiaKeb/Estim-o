@@ -1,7 +1,35 @@
 import { PreVisitBrief } from './PreVisitBrief';
 import { stageOf, frDate } from '../utils/stage';
+import { CommissionFields, type CommissionResult } from './CommissionCalculator';
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
+
+/** Ajustement du prix de mandat et des honoraires : quatre champs liés (prix, %, honoraires, net vendeur). */
+const FeesEditor: React.FC<{ lead: Lead; onSave: (price: number, rate: number) => void }> = ({ lead, onSave }) => {
+  const [open, setOpen] = useState(false);
+  const [res, setRes] = useState<CommissionResult | null>(null);
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white p-3">
+      <button type="button" onClick={() => setOpen(!open)} className="text-xs font-bold text-sky-700 underline">
+        {open ? 'Fermer' : 'Ajuster le prix de vente et les honoraires'}
+      </button>
+      {open && (
+        <div className="mt-3 space-y-3">
+          <CommissionFields initial={{ price: lead.mandate?.sellingPrice || lead.estimatedValue, rate: lead.mandate?.feeRatePercent || 4.5 }} onResult={setRes} />
+          <button
+            type="button"
+            id="btn-save-fees"
+            disabled={!res}
+            onClick={() => res && onSave(Math.round(res.price), Math.round(res.rate * 100) / 100)}
+            className="rounded-lg bg-stone-900 hover:bg-stone-800 disabled:opacity-40 text-white text-xs font-bold px-4 py-2"
+          >
+            Enregistrer ces montants
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 /** Seconde visite (R2) : date et heure fixées par la conseillère depuis la fiche. */
 const Visit2Box: React.FC<{ lead: Lead; onSave: (v: Lead['visit2'] | undefined) => void }> = ({ lead, onSave }) => {
@@ -54,7 +82,7 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
         <input id="sale-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
       </div>
       <div>
-        <label htmlFor="sale-fee" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Honoraires encaissés (€)</label>
+        <label htmlFor="sale-fee" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Honoraires encaissés (€){m.feeAmount ? <button type="button" onClick={() => setFee(String(m.feeAmount))} className="ml-2 normal-case font-semibold text-sky-700 underline">reprendre ceux du mandat ({m.feeAmount.toLocaleString('fr-FR')} €)</button> : null}</label>
         <input id="sale-fee" inputMode="numeric" value={fee} onChange={(e) => setFee(e.target.value.replace(/[^\d]/g, ''))} className="w-36 rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
       </div>
       <button type="button" id="btn-save-sale" onClick={() => date && onSave(date, Number(fee) || 0)} className="rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2">🏁 Enregistrer la vente</button>
@@ -1610,6 +1638,12 @@ export const CrmPipelineView: React.FC<Props> = ({
                   />
                 )}
 
+                <FeesEditor
+                  key={`${selectedLeadDrawer.id}-${selectedLeadDrawer.mandate?.sellingPrice}-${selectedLeadDrawer.mandate?.feeRatePercent}`}
+                  lead={selectedLeadDrawer}
+                  onSave={(price, rate) => handleUpdateLeadMandate(selectedLeadDrawer, { sellingPrice: price, feeRatePercent: rate })}
+                />
+
                 {/* Mandate Metrics Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
@@ -1633,7 +1667,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <div className="text-xs font-extrabold text-stone-900 mt-1">
                       {(selectedLeadDrawer.mandate?.sellingPrice || selectedLeadDrawer.estimatedValue).toLocaleString('fr-FR')} €
                     </div>
-                    <div className="text-[10px] text-stone-400 mt-0.5">Net vendeur + honoraires</div>
+                    <div className="text-[10px] text-stone-400 mt-0.5">Net vendeur : {((selectedLeadDrawer.mandate?.sellingPrice || selectedLeadDrawer.estimatedValue) - (selectedLeadDrawer.mandate?.feeAmount || Math.round((selectedLeadDrawer.mandate?.sellingPrice || selectedLeadDrawer.estimatedValue) * ((selectedLeadDrawer.mandate?.feeRatePercent || 4.5) / 100)))).toLocaleString('fr-FR')} €</div>
                   </div>
 
                   <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
@@ -1647,7 +1681,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200">
                     <span className="text-[10px] text-amber-800 font-bold uppercase">Honoraires d'Agence</span>
                     <div className="text-xs font-black text-amber-950 mt-1">
-                      {(selectedLeadDrawer.mandate?.feeAmount || Math.round(selectedLeadDrawer.estimatedValue * 0.045)).toLocaleString('fr-FR')} €
+                      {(selectedLeadDrawer.mandate?.feeAmount || Math.round((selectedLeadDrawer.mandate?.sellingPrice || selectedLeadDrawer.estimatedValue) * ((selectedLeadDrawer.mandate?.feeRatePercent || 4.5) / 100))).toLocaleString('fr-FR')} €
                     </div>
                     <div className="text-[10px] text-amber-700 font-medium mt-0.5">
                       {selectedLeadDrawer.mandate?.mandateNumber ? `Réf: ${selectedLeadDrawer.mandate.mandateNumber}` : 'À attribuer'}
