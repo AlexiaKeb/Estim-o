@@ -52,7 +52,7 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
           <button type="button" onClick={() => onSave('', 0)} className="text-xs underline text-emerald-900">Annuler la vente</button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className={card}><span className={lab}>Valorisation estimée</span><div className="text-sm font-extrabold text-stone-900 mt-1">{lead.estimatedValue ? `${lead.estimatedValue.toLocaleString('fr-FR')} €` : '—'}</div></div>
+          <div className={card}><span className={lab}>Valorisation estimée IA</span><div className="text-sm font-extrabold text-stone-900 mt-1">{lead.estimatedValue ? `${lead.estimatedValue.toLocaleString('fr-FR')} €` : '—'}</div></div>
           <div className={card}><span className={lab}>Prix de vente final</span><div className="text-sm font-extrabold text-stone-900 mt-1">{price ? `${price.toLocaleString('fr-FR')} €` : '—'}</div></div>
           <div className={card}>
             <span className={lab}>Commission agence</span>
