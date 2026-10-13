@@ -1560,78 +1560,41 @@ export const CrmPipelineView: React.FC<Props> = ({
                               ? 'bg-amber-100 text-amber-900 border border-amber-300'
                               : 'bg-blue-100 text-blue-900 border border-blue-300'
                           }`}>
-                            {selectedLeadDrawer.mandate.type === 'exclusive' ? '🌟 EXCLUSIF SIGNÉ' : '📄 SIMPLE SIGNÉ'}
+                            {selectedLeadDrawer.mandate.type === 'exclusive' ? 'EXCLUSIF' : 'SIMPLE'}
                           </span>
                         )}
                       </h4>
                       <p className="text-[11px] text-stone-500">
-                        Définissez le type de mandat, puis enregistrez la vente
+                        Mandat simple ou exclusif, puis enregistrez la vente
                       </p>
                     </div>
                   </div>
 
-                  {/* 1-Click Mandate Type Switcher */}
+                  {/* Type de mandat : simple ou exclusif */}
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateLeadMandate(
-                        selectedLeadDrawer,
-                        {
-                          type: 'exclusive',
-                          status: 'signed',
-                          mandateNumber: selectedLeadDrawer.mandate?.mandateNumber || `M-2026-${Math.floor(100 + Math.random() * 900)}`,
-                          sellingPrice: selectedLeadDrawer.mandate?.sellingPrice || selectedLeadDrawer.estimatedValue,
-                          signedDate: new Date().toISOString().split('T')[0],
-                        }
-                      )}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                        selectedLeadDrawer.mandate?.type === 'exclusive' && selectedLeadDrawer.mandate?.status === 'signed'
-                          ? 'bg-amber-600 text-white shadow-2xs'
-                          : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200'
-                      }`}
-                    >
-                      <span>🌟 Passer en Exclusif Signé</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateLeadMandate(
-                        selectedLeadDrawer,
-                        {
-                          type: 'simple',
-                          status: 'signed',
-                          mandateNumber: selectedLeadDrawer.mandate?.mandateNumber || `M-2026-${Math.floor(100 + Math.random() * 900)}`,
-                          sellingPrice: selectedLeadDrawer.mandate?.sellingPrice || selectedLeadDrawer.estimatedValue,
-                          signedDate: new Date().toISOString().split('T')[0],
-                        }
-                      )}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                        selectedLeadDrawer.mandate?.type === 'simple' && selectedLeadDrawer.mandate?.status === 'signed'
-                          ? 'bg-blue-600 text-white shadow-2xs'
-                          : 'bg-blue-50 text-blue-900 hover:bg-blue-100 border border-blue-200'
-                      }`}
-                    >
-                      <span>📄 Passer en Simple Signé</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateLeadMandate(
-                        selectedLeadDrawer,
-                        {
-                          type: 'in_negotiation',
-                          status: 'pending_signature',
-                          sellingPrice: selectedLeadDrawer.estimatedValue,
-                        }
-                      )}
-                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        selectedLeadDrawer.mandate?.type === 'in_negotiation' || selectedLeadDrawer.mandate?.status === 'pending_signature'
-                          ? 'bg-purple-600 text-white font-semibold'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      }`}
-                    >
-                      ⏳ En Négociation
-                    </button>
+                    {([['simple', 'Mandat simple'], ['exclusive', 'Mandat exclusif']] as const).map(([type, label]) => {
+                      const active = selectedLeadDrawer.mandate?.type === type && selectedLeadDrawer.mandate?.status === 'signed';
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          id={`btn-mandate-${type}`}
+                          onClick={() => handleUpdateLeadMandate(selectedLeadDrawer, { type, status: 'signed', signedDate: selectedLeadDrawer.mandate?.signedDate || new Date().toISOString().split('T')[0] })}
+                          className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${active ? 'bg-stone-900 text-white shadow-2xs' : 'bg-white text-stone-800 hover:bg-stone-100 border border-stone-300'}`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                    {selectedLeadDrawer.mandate?.status === 'signed' && !selectedLeadDrawer.mandate?.soldDate && (
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateLeadMandate(selectedLeadDrawer, { type: 'none', status: 'draft', signedDate: undefined })}
+                        className="text-xs underline text-stone-500 px-1"
+                      >
+                        Retirer le mandat
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1641,9 +1604,9 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <span className="text-[10px] text-stone-500 font-bold uppercase">Type de Mandat</span>
                     <div className="text-xs font-extrabold text-stone-900 mt-1">
                       {selectedLeadDrawer.mandate?.type === 'exclusive'
-                        ? '🌟 Exclusivité Totale'
+                        ? 'Mandat exclusif'
                         : selectedLeadDrawer.mandate?.type === 'simple'
-                        ? '📄 Mandat Simple'
+                        ? 'Mandat simple'
                         : selectedLeadDrawer.mandate?.type === 'in_negotiation'
                         ? '⏳ En Négociation'
                         : 'Aucun mandat'}
