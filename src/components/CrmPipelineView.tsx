@@ -43,17 +43,24 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
   if (m.soldDate) {
     const price = m.salePrice || 0;
     const fee = m.saleFee || 0;
+    const card = 'p-3 rounded-xl border border-stone-200 bg-stone-50';
+    const lab = 'text-[10px] text-stone-500 font-bold uppercase';
     return (
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3">
-        <div className="text-sm text-emerald-900 space-y-0.5">
-          <p><strong>🏁 Vente conclue le {frDate(m.soldDate)}</strong></p>
-          <p>
-            {price ? `Prix de vente : ${price.toLocaleString('fr-FR')} € • ` : ''}Ma commission : {fee.toLocaleString('fr-FR')} €
-            {price && fee ? ` (${((fee / price) * 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} %) • Net vendeur : ${(price - fee).toLocaleString('fr-FR')} €` : ''}
-          </p>
-          {m.saleNetFee ? <p>Ma commission nette : <strong>{m.saleNetFee.toLocaleString('fr-FR')} €</strong></p> : null}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3">
+          <p className="text-sm text-emerald-900"><strong>🏁 Vente conclue le {frDate(m.soldDate)}</strong></p>
+          <button type="button" onClick={() => onSave('', 0)} className="text-xs underline text-emerald-900">Annuler la vente</button>
         </div>
-        <button type="button" onClick={() => onSave('', 0)} className="text-xs underline text-emerald-900">Annuler la vente</button>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className={card}><span className={lab}>Prix de vente final</span><div className="text-sm font-extrabold text-stone-900 mt-1">{price ? `${price.toLocaleString('fr-FR')} €` : '—'}</div></div>
+          <div className={card}>
+            <span className={lab}>Ma commission</span>
+            <div className="text-sm font-extrabold text-stone-900 mt-1">{fee.toLocaleString('fr-FR')} €</div>
+            {price && fee ? <div className="text-[10px] text-stone-400 mt-0.5">{((fee / price) * 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} % du prix</div> : null}
+          </div>
+          <div className={card}><span className={lab}>Net vendeur</span><div className="text-sm font-extrabold text-stone-900 mt-1">{price ? `${(price - fee).toLocaleString('fr-FR')} €` : '—'}</div></div>
+          <div className="p-3 rounded-xl border border-amber-200 bg-amber-50/80"><span className="text-[10px] text-amber-800 font-bold uppercase">Commission nette</span><div className="text-sm font-black text-amber-950 mt-1">{m.saleNetFee ? `${m.saleNetFee.toLocaleString('fr-FR')} €` : '—'}</div></div>
+        </div>
       </div>
     );
   }
@@ -1599,7 +1606,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                 </div>
 
                 {/* Mandate Metrics Grid */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
                     <span className="text-[10px] text-stone-500 font-bold uppercase">Type de Mandat</span>
                     <div className="text-xs font-extrabold text-stone-900 mt-1">
@@ -1616,13 +1623,6 @@ export const CrmPipelineView: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
-                    <span className="text-[10px] text-stone-500 font-bold uppercase">{selectedLeadDrawer.mandate?.soldDate ? 'Prix de vente final' : 'Estimation du site'}</span>
-                    <div className="text-xs font-extrabold text-stone-900 mt-1">
-                      {(selectedLeadDrawer.mandate?.soldDate && selectedLeadDrawer.mandate?.salePrice ? selectedLeadDrawer.mandate.salePrice : selectedLeadDrawer.estimatedValue).toLocaleString('fr-FR')} €
-                    </div>
-                    <div className="text-[10px] text-stone-400 mt-0.5">{selectedLeadDrawer.mandate?.soldDate ? 'Renseigné à la vente' : 'Prix FAI indicatif'}</div>
-                  </div>
                 </div>
               </div>
 
