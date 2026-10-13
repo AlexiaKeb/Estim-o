@@ -588,18 +588,7 @@ export const CrmPipelineView: React.FC<Props> = ({
       <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-stone-200">
         {/* Tab switcher: Leads Table vs Full Action Plan */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('leads')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 ${
-              activeTab === 'leads'
-                ? 'bg-[#0f1f3d] text-white font-semibold shadow-xs'
-                : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Mes dossiers ({filteredLeads.length})</span>
-          </button>
+          <h2 className="text-lg font-extrabold text-stone-900 flex items-center gap-2 px-1"><Building2 className="w-5 h-5 text-stone-500" /> Mes dossiers <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-sm font-bold text-stone-600">{filteredLeads.length}</span></h2>
 
           <button
             type="button"
@@ -627,44 +616,29 @@ export const CrmPipelineView: React.FC<Props> = ({
       {/* VIEW 1: LEADS TABLE & MOBILE CARDS WITH VISUAL LAST ACTIONS AND QUICK COPY */}
       {activeTab === 'leads' && (
         <div className="space-y-4">
-          {/* Search & Filter Toolbar */}
-          <div className="bg-white rounded-xl border border-stone-200/80 p-3.5 sm:p-4 shadow-2xs space-y-3">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
-              <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+          {/* Recherche et filtres */}
+          <div className="rounded-3xl bg-white border border-stone-200 shadow-sm p-4 sm:p-5 space-y-4">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+              <div className="relative w-full md:w-96">
+                <Search className="w-4 h-4 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   id="input-crm-search"
-                  placeholder="Rechercher par nom, ville, n° mandat..."
+                  placeholder="Rechercher un nom, une ville…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-stone-200 text-xs font-normal text-stone-900 bg-stone-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400"
+                  className="w-full pl-11 pr-4 py-2.5 rounded-full border border-stone-200 text-sm text-stone-900 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400"
                 />
               </div>
-
-              {/* Status Filter Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none w-full md:w-auto">
-                <span className="text-xs font-medium text-stone-400 mr-1 flex items-center gap-1 whitespace-nowrap flex-shrink-0">
-                  <Filter className="w-3 h-3" />
-                  Statut :
-                </span>
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
                 {(['ALL', 'HOT', 'WARM', 'COLD'] as const).map((st) => {
-                  const labels = {
-                    ALL: 'Tous',
-                    HOT: '🔥 Chauds',
-                    WARM: '🟡 Tièdes',
-                    COLD: '❄️ Froids',
-                  };
+                  const labels = { ALL: 'Tous', HOT: '🔥 Chauds', WARM: '🟡 Tièdes', COLD: '❄️ Froids' };
                   return (
                     <button
                       key={st}
                       type="button"
                       onClick={() => setStatusFilter(st)}
-                      className={`py-1.5 px-3 rounded-lg text-xs font-medium whitespace-nowrap flex-shrink-0 transition-all ${
-                        statusFilter === st
-                          ? 'bg-stone-900 text-white font-semibold shadow-2xs'
-                          : 'bg-stone-100/80 text-stone-600 hover:bg-stone-200/80'
-                      }`}
+                      className={`rounded-full px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${statusFilter === st ? 'bg-[#0f1f3d] text-white shadow' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
                     >
                       {labels[st]}
                     </button>
@@ -673,480 +647,106 @@ export const CrmPipelineView: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Tri par étape du pipeline */}
-            <div className="flex items-center gap-1.5 pt-2 border-t border-stone-100 overflow-x-auto scrollbar-none">
-              <span className="text-xs font-semibold text-stone-600 mr-1 whitespace-nowrap flex-shrink-0">Étape :</span>
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-0.5">
               {([
-                ['ALL', 'Tous', activeLeads.length],
-                ['lead', 'Leads', pipeLeads.length],
-                ['r1', 'R1', pipeVisits.length],
-                ['r2', 'R2', pipeR2.length],
-                ['mandat', 'Mandat', pipeMandates.length],
-                ['vente', 'Vente', pipeSold.length],
-                ['archive', 'Archivés', archivedLeads.length],
-              ] as const).map(([k, label, n]) => (
+                ['ALL', 'Tous', activeLeads.length, 'from-stone-700 to-stone-800'],
+                ['lead', 'Leads', pipeLeads.length, 'from-sky-500 to-sky-600'],
+                ['r1', 'R1', pipeVisits.length, 'from-amber-500 to-amber-600'],
+                ['r2', 'R2', pipeR2.length, 'from-orange-500 to-orange-600'],
+                ['mandat', 'Mandat', pipeMandates.length, 'from-violet-500 to-violet-600'],
+                ['vente', 'Vente', pipeSold.length, 'from-emerald-500 to-emerald-600'],
+                ['archive', 'Archivés', archivedLeads.length, 'from-stone-400 to-stone-500'],
+              ] as const).map(([k, label, n, grad]) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setMandateFilter(k)}
-                  className={`py-1 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                    mandateFilter === k ? 'bg-stone-800 text-white font-semibold' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-                  }`}
+                  className={`rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${mandateFilter === k ? `bg-gradient-to-r ${grad} text-white shadow-md` : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}
                 >
                   {label}
-                  <span className="px-1.5 rounded-full bg-white/25 text-[10px] font-bold">{n}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${mandateFilter === k ? 'bg-white/25' : 'bg-white'}`}>{n}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* ========================================================= */}
-          {/* MOBILE RESPONSIVE CARDS VIEW (< md screen width) */}
-          {/* ========================================================= */}
-          <div className="block md:hidden space-y-3.5">
+          {/* Liste des dossiers : une carte par dossier (ordinateur et mobile) */}
+          <div className="space-y-3">
+            {filteredLeads.length === 0 && (
+              <p className="rounded-3xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-400">Aucun dossier ne correspond à ces filtres.</p>
+            )}
             {filteredLeads.map((lead) => {
-              const hasChat = (lead.conversationHistory?.length || 0) > 0;
-              const tasks = lead.tasks || [];
-              const doneCount = tasks.filter((t) => t.done).length;
-              const pendingCount = tasks.filter((t) => !t.done).length;
-              const leadProgress = tasks.length > 0 ? Math.round((doneCount / tasks.length) * 100) : 50;
-              const mandate = lead.mandate;
-
+              const stg = stageOf(lead);
+              const stageInfo: Record<string, [string, string]> = {
+                lead: ['Lead', 'from-sky-500 to-sky-600'],
+                r1: ['R1', 'from-amber-500 to-amber-600'],
+                r2: ['R2', 'from-orange-500 to-orange-600'],
+                mandat: ['Mandat', 'from-violet-500 to-violet-600'],
+                vente: ['Vente', 'from-emerald-500 to-emerald-600'],
+              };
+              const [stLabel, stGrad] = lead.archive ? ['Archivé', 'from-stone-400 to-stone-500'] : stageInfo[stg];
+              const rdv = stg === 'r2' && lead.visit2?.date ? { l: 'R2', d: lead.visit2.date, t: lead.visit2.time } : lead.meetingDate ? { l: 'R1', d: lead.meetingDate, t: lead.meetingTime } : null;
+              const initials = lead.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('');
               return (
                 <div
-                  key={`mobile-lead-${lead.id}`}
-                  className="bg-white rounded-xl border border-stone-200/80 p-4 shadow-2xs space-y-3.5 transition-all hover:border-stone-400"
+                  key={lead.id}
                   onClick={() => setSelectedLeadDrawer(lead)}
+                  className="group cursor-pointer rounded-3xl bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-stone-300 transition-all p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center gap-4"
                 >
-                  {/* Top Bar: Name + Status Badge + Score */}
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3.5 lg:w-72 shrink-0 min-w-0">
+                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${stGrad} text-white font-extrabold`}>{initials}</span>
+                    <div className="min-w-0">
+                      <p className="truncate font-extrabold text-stone-900 uppercase">{lead.name}</p>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-stone-500" onClick={(e) => e.stopPropagation()}>
+                        <button type="button" onClick={() => handleCopyValue(`row-phone-${lead.id}`, lead.phone)} className="inline-flex items-center gap-1 rounded-full bg-stone-100 hover:bg-stone-200 px-2 py-0.5 font-medium text-stone-700" title="Copier le numéro">
+                          <Phone className="w-3 h-3" />{lead.phone}
+                          {copiedField === `row-phone-${lead.id}` && <Check className="w-3 h-3 text-emerald-600" />}
+                        </button>
+                        <button type="button" onClick={() => handleCopyFullLeadCard(lead)} className="rounded-full bg-stone-100 hover:bg-stone-200 px-2 py-0.5 font-medium text-stone-700" title="Copier toute la fiche (CRM, WhatsApp)">
+                          {copiedField === `full-${lead.id}` ? 'Copié ✓' : 'Fiche'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 flex-1 text-sm">
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-stone-900 text-sm uppercase">{lead.name}</span>
-                        {hasChat && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[10px] font-medium border border-stone-200">
-                            <MessageSquare className="w-2.5 h-2.5" />
-                            <span>{lead.conversationHistory?.length}</span>
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-stone-500 font-normal mt-0.5">
-                        {lead.propertyType} • {lead.surface} m² • <strong className="text-stone-800 font-semibold">{lead.estimatedValue.toLocaleString('fr-FR')} €</strong>
-                      </div>
+                      <p className="text-[10px] font-bold uppercase text-stone-400">Bien</p>
+                      <p className="font-semibold text-stone-800">{lead.propertyType} {lead.surface} m²</p>
+                      <p className="text-xs text-stone-500">📍 {lead.city}</p>
                     </div>
-
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          lead.status === 'HOT'
-                            ? 'bg-amber-50 text-amber-900 border border-amber-200 font-semibold'
-                            : lead.status === 'WARM'
-                            ? 'bg-stone-100 text-stone-700 border border-stone-200'
-                            : 'bg-stone-50 text-stone-500 border border-stone-200'
-                        }`}
-                      >
-                        {lead.status === 'HOT' ? '🔥 Chaud' : lead.status === 'WARM' ? '🟡 Tiède' : '❄️ Froid'} ({lead.score}/100)
-                      </span>
-                      <span className="text-[10px] text-stone-400">{lead.createdAt}</span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-stone-400">Étape</p>
+                      <span className={`mt-0.5 inline-block rounded-full bg-gradient-to-r ${stGrad} px-3 py-1 text-xs font-extrabold text-white`}>{stLabel}</span>
                     </div>
-                  </div>
-
-                  {/* MANDATE STATUS BADGE (Mobile) */}
-                  {(mandate?.status === 'signed' || mandate?.type === 'in_negotiation' || mandate?.status === 'pending_signature') && (
-                  <div className="p-2 rounded-lg border text-xs flex items-center justify-between gap-2 bg-stone-50/70 border-stone-200">
-                    <div className="flex items-center gap-1.5 font-medium">
-                      <Award className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                      {mandate?.status === 'signed' ? (
-                        mandate.type === 'exclusive' ? (
-                          <span className="inline-flex items-center gap-1 font-bold text-amber-900">
-                            <span>🌟 Mandat Exclusif Signé</span>
-                            <span className="text-[10px] text-amber-700">({mandate.mandateNumber})</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 font-bold text-blue-900">
-                            <span>📄 Mandat Simple Signé</span>
-                            <span className="text-[10px] text-blue-700">({mandate.mandateNumber})</span>
-                          </span>
-                        )
-                      ) : mandate?.type === 'in_negotiation' || mandate?.status === 'pending_signature' ? (
-                        <span className="text-purple-800 font-semibold">⏳ Mandat en négociation ({mandate.type === 'exclusive' ? 'Exclusif' : 'Simple'})</span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-stone-400">Rendez-vous</p>
+                      {rdv ? (
+                        <p className="font-semibold text-stone-800">{rdv.l} • {frDate(rdv.d)}{rdv.t ? <span className="block text-xs font-normal text-stone-500">à {rdv.t}</span> : null}</p>
                       ) : (
-                        <span className="text-stone-500 font-normal">⚪ Pas de mandat signé</span>
+                        <p className="text-stone-400">Non fixé</p>
                       )}
                     </div>
-                  </div>
-                  )}
-
-                  {/* 1-Tap Quick Action Copy Bar (Mobile Optimized, No Wrapping) */}
-                  <div
-                    className="grid grid-cols-3 gap-1.5 p-2 bg-stone-50/80 rounded-lg border border-stone-100"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* Copy Phone */}
-                    <button
-                      type="button"
-                      onClick={() => handleCopyValue(`row-phone-${lead.id}`, lead.phone)}
-                      className="py-1.5 px-2 rounded-md bg-white hover:bg-stone-50 text-stone-700 font-medium text-[11px] flex items-center justify-center gap-1 border border-stone-200 shadow-2xs transition-colors"
-                      title="Copier le téléphone"
-                    >
-                      <Phone className="w-3 h-3 text-stone-400 flex-shrink-0" />
-                      <span className="truncate">{lead.phone}</span>
-                      {copiedField === `row-phone-${lead.id}` && (
-                        <Check className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-                      )}
-                    </button>
-
-                    {/* Copy Email */}
-                    <button
-                      type="button"
-                      onClick={() => handleCopyValue(`row-email-${lead.id}`, lead.email)}
-                      className="py-1.5 px-2 rounded-md bg-white hover:bg-stone-50 text-stone-700 font-medium text-[11px] flex items-center justify-center gap-1 border border-stone-200 shadow-2xs transition-colors"
-                      title="Copier l'email"
-                    >
-                      <Mail className="w-3 h-3 text-stone-400 flex-shrink-0" />
-                      <span className="truncate">{copiedField === `row-email-${lead.id}` ? 'Copié !' : 'Email'}</span>
-                    </button>
-
-                    {/* Copy Entire Card */}
-                    <button
-                      type="button"
-                      onClick={() => handleCopyFullLeadCard(lead)}
-                      className="py-1.5 px-2 rounded-md bg-stone-900 hover:bg-stone-800 text-stone-100 font-medium text-[11px] flex items-center justify-center gap-1 shadow-2xs transition-colors"
-                      title="Copier toute la fiche pour CRM / WhatsApp"
-                    >
-                      {copiedField === `full-${lead.id}` ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                          <span className="text-emerald-300 font-semibold">Copié !</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3 text-stone-400 flex-shrink-0" />
-                          <span>Fiche</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Address & Motive */}
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center justify-between text-slate-600 bg-slate-50/70 p-2 rounded-lg border border-slate-100">
-                      <div className="flex items-center gap-1.5 truncate">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                        <span className="truncate font-medium text-slate-700">{lead.address || lead.city}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopyValue(`row-addr-${lead.id}`, lead.address || lead.city);
-                        }}
-                        className="text-slate-400 hover:text-blue-600 p-1 flex-shrink-0"
-                        title="Copier l'adresse"
-                      >
-                        {copiedField === `row-addr-${lead.id}` ? (
-                          <Check className="w-3 h-3 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] pt-1">
-                      <span className="text-slate-500">Motif : <strong className="text-slate-700">{lead.motive}</strong></span>
-                      <span className="text-slate-500">Délai : <strong className="text-slate-700">{lead.timeframe}</strong></span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-stone-400">Projet</p>
+                      <p className="font-semibold text-stone-800">{lead.motive}</p>
+                      <p className="text-xs text-stone-500">{lead.timeframe}</p>
                     </div>
                   </div>
 
-                  {/* Dernière Action Effectuée */}
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                      <span>Dernière action</span>
-                      {lead.lastAction?.date && <span>{lead.lastAction.date}</span>}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
-                      {lead.lastAction ? (
-                        <>
-                          {getActionIcon(lead.lastAction.type)}
-                          <span className="truncate">{lead.lastAction.label}</span>
-                        </>
-                      ) : lead.meetingBooked ? (
-                        <>
-                          <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Visite le {frDate(lead.meetingDate)}</span>
-                        </>
-                      ) : (
-                        <span>Simulation validée</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Progress Bar (Fait vs À Faire) */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-slate-600">{doneCount}/{tasks.length || 6} étapes faites</span>
-                      <span className={`font-bold ${leadProgress >= 70 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        {leadProgress}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          leadProgress >= 75
-                            ? 'bg-emerald-500'
-                            : leadProgress >= 40
-                            ? 'bg-blue-500'
-                            : 'bg-amber-500'
-                        }`}
-                        style={{ width: `${Math.max(15, leadProgress)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Bottom Action Buttons */}
-                  <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-                    {!lead.meetingBooked && (
-                      <button
-                        type="button"
-                        onClick={() => onOpenBookingModal(lead)}
-                        className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Fixer Visite</span>
+                  <div className="flex items-center gap-2 lg:justify-end shrink-0" onClick={(e) => e.stopPropagation()}>
+                    {lead.email && (
+                      <button type="button" onClick={() => setMailLead(lead)} className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white hover:bg-stone-50 px-4 py-2 text-xs font-bold text-stone-800" title={`Écrire un e-mail à ${lead.name}`}>
+                        <Mail className="w-3.5 h-3.5" /> E-mail
                       </button>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedLeadDrawer(lead)}
-                      className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1"
-                    >
-                      <span>Fiche & Mandat</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                    <button type="button" onClick={() => setSelectedLeadDrawer(lead)} className="inline-flex items-center gap-1 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] px-4 py-2 text-xs font-bold text-white" title="Ouvrir le dossier">
+                      Dossier <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
               );
             })}
-          </div>
-
-          {/* ========================================================= */}
-          {/* DESKTOP TABLE VIEW (>= md screen width) - Warm SaaS */}
-          {/* ========================================================= */}
-          <div className="hidden md:block bg-white rounded-xl border border-stone-200/80 shadow-2xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse min-w-[960px]">
-                <thead>
-                  <tr className="bg-stone-50/70 border-b border-stone-200/80 text-stone-500 font-medium uppercase tracking-wider text-[10px]">
-                    <th className="py-3 px-4">Prospect & Contact</th>
-                    <th className="py-3 px-4">Bien</th>
-                    <th className="py-3 px-4">Motif & Délai</th>
-                    <th className="py-3 px-4">Dernière Action Réalisée</th>
-                    <th className="py-3 px-4">Avancement Dossier</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100">
-                  {filteredLeads.map((lead) => {
-                    const hasChat = (lead.conversationHistory?.length || 0) > 0;
-                    const tasks = lead.tasks || [];
-                    const doneCount = tasks.filter((t) => t.done).length;
-                    const pendingCount = tasks.filter((t) => !t.done).length;
-                    const leadProgress = tasks.length > 0 ? Math.round((doneCount / tasks.length) * 100) : 50;
-                    const mandate = lead.mandate;
-
-                    return (
-                      <tr
-                        key={lead.id}
-                        className="hover:bg-stone-50/60 transition-colors cursor-pointer group"
-                        onClick={() => setSelectedLeadDrawer(lead)}
-                      >
-                        {/* Prospect Name & Quick Copy */}
-                        <td className="py-3.5 px-4">
-                          <div className="font-semibold text-stone-900 flex items-center gap-1.5">
-                            <span className="uppercase">{lead.name}</span>
-                            {hasChat && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[10px] font-medium border border-stone-200" title="Historique d'échange complet">
-                                <MessageSquare className="w-3 h-3 text-stone-500" />
-                                <span>{lead.conversationHistory?.length}</span>
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Quick copy chips right on row */}
-                          <div className="flex items-center gap-1.5 mt-1 text-[11px]" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyValue(`row-phone-${lead.id}`, lead.phone)}
-                              className="px-1.5 py-0.5 rounded bg-stone-100/80 hover:bg-stone-200 text-stone-700 font-medium flex items-center gap-1 transition-colors whitespace-nowrap text-[11px]"
-                              title="Copier le numéro de téléphone"
-                            >
-                              <Phone className="w-3 h-3 text-stone-400" />
-                              <span>{lead.phone}</span>
-                              {copiedField === `row-phone-${lead.id}` ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 text-stone-400" />
-                              )}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleCopyValue(`row-email-${lead.id}`, lead.email)}
-                              className="p-1 rounded bg-stone-100/80 hover:bg-stone-200 text-stone-700 transition-colors"
-                              title={`Copier l'email (${lead.email})`}
-                            >
-                              {copiedField === `row-email-${lead.id}` ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <Mail className="w-3 h-3 text-stone-400" />
-                              )}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleCopyFullLeadCard(lead)}
-                              className="px-1.5 py-0.5 rounded bg-stone-900 hover:bg-stone-800 text-stone-100 font-medium text-[10px] flex items-center gap-1 transition-colors whitespace-nowrap shadow-2xs"
-                              title="Copier toute la fiche contact pour CRM / WhatsApp"
-                            >
-                              {copiedField === `full-${lead.id}` ? (
-                                <>
-                                  <Check className="w-3 h-3 text-emerald-400" />
-                                  <span>Copié !</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-2.5 h-2.5 text-stone-400" />
-                                  <span>Fiche</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </td>
-
-                        {/* Property & Address */}
-                        <td className="py-3.5 px-4">
-                          <div className="font-medium text-stone-800 flex items-center gap-1.5">
-                            {lead.propertyType === 'Appartement' ? (
-                              <Building2 className="w-3.5 h-3.5 text-stone-500 flex-shrink-0" />
-                            ) : (
-                              <Home className="w-3.5 h-3.5 text-stone-500 flex-shrink-0" />
-                            )}
-                            <span>{lead.propertyType} • {lead.surface} m²</span>
-                          </div>
-                          <div className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5">
-                            <MapPin className="w-3 h-3 text-stone-400 flex-shrink-0" />
-                            <span>{lead.city}</span>
-                          </div>
-                        </td>
-
-                        {/* Motive & Timeframe */}
-                        <td className="py-3.5 px-4">
-                          <span className="inline-block px-2 py-0.5 rounded-md bg-stone-100 text-stone-800 font-medium text-[11px] border border-stone-200">
-                            {lead.motive}
-                          </span>
-                          <div className="text-[11px] text-stone-500 font-normal mt-1">
-                            Délai : <strong className="text-stone-800 font-semibold">{lead.timeframe}</strong>
-                          </div>
-                        </td>
-
-                        {/* DEDICATED COLUMN: DERNIÈRE ACTION EFFECTUÉE */}
-                        <td className="py-3.5 px-4">
-                          {lead.lastAction ? (
-                            <div className="space-y-1">
-                              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-stone-100/90 border border-stone-200 text-stone-800 font-medium text-[11px] max-w-[200px] truncate">
-                                {getActionIcon(lead.lastAction.type)}
-                                <span className="truncate" title={lead.lastAction.label}>
-                                  {lead.lastAction.label}
-                                </span>
-                              </div>
-                              <div className="text-[10px] text-stone-400 flex items-center gap-1">
-                                <Clock className="w-2.5 h-2.5" />
-                                <span>{lead.lastAction.date}</span>
-                              </div>
-                            </div>
-                          ) : lead.meetingBooked ? (
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-medium">
-                              <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Visite le {frDate(lead.meetingDate)}</span>
-                            </div>
-                          ) : (
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-stone-100 text-stone-600 text-[11px]">
-                              <span>Estimation transmise</span>
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Progress Stepper (Fait vs À Faire) */}
-                        <td className="py-3.5 px-4">
-                          <div className="space-y-1 min-w-[120px]">
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="font-medium text-stone-700">{doneCount}/{tasks.length || 6} faites</span>
-                              <span className={`font-semibold ${leadProgress >= 70 ? 'text-emerald-700' : 'text-amber-700'}`}>
-                                {leadProgress}%
-                              </span>
-                            </div>
-                            {/* Visual Progress Bar */}
-                            <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden border border-stone-200/80">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  leadProgress >= 75
-                                    ? 'bg-emerald-600'
-                                    : leadProgress >= 40
-                                    ? 'bg-stone-800'
-                                    : 'bg-amber-600'
-                                }`}
-                                style={{ width: `${Math.max(15, leadProgress)}%` }}
-                              />
-                            </div>
-                            <div className="text-[10px] text-stone-400">
-                              {pendingCount > 0 ? `${pendingCount} étape(s) en attente` : 'Dossier complet'}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Quick Action Buttons */}
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            {!lead.meetingBooked && (
-                              <button
-                                type="button"
-                                onClick={() => onOpenBookingModal(lead)}
-                                className="py-1.5 px-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-[11px] font-medium shadow-2xs transition-colors whitespace-nowrap"
-                              >
-                                Fixer Visite
-                              </button>
-                            )}
-
-                            {lead.email && (
-                              <button
-                                type="button"
-                                onClick={() => setMailLead(lead)}
-                                className="py-1.5 px-2.5 bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap"
-                                title={`Écrire un e-mail à ${lead.name}`}
-                              >
-                                <Mail className="w-3 h-3" />
-                                <span>E-mail</span>
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => setSelectedLeadDrawer(lead)}
-                              className="py-1.5 px-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap"
-                              title="Ouvrir la fiche et les tâches"
-                            >
-                              <span>Dossier</span>
-                              <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
       )}
