@@ -43,29 +43,28 @@ function solve(a: Key, av: number, b: Key, bv: number): Record<Key, number> | nu
 /** Les quatre champs liés (prix, %, commission, net) : deux saisis, deux calculés. */
 export const CommissionFields: React.FC<{ initial?: { price?: number; rate?: number }; onResult?: (r: CommissionResult | null) => void }> = ({ initial, onResult }) => {
   const [texts, setTexts] = useState<Record<Key, string>>({ price: initial?.price ? String(initial.price) : '', rate: initial?.rate ? String(initial.rate) : '', fee: '', net: '' });
-  // Les deux derniers champs modifiés sont la source ; les deux autres sont calculés
-  const [inputs, setInputs] = useState<[Key, Key]>(['price', 'rate']);
+  // Ordre des modifications : les deux derniers champs RENSEIGNÉS (valides) sont la source, les autres sont calculés
+  const [order, setOrder] = useState<Key[]>(['fee', 'net', 'rate', 'price']);
+  const lastEdited = order[order.length - 1];
 
-  const a = parse(texts[inputs[0]]);
-  const b = parse(texts[inputs[1]]);
-  const result = a !== null && b !== null ? solve(inputs[0], a, inputs[1], b) : null;
-  const invalid = a !== null && b !== null && !result;
+  const usable = (k: Key) => {
+    const v = parse(texts[k]);
+    return v !== null && (k !== 'price' || v > 0);
+  };
+  const sources = [...order].reverse().filter(usable).slice(0, 2);
+  const result = sources.length === 2 ? solve(sources[0], parse(texts[sources[0]])!, sources[1], parse(texts[sources[1]])!) : null;
+  const invalid = sources.length === 2 && !result;
   const sig = result ? `${result.price}|${result.rate}|${result.fee}|${result.net}` : '';
   useEffect(() => { onResult?.(result); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [sig]);
 
   const edit = (k: Key, value: string) => {
     setTexts((t) => ({ ...t, [k]: value }));
-    setInputs((prev) => {
-      if (prev.includes(k)) return prev;
-      // Un champ source resté vide est remplacé en priorité ; sinon on remplace le plus ancien
-      if (texts[prev[0]].trim() === '') return [k, prev[1]];
-      if (texts[prev[1]].trim() === '') return [prev[0], k];
-      return [prev[1], k];
-    });
+    setOrder((o) => [...o.filter((x) => x !== k), k]);
   };
 
-  const shown = (k: Key) => (inputs.includes(k) ? texts[k] : result ? String(round(result[k], k === 'rate' ? 2 : 0)) : '');
-  const isCalc = (k: Key) => !inputs.includes(k);
+  const isSource = (k: Key) => sources.includes(k);
+  const shown = (k: Key) => (isSource(k) || k === lastEdited ? texts[k] : result ? String(round(result[k], k === 'rate' ? 2 : 0)) : '');
+  const isCalc = (k: Key) => !isSource(k) && k !== lastEdited && Boolean(result);
 
   return (
     <>
