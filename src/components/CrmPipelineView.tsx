@@ -131,6 +131,7 @@ import {
   Trash2,
   Tag,
   Award,
+  Users,
   ScrollText,
   BadgePercent
 } from 'lucide-react';
@@ -488,78 +489,86 @@ export const CrmPipelineView: React.FC<Props> = ({
         />
       )}
       {securityOpen && <SecurityPanel onClose={() => setSecurityOpen(false)} onLoggedOut={() => window.location.assign('/')} />}
-      {/* En-tête, indicateurs et pipeline à 4 colonnes */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-2xs">
-        <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900">Dashboard CRM &amp; Pilotage</h1>
-        <p className="text-xs sm:text-sm text-stone-500 mt-0.5">Céline LEVRAT • Estimations • Région Lyonnaise &amp; Beaujolais</p>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl border border-stone-200 p-4">
-          <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Leads estimations</div>
-          <div className="text-3xl font-extrabold text-stone-900 mt-1">{leads.length}</div>
-          <div className="text-[11px] text-stone-500">Générés via le site</div>
-        </div>
-        <div className="bg-white rounded-xl border border-stone-200 p-4">
-          <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">RDV fixés</div>
-          <div className="text-3xl font-extrabold text-stone-900 mt-1 flex items-baseline gap-2">
-            {pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length}
-            <span className="text-[11px] font-bold text-sky-700 bg-sky-50 rounded px-1.5 py-0.5">{leads.length ? Math.round(((pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % conv.</span>
-          </div>
-          <div className="text-[11px] text-stone-500">Visites d'estimation sur place</div>
-        </div>
-        <div className="bg-violet-50/60 rounded-xl border border-violet-200 p-4">
-          <div className="text-[11px] font-bold text-violet-800 uppercase tracking-wider">Mandats</div>
-          <div className="text-3xl font-extrabold text-stone-900 mt-1 flex items-baseline gap-2">
-            {pipeMandates.length}
-            <span className="text-[11px] font-bold text-violet-700 bg-violet-100 rounded px-1.5 py-0.5">{(pipeMandates.reduce((n, l) => n + (l.mandate?.sellingPrice || 0), 0) / 1e6).toFixed(2).replace('.', ',')} M€</span>
-          </div>
-          <div className="text-[11px] text-stone-500">Portefeuille sous mandat</div>
-        </div>
-        <div className="bg-white rounded-xl border border-stone-200 p-4">
-          <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Ventes conclues</div>
-          <div className="text-3xl font-extrabold text-stone-900 mt-1 flex items-baseline gap-2">
-            {pipeSold.length}
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5">{pipeSold.reduce((n, l) => n + (l.mandate?.saleFee || 0), 0).toLocaleString('fr-FR')} €</span>
-          </div>
-          <div className="text-[11px] text-stone-500">Honoraires réalisés</div>
+      {/* Bandeau d'accueil */}
+      <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
+        <div className="absolute right-24 -bottom-16 h-40 w-40 rounded-full bg-sky-400/10" aria-hidden="true" />
+        <div className="relative">
+          <p className="text-xs font-bold uppercase tracking-wider text-amber-300">{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold">Bonjour Céline 👋</h1>
+          <p className="mt-1 text-sm text-slate-300">
+            {activeLeads.length} dossier{activeLeads.length > 1 ? 's' : ''} en cours
+            {pipeVisits.length + pipeR2.length > 0 ? ` • ${pipeVisits.length + pipeR2.length} rendez-vous à suivre` : ''}
+            {pipeMandates.length > 0 ? ` • ${pipeMandates.length} mandat${pipeMandates.length > 1 ? 's' : ''} actif${pipeMandates.length > 1 ? 's' : ''}` : ''}
+          </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5">
-        <h2 className="text-base font-bold text-stone-900 mb-3">Pipeline de qualification &amp; suivi des mandats</h2>
+      {/* Indicateurs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {([
+          ['Leads', leads.length, 'demandes reçues via le site', <Users className="w-5 h-5" />, 'from-sky-500 to-sky-600', 'bg-sky-50'],
+          ['Rendez-vous', pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length, `${leads.length ? Math.round(((pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % des leads`, <Calendar className="w-5 h-5" />, 'from-amber-500 to-orange-500', 'bg-amber-50'],
+          ['Mandats', pipeMandates.length, `${(pipeMandates.reduce((n, l) => n + (l.mandate?.sellingPrice || 0), 0) / 1e6).toFixed(2).replace('.', ',')} M€ sous mandat`, <ScrollText className="w-5 h-5" />, 'from-violet-500 to-purple-600', 'bg-violet-50'],
+          ['Ventes', pipeSold.length, `${pipeSold.reduce((n, l) => n + (l.mandate?.saleFee || 0), 0).toLocaleString('fr-FR')} € de commission`, <Award className="w-5 h-5" />, 'from-emerald-500 to-teal-600', 'bg-emerald-50'],
+        ] as Array<[string, number, string, React.ReactNode, string, string]>).map(([label, value, sub, icon, grad, tint]) => (
+          <div key={label} className={`rounded-2xl border border-stone-200 ${tint} p-4 sm:p-5 shadow-sm`}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-600">{label}</span>
+              <span className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${grad} text-white shadow`}>{icon}</span>
+            </div>
+            <p className="mt-2 text-4xl font-extrabold text-stone-900 leading-none">{value}</p>
+            <p className="mt-1.5 text-xs text-stone-600">{sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Pipeline */}
+      <div className="rounded-3xl bg-white border border-stone-200 shadow-sm p-4 sm:p-6">
+        <div className="flex items-end justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-extrabold text-stone-900">Votre pipeline</h2>
+            <p className="text-xs text-stone-500">De la demande d'estimation à la vente. Cliquez un dossier pour l'ouvrir.</p>
+          </div>
+          {openCol && <button type="button" onClick={() => setOpenCol(null)} className="text-sm font-bold text-sky-700 underline">← Voir toutes les étapes</button>}
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {([
-            ['LEADS', 'border-sky-500', pipeLeads],
-            ['R1', 'border-amber-500', pipeVisits],
-            ['R2', 'border-orange-500', pipeR2],
-            ['MANDAT', 'border-violet-500', pipeMandates],
-            ['VENTE', 'border-emerald-500', pipeSold],
-          ] as Array<[string, string, Lead[]]>).map(([title, border, list]) => (
-            <div key={title} className={`rounded-xl bg-stone-50 border border-stone-200 p-2.5 ${openCol === title ? 'sm:col-span-2 lg:col-span-5' : openCol ? 'hidden' : ''}`}>
+            ['LEADS', 'from-sky-500 to-sky-600', 'bg-sky-50/60', pipeLeads],
+            ['R1', 'from-amber-500 to-amber-600', 'bg-amber-50/60', pipeVisits],
+            ['R2', 'from-orange-500 to-orange-600', 'bg-orange-50/60', pipeR2],
+            ['MANDAT', 'from-violet-500 to-violet-600', 'bg-violet-50/60', pipeMandates],
+            ['VENTE', 'from-emerald-500 to-emerald-600', 'bg-emerald-50/60', pipeSold],
+          ] as Array<[string, string, string, Lead[]]>).map(([title, grad, tint, list]) => (
+            <div key={title} className={`rounded-2xl ${tint} border border-stone-200 overflow-hidden ${openCol === title ? 'sm:col-span-2 lg:col-span-5' : openCol ? 'hidden' : ''}`}>
               <button
                 type="button"
                 onClick={() => setOpenCol(openCol === title ? null : title)}
                 aria-expanded={openCol === title}
                 title={openCol === title ? 'Réduire' : 'Voir tous les dossiers de cette étape'}
-                className={`w-full flex items-center justify-between border-b-4 ${border} pb-1.5 mb-2 text-left`}
+                className={`w-full flex items-center justify-between bg-gradient-to-r ${grad} text-white px-3.5 py-2.5 text-left`}
               >
-                <span className="text-xs font-extrabold text-stone-800">{title}</span>
+                <span className="text-sm font-extrabold tracking-wide">{title}</span>
                 <span className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold bg-stone-200 text-stone-700 rounded-full px-2">{list.length}</span>
-                  <span className="text-[11px] font-semibold text-sky-700 underline">{openCol === title ? '← Retour' : 'Tout voir'}</span>
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-white/25 px-1.5 text-xs font-extrabold">{list.length}</span>
+                  <span className="text-[11px] font-semibold underline">{openCol === title ? 'Retour' : 'Tout voir'}</span>
                 </span>
               </button>
-              <div className={openCol === title ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-2 max-h-72 overflow-y-auto'}>
-                {list.length === 0 && <p className="text-[11px] text-stone-400 text-center py-4">Aucun dossier</p>}
+              <div className={`p-2.5 ${openCol === title ? 'grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-2 max-h-72 overflow-y-auto'}`}>
+                {list.length === 0 && <p className="text-xs text-stone-400 text-center py-6">Aucun dossier</p>}
                 {list.map((l) => (
-                  <button key={l.id} type="button" onClick={() => setSelectedLeadDrawer(l)} className="w-full text-left rounded-lg bg-white border border-stone-200 hover:border-stone-400 p-2.5 shadow-2xs">
-                    <div className="text-sm font-bold text-stone-900 truncate">{l.name}</div>
-                    <div className="text-[11px] text-stone-500 truncate">📍 {l.city} • {l.propertyType} {l.surface} m²</div>
-                    {openCol === title && <div className="text-[11px] text-stone-500 truncate">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</div>}
-                    <div className="text-[11px] mt-1 font-semibold text-stone-700">
+                  <button key={l.id} type="button" onClick={() => setSelectedLeadDrawer(l)} className="w-full text-left rounded-xl bg-white border border-stone-200 hover:border-stone-400 hover:shadow-md p-3 shadow-2xs transition-all">
+                    <div className="flex items-center gap-2.5">
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${grad} text-white text-xs font-extrabold`}>{l.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}</span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-stone-900">{l.name}</p>
+                        <p className="truncate text-[11px] text-stone-500">📍 {l.city} • {l.propertyType} {l.surface} m²</p>
+                      </div>
+                    </div>
+                    {openCol === title && <p className="mt-1.5 truncate text-[11px] text-stone-500">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</p>}
+                    <p className="mt-2 rounded-lg bg-stone-50 px-2 py-1 text-[11px] font-semibold text-stone-700">
                       {title === 'VENTE'
-                        ? `Honoraires : ${(l.mandate?.saleFee || 0).toLocaleString('fr-FR')} €`
+                        ? `Commission : ${(l.mandate?.saleFee || 0).toLocaleString('fr-FR')} €`
                         : title === 'MANDAT'
                           ? `${l.mandate?.type === 'exclusive' ? 'Exclusif' : 'Simple'} • ${(l.mandate?.sellingPrice || l.estimatedValue || 0).toLocaleString('fr-FR')} €`
                           : title === 'R2'
@@ -567,7 +576,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                             : title === 'R1'
                               ? `📅 ${l.meetingDate ? frDate(l.meetingDate) : 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
                               : `${l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} € estimés` : 'À contacter'}`}
-                    </div>
+                    </p>
                   </button>
                 ))}
               </div>
@@ -576,7 +585,7 @@ export const CrmPipelineView: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="bg-[#18181b] rounded-2xl p-3 sm:p-4 text-stone-100 shadow-xs border border-zinc-800">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-stone-200">
         {/* Tab switcher: Leads Table vs Full Action Plan */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <button
@@ -584,8 +593,8 @@ export const CrmPipelineView: React.FC<Props> = ({
             onClick={() => setActiveTab('leads')}
             className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 ${
               activeTab === 'leads'
-                ? 'bg-white text-stone-900 font-semibold shadow-xs'
-                : 'bg-zinc-800/80 text-stone-300 hover:bg-zinc-800 hover:text-white'
+                ? 'bg-[#0f1f3d] text-white font-semibold shadow-xs'
+                : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             }`}
           >
             <Building2 className="w-3.5 h-3.5" />
@@ -596,9 +605,9 @@ export const CrmPipelineView: React.FC<Props> = ({
             type="button"
             onClick={() => setSecurityOpen(true)}
             id="btn-security"
-            className="sm:ml-auto px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-zinc-800/80 text-stone-300 hover:bg-zinc-800 hover:text-white"
+            className="sm:ml-auto px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-stone-100 text-stone-700 hover:bg-stone-200"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>Sécurité</span>
           </button>
 
