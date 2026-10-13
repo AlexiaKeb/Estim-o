@@ -530,11 +530,11 @@ export const CrmPipelineView: React.FC<Props> = ({
         <h2 className="text-base font-bold text-stone-900 mb-3">Pipeline de qualification &amp; suivi des mandats</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {([
-            ['1. LEADS', 'border-sky-500', pipeLeads],
-            ['2. R1 • VISITE D\'ESTIMATION', 'border-amber-500', pipeVisits],
-            ['3. R2 • SECONDE VISITE', 'border-orange-500', pipeR2],
-            ['4. MANDATS ACTIFS', 'border-violet-500', pipeMandates],
-            ['5. VENTES CONCLUES', 'border-emerald-500', pipeSold],
+            ['LEADS', 'border-sky-500', pipeLeads],
+            ['R1', 'border-amber-500', pipeVisits],
+            ['R2', 'border-orange-500', pipeR2],
+            ['MANDAT', 'border-violet-500', pipeMandates],
+            ['VENTE', 'border-emerald-500', pipeSold],
           ] as Array<[string, string, Lead[]]>).map(([title, border, list]) => (
             <div key={title} className={`rounded-xl bg-stone-50 border border-stone-200 p-2.5 ${openCol === title ? 'sm:col-span-2 lg:col-span-5' : openCol ? 'hidden' : ''}`}>
               <button
@@ -558,13 +558,13 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <div className="text-[11px] text-stone-500 truncate">📍 {l.city} • {l.propertyType} {l.surface} m²</div>
                     {openCol === title && <div className="text-[11px] text-stone-500 truncate">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</div>}
                     <div className="text-[11px] mt-1 font-semibold text-stone-700">
-                      {title.startsWith('5')
+                      {title === 'VENTE'
                         ? `Honoraires : ${(l.mandate?.saleFee || 0).toLocaleString('fr-FR')} €`
-                        : title.startsWith('4')
+                        : title === 'MANDAT'
                           ? `${l.mandate?.type === 'exclusive' ? 'Exclusif' : 'Simple'} • ${(l.mandate?.sellingPrice || l.estimatedValue || 0).toLocaleString('fr-FR')} €`
-                          : title.startsWith('3')
+                          : title === 'R2'
                             ? `📅 ${l.visit2?.date ? frDate(l.visit2.date) : 'Date à fixer'}${l.visit2?.time ? ` à ${l.visit2.time}` : ''}`
-                            : title.startsWith('2')
+                            : title === 'R1'
                               ? `📅 ${l.meetingDate ? frDate(l.meetingDate) : 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
                               : `${l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} € estimés` : 'À contacter'}`}
                     </div>

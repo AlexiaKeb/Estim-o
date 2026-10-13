@@ -106,6 +106,17 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
   const M = s.mandates.length;
   const S = s.sales.length;
 
+  const periodLabel = PERIODS.find(([k]) => k === period)?.[1].toLowerCase() || '';
+  const result = s.revenue - s.budget;
+  const maxBar = Math.max(L, 1);
+  const funnel: Array<{ label: string; hint: string; value: number; rate: string | null; rateLabel: string; bar: string; icon: React.ReactNode }> = [
+    { label: 'Leads', hint: 'demandes reçues', value: L, rate: null, rateLabel: '', bar: 'bg-sky-500', icon: <Users className="w-4 h-4" /> },
+    { label: 'Estimations', hint: 'visites d\'estimation (R1)', value: V, rate: pct(V, L), rateLabel: 'des leads', bar: 'bg-amber-500', icon: <CalendarCheck className="w-4 h-4" /> },
+    { label: 'Mandats', hint: 'mandats signés', value: M, rate: pct(M, V), rateLabel: 'des estimations', bar: 'bg-violet-500', icon: <FileSignature className="w-4 h-4" /> },
+    { label: 'Ventes', hint: 'ventes conclues', value: S, rate: pct(S, M), rateLabel: 'des mandats', bar: 'bg-emerald-500', icon: <BadgeCheck className="w-4 h-4" /> },
+  ];
+  const card = 'rounded-2xl bg-white border border-stone-200 shadow-sm';
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -113,71 +124,78 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
           <h1 className="text-2xl font-bold text-stone-900">Statistiques</h1>
           <p className="text-sm text-stone-600">De la demande d'estimation à la vente : ce qui rapporte, et ce que ça coûte.</p>
         </div>
-        <div role="tablist" aria-label="Période" className="flex flex-wrap gap-1.5">
+        <div role="tablist" aria-label="Période" className="inline-flex rounded-xl bg-stone-100 p-1">
           {PERIODS.map(([k, label]) => (
-            <button key={k} type="button" role="tab" aria-selected={period === k} onClick={() => setPeriod(k)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${period === k ? 'bg-stone-900 text-white' : 'bg-white border border-stone-300 text-stone-700 hover:bg-stone-50'}`}>
+            <button key={k} type="button" role="tab" aria-selected={period === k} onClick={() => setPeriod(k)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${period === k ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-600 hover:text-stone-900'}`}>
               {label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Entonnoir */}
-      <section aria-labelledby="funnel-title" className="rounded-2xl bg-white border border-stone-200 p-5">
-        <h2 id="funnel-title" className="text-sm font-bold uppercase tracking-wider text-stone-700 mb-4">Entonnoir : Leads ⇒ Estimations ⇒ Mandats ⇒ Ventes</h2>
-        <div className="flex flex-col md:flex-row md:items-stretch gap-2">
-          <Step icon={<Users className="w-4 h-4" />} label="Leads" value={L} sub="demandes reçues" tone="bg-sky-50 border-sky-200 text-sky-900" />
-          <Rate value={pct(V, L)} label="prennent RDV" />
-          <Step icon={<CalendarCheck className="w-4 h-4" />} label="Estimations" value={V} sub="visites d'estimation" tone="bg-amber-50 border-amber-200 text-amber-900" />
-          <Rate value={pct(M, V)} label="signent un mandat" />
-          <Step icon={<FileSignature className="w-4 h-4" />} label="Mandats" value={M} sub="mandats signés" tone="bg-violet-50 border-violet-200 text-violet-900" />
-          <Rate value={pct(S, M)} label="aboutissent à une vente" />
-          <Step icon={<BadgeCheck className="w-4 h-4" />} label="Ventes" value={S} sub="ventes conclues" tone="bg-emerald-50 border-emerald-200 text-emerald-900" />
+      {/* En un coup d'œil */}
+      <section aria-label="Résumé" className="rounded-2xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-6 shadow-md">
+        <p className="text-xs uppercase tracking-wider text-amber-300 font-bold">En un coup d'œil • {periodLabel}</p>
+        <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div><p className="text-3xl font-extrabold">{L}</p><p className="text-xs text-slate-300">leads reçus</p></div>
+          <div><p className="text-3xl font-extrabold">{S}</p><p className="text-xs text-slate-300">vente{S > 1 ? 's' : ''} conclue{S > 1 ? 's' : ''}</p></div>
+          <div><p className="text-3xl font-extrabold text-amber-300">{eur(s.revenue)}</p><p className="text-xs text-slate-300">de chiffre d'affaires</p></div>
+          <div><p className={`text-3xl font-extrabold ${result < 0 ? 'text-rose-300' : 'text-emerald-300'}`}>{eur(result)}</p><p className="text-xs text-slate-300">de résultat (CA − pub)</p></div>
         </div>
-        <p className="mt-4 text-sm text-stone-700">
-          <strong>Taux global lead ⇒ vente :</strong> {pct(S, L)}. Une vente se déclare dans la fiche du dossier, après la signature du mandat (bouton « Enregistrer la vente »).
+      </section>
+
+      {/* Entonnoir */}
+      <section aria-labelledby="funnel-title" className={`${card} p-5 sm:p-6`}>
+        <h2 id="funnel-title" className="text-base font-bold text-stone-900">Du lead à la vente</h2>
+        <p className="text-xs text-stone-500 mb-4">Combien de contacts passent chaque étape.</p>
+        <div className="space-y-3">
+          {funnel.map((f) => (
+            <div key={f.label} className="grid grid-cols-[7rem_1fr_auto] sm:grid-cols-[9rem_1fr_9rem] items-center gap-3">
+              <div>
+                <p className="flex items-center gap-1.5 text-sm font-bold text-stone-900">{f.icon}{f.label}</p>
+                <p className="text-[11px] text-stone-500 hidden sm:block">{f.hint}</p>
+              </div>
+              <div className="h-8 rounded-lg bg-stone-100 overflow-hidden">
+                <div className={`h-full ${f.bar} rounded-lg flex items-center justify-end pr-2 text-white text-sm font-extrabold transition-all`} style={{ width: `${Math.max((f.value / maxBar) * 100, f.value > 0 ? 8 : 0)}%` }}>
+                  {f.value > 0 ? f.value : ''}
+                </div>
+              </div>
+              <div className="text-right">
+                {f.rate ? <><span className="text-sm font-extrabold text-stone-900">{f.rate}</span><span className="block text-[10px] text-stone-500 leading-tight">{f.rateLabel}</span></> : <span className="text-[11px] text-stone-400">départ</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-stone-700 rounded-xl bg-stone-50 border border-stone-200 p-3">
+          <strong>Taux global lead ⇒ vente : {pct(S, L)}.</strong> La vente se déclare dans la fiche du dossier, après la signature du mandat.
         </p>
       </section>
 
-      {/* Dossiers archivés et mandats perdus */}
-      <section aria-labelledby="archive-title" className="rounded-2xl bg-white border border-stone-200 p-5 space-y-4">
-        <h2 id="archive-title" className="text-sm font-bold uppercase tracking-wider text-stone-700">Dossiers archivés &amp; mandats perdus</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500">Dossiers archivés</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{s.archived.length}</p><p className="text-xs text-stone-500">{pct(s.archived.length, L)} des leads</p></div>
-          <div className="rounded-xl bg-rose-50 border border-rose-200 p-4"><p className="text-[11px] font-bold uppercase text-rose-700">Mandats perdus</p><p className="mt-1 text-2xl font-extrabold text-rose-900">{s.lostMandates.length}</p><p className="text-xs text-rose-700">{pct(s.lostMandates.length, M + s.lostMandates.filter((l) => !hasMandate(l)).length)} des mandats visés</p></div>
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4 md:col-span-2">
-            <p className="text-[11px] font-bold uppercase text-stone-500">Perdus à quelle étape ?</p>
-            <p className="mt-1 text-sm text-stone-800">
-              {s.archived.length === 0 ? 'Aucun dossier archivé sur la période.' : (['lead', 'r1', 'r2', 'mandat', 'vente'] as const).map((k) => `${{ lead: 'Lead', r1: 'R1', r2: 'R2', mandat: 'Mandat', vente: 'Vente' }[k]} : ${s.byStage[k] || 0}`).join(' • ')}
-            </p>
+      {/* Argent */}
+      <section aria-labelledby="cost-title" className={`${card} p-5 sm:p-6 space-y-5`}>
+        <div>
+          <h2 id="cost-title" className="text-base font-bold text-stone-900">Ce que ça coûte, ce que ça rapporte</h2>
+          <p className="text-xs text-stone-500">Les coûts se calculent à partir du budget publicité saisi ci-dessous.</p>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500 flex items-center gap-1"><Euro className="w-3.5 h-3.5" />Budget pub</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{eur(s.budget)}</p></div>
+          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4"><p className="text-[11px] font-bold uppercase text-emerald-800">Chiffre d'affaires</p><p className="mt-1 text-2xl font-extrabold text-emerald-900">{eur(s.revenue)}</p><p className="text-[11px] text-emerald-800">commissions des ventes</p></div>
+          <div className={`rounded-xl border p-4 ${result < 0 ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}`}><p className={`text-[11px] font-bold uppercase ${result < 0 ? 'text-rose-800' : 'text-emerald-800'}`}>Résultat</p><p className={`mt-1 text-2xl font-extrabold ${result < 0 ? 'text-rose-900' : 'text-emerald-900'}`}>{eur(result)}</p><p className={`text-[11px] ${result < 0 ? 'text-rose-800' : 'text-emerald-800'}`}>CA − budget pub</p></div>
+          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500 flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5" />Retour pub</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{s.budget > 0 ? `× ${Math.round((s.revenue / s.budget) * 10) / 10}` : '—'}</p><p className="text-[11px] text-stone-500">1 € de pub = {s.budget > 0 ? eur(s.revenue / s.budget) : '—'}</p></div>
+        </div>
+
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">Coût pour obtenir…</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {([['un lead', L], ['une estimation', V], ['un mandat', M], ['une vente', S]] as Array<[string, number]>).map(([label, n]) => (
+              <div key={label} className="rounded-xl border border-stone-200 p-3 text-center"><p className="text-xl font-extrabold text-stone-900">{ratio(s.budget, n)}</p><p className="text-[11px] text-stone-500">{label}</p></div>
+            ))}
           </div>
         </div>
-        {s.archived.length > 0 && (
-          <ul className="text-sm text-stone-700 space-y-1">
-            {s.archived.slice(0, 8).map((l) => (
-              <li key={l.id}>• <strong>{l.name}</strong> ({l.city}) : {l.archive!.kind === 'mandat_perdu' ? 'mandat perdu' : 'archivé'}{l.archive!.reason ? `, ${l.archive!.reason}` : ''}</li>
-            ))}
-          </ul>
-        )}
-      </section>
 
-      {/* Coût / Leads / CA */}
-      <section aria-labelledby="cost-title" className="rounded-2xl bg-white border border-stone-200 p-5 space-y-4">
-        <h2 id="cost-title" className="text-sm font-bold uppercase tracking-wider text-stone-700">Coût ⇒ Leads ⇒ Chiffre d'affaires</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500 flex items-center gap-1"><Euro className="w-3.5 h-3.5" />Budget publicité</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{eur(s.budget)}</p></div>
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500">Coût par lead</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{ratio(s.budget, L)}</p></div>
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500">Coût par estimation (RDV)</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{ratio(s.budget, V)}</p></div>
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500">Coût par mandat</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{ratio(s.budget, M)}</p></div>
-          <div className="rounded-xl bg-stone-50 border border-stone-200 p-4"><p className="text-[11px] font-bold uppercase text-stone-500">Coût par vente</p><p className="mt-1 text-2xl font-extrabold text-stone-900">{ratio(s.budget, S)}</p></div>
-          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4"><p className="text-[11px] font-bold uppercase text-emerald-800">Chiffre d'affaires (honoraires)</p><p className="mt-1 text-2xl font-extrabold text-emerald-900">{eur(s.revenue)}</p></div>
-          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4"><p className="text-[11px] font-bold uppercase text-emerald-800 flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5" />Retour sur publicité</p><p className="mt-1 text-2xl font-extrabold text-emerald-900">{s.budget > 0 ? `× ${Math.round((s.revenue / s.budget) * 10) / 10}` : '—'}</p><p className="text-[11px] text-emerald-800">CA ÷ budget</p></div>
-          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4"><p className="text-[11px] font-bold uppercase text-emerald-800">Résultat (CA − budget)</p><p className="mt-1 text-2xl font-extrabold text-emerald-900">{eur(s.revenue - s.budget)}</p></div>
-        </div>
-
-        <div className="rounded-xl border border-dashed border-stone-300 p-4">
-          <p className="text-sm font-semibold text-stone-800">Budget publicité dépensé</p>
-          <p className="text-xs text-stone-500 mb-3">Saisissez chaque mois le montant dépensé dans Google Ads (visible dans votre compte Google Ads). Il sert à calculer vos coûts.</p>
+        <details className="rounded-xl border border-dashed border-stone-300 p-4 group">
+          <summary className="cursor-pointer text-sm font-semibold text-stone-800">Saisir le budget publicité du mois</summary>
+          <p className="text-xs text-stone-500 mt-2 mb-3">Reportez le montant dépensé dans Google Ads (visible dans votre compte Google Ads).</p>
           {spend === null ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
@@ -199,38 +217,47 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
               {Object.entries(spend).sort(([a], [b]) => b.localeCompare(a)).slice(0, 6).map(([k, v]) => `${k} : ${eur(Number(v))}`).join(' · ')}
             </p>
           )}
-        </div>
+        </details>
       </section>
 
-      {/* Origine */}
-      <section aria-labelledby="src-title" className="rounded-2xl bg-white border border-stone-200 p-5">
-        <h2 id="src-title" className="text-sm font-bold uppercase tracking-wider text-stone-700 mb-3">Origine des leads</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-stone-500">
-              <tr><th className="py-1.5 pr-4 font-semibold">Origine</th><th className="py-1.5 pr-4 font-semibold">Leads</th><th className="py-1.5 pr-4 font-semibold">Estimations</th><th className="py-1.5 pr-4 font-semibold">Mandats</th><th className="py-1.5 font-semibold">Ventes</th></tr>
-            </thead>
-            <tbody>
-              {[
-                ['Publicité Google', s.ads],
-                ['Autres (direct, blog, bouche à oreille)', s.inPeriod.filter((l) => !isAds(l))],
-              ].map(([label, set]) => {
-                const arr = set as Lead[];
-                return (
-                  <tr key={label as string} className="border-t border-stone-200">
-                    <th scope="row" className="py-2 pr-4 font-medium text-stone-900">{label as string}</th>
-                    <td className="py-2 pr-4">{arr.length}</td>
-                    <td className="py-2 pr-4">{arr.filter(hasVisit).length}</td>
-                    <td className="py-2 pr-4">{arr.filter(hasMandate).length}</td>
-                    <td className="py-2">{arr.filter(isSold).length}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-xs text-stone-500">Les leads venant d'une annonce Google sont repérés automatiquement (clic publicitaire). Les chiffres démarrent à partir du lancement de la publicité.</p>
-      </section>
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Origine */}
+        <section aria-labelledby="src-title" className={`${card} p-5 sm:p-6`}>
+          <h2 id="src-title" className="text-base font-bold text-stone-900">D'où viennent les leads ?</h2>
+          <div className="mt-4 space-y-4">
+            {([
+              ['Publicité Google', s.ads, 'bg-sky-500'],
+              ['Autres (direct, blog, bouche à oreille)', s.inPeriod.filter((l) => !isAds(l)), 'bg-stone-400'],
+            ] as Array<[string, Lead[], string]>).map(([label, arr, bar]) => (
+              <div key={label}>
+                <div className="flex justify-between text-sm"><span className="font-semibold text-stone-900">{label}</span><span className="font-extrabold">{arr.length}</span></div>
+                <div className="h-2 rounded-full bg-stone-100 mt-1.5 overflow-hidden"><div className={`h-full ${bar}`} style={{ width: `${(arr.length / maxBar) * 100}%` }} /></div>
+                <p className="text-[11px] text-stone-500 mt-1">{arr.filter(hasVisit).length} estimation(s) • {arr.filter(hasMandate).length} mandat(s) • {arr.filter(isSold).length} vente(s)</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-[11px] text-stone-500">Les leads d'une annonce Google sont repérés automatiquement (clic publicitaire).</p>
+        </section>
+
+        {/* Archivés */}
+        <section aria-labelledby="archive-title" className={`${card} p-5 sm:p-6`}>
+          <h2 id="archive-title" className="text-base font-bold text-stone-900">Dossiers archivés &amp; mandats perdus</h2>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-stone-50 border border-stone-200 p-3"><p className="text-2xl font-extrabold text-stone-900">{s.archived.length}</p><p className="text-[11px] text-stone-500">archivés ({pct(s.archived.length, L)} des leads)</p></div>
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><p className="text-2xl font-extrabold text-rose-900">{s.lostMandates.length}</p><p className="text-[11px] text-rose-700">mandats perdus ({pct(s.lostMandates.length, M + s.lostMandates.filter((l) => !hasMandate(l)).length)})</p></div>
+          </div>
+          <p className="mt-3 text-xs text-stone-600">
+            {s.archived.length === 0 ? 'Aucun dossier archivé sur la période.' : `Perdus à l'étape : ${(['lead', 'r1', 'r2', 'mandat', 'vente'] as const).map((k) => `${{ lead: 'Lead', r1: 'R1', r2: 'R2', mandat: 'Mandat', vente: 'Vente' }[k]} ${s.byStage[k] || 0}`).join(' • ')}`}
+          </p>
+          {s.archived.length > 0 && (
+            <ul className="mt-2 text-xs text-stone-700 space-y-1">
+              {s.archived.slice(0, 6).map((l) => (
+                <li key={l.id}>• <strong>{l.name}</strong> ({l.city}) : {l.archive!.kind === 'mandat_perdu' ? 'mandat perdu' : 'archivé'}{l.archive!.reason ? `, ${l.archive!.reason}` : ''}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 };
