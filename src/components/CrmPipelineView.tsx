@@ -2,6 +2,9 @@ import { PreVisitBrief } from './PreVisitBrief';
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
 
+/** « 2026-10-16 » → « 16 octobre 2026 » */
+const frDate = (d?: string) => (d && /^\d{4}-\d{2}-\d{2}/.test(d) ? new Date(`${d.slice(0, 10)}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }) : d || '');
+
 /** Enregistrement d'une vente conclue : date et honoraires réellement encaissés. */
 const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number) => void }> = ({ lead, onSave }) => {
   const m = lead.mandate!;
@@ -136,7 +139,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 🎯 MOTIF : ${lead.motive}
 ⏱️ DÉLAI : ${lead.timeframe}
 🔥 STATUT : ${lead.status} (Score : ${lead.score}/100)
-📅 VISITE : ${lead.meetingBooked ? `Rendez-vous fixé le ${lead.meetingDate} à ${lead.meetingTime} (${lead.meetingType || 'Visite sur place'})` : 'En séquence d\'accompagnement'}
+📅 VISITE : ${lead.meetingBooked ? `Rendez-vous fixé le ${frDate(lead.meetingDate)} à ${lead.meetingTime} (${lead.meetingType || 'Visite sur place'})` : 'En séquence d\'accompagnement'}
 ⚡ DERNIÈRE ACTION : ${lead.lastAction ? `${lead.lastAction.label} (${lead.lastAction.date})` : 'Simulation validée'}
 📝 SYNTHÈSE : ${lead.notes || 'N/A'}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
@@ -805,7 +808,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                       ) : lead.meetingBooked ? (
                         <>
                           <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Visite posée {lead.meetingDate}</span>
+                          <span>Visite le {frDate(lead.meetingDate)}</span>
                         </>
                       ) : (
                         <span>Simulation validée</span>
@@ -1000,7 +1003,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                           ) : lead.meetingBooked ? (
                             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-medium">
                               <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Visite posée {lead.meetingDate}</span>
+                              <span>Visite le {frDate(lead.meetingDate)}</span>
                             </div>
                           ) : (
                             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-stone-100 text-stone-600 text-[11px]">
@@ -1966,7 +1969,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                 ) : (
                   <div className="flex-1 p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    Visite confirmée le {selectedLeadDrawer.meetingDate} à {selectedLeadDrawer.meetingTime}
+                    Visite confirmée le {frDate(selectedLeadDrawer.meetingDate)} à {selectedLeadDrawer.meetingTime}
                   </div>
                 )}
               </div>
