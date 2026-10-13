@@ -3,21 +3,15 @@ import { CalendarClock, Loader2, Mail, Send } from 'lucide-react';
 import { Lead } from '../types';
 import { AGENT } from '../data/siteContent';
 
-type Stage = 'lead' | 'rdv' | 'mandat' | 'vente';
+import { stageOf, type Stage } from '../utils/stage';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-const stageOf = (l: Lead): Stage => {
-  if (l.mandate?.soldDate) return 'vente';
-  if (l.mandate?.status === 'signed') return 'mandat';
-  if (l.meetingBooked) return 'rdv';
-  return 'lead';
-};
-
 const STAGES: Array<{ key: Stage; label: string; badge: string; badgeCls: string }> = [
   { key: 'lead', label: 'Leads', badge: 'LEAD', badgeCls: 'bg-sky-100 text-sky-800' },
-  { key: 'rdv', label: 'RDV confirmé', badge: 'RDV CONFIRMÉ', badgeCls: 'bg-amber-100 text-amber-800' },
+  { key: 'r1', label: 'R1', badge: 'R1', badgeCls: 'bg-amber-100 text-amber-800' },
+  { key: 'r2', label: 'R2', badge: 'R2', badgeCls: 'bg-orange-100 text-orange-800' },
   { key: 'mandat', label: 'Mandat', badge: 'MANDAT', badgeCls: 'bg-violet-100 text-violet-800' },
   { key: 'vente', label: 'Vente', badge: 'VENTE', badgeCls: 'bg-emerald-100 text-emerald-800' },
 ];
@@ -30,9 +24,13 @@ const TEMPLATES: Record<Stage, Array<{ label: string; subject: string; body: str
     { label: 'Où en est votre projet ?', subject: 'Où en est votre projet immobilier ?', body: "Bonjour {Prénom},\n\nJe reviens simplement vers vous au sujet de votre projet ({Motif}). Où en est votre réflexion ? Je reste disponible pour en parler quelques minutes, à votre rythme." },
     { label: 'Documents utiles', subject: 'Les documents utiles pour une vente', body: "Bonjour {Prénom},\n\nSi vous les avez, ces éléments m'aideront à affiner l'avis de valeur : taxe foncière, charges de copropriété, diagnostics, plan et liste des travaux réalisés. Rien d'obligatoire, je vous guiderai sur place." },
   ],
-  rdv: [
+  r1: [
     { label: 'Rappel de visite', subject: 'Rappel de notre rendez-vous', body: "Bonjour {Prénom},\n\nJe vous rappelle notre rendez-vous pour la visite de votre {TypeBien} à {Ville}. Si vous avez un imprévu, répondez simplement à cet e-mail ou appelez-moi : je m'adapterai." },
     { label: 'Après la visite', subject: 'Merci pour votre accueil', body: "Bonjour {Prénom},\n\nMerci de m'avoir accueillie pour la visite de votre {TypeBien}. Je prépare votre avis de valeur et je reviens vers vous très vite pour vous le présenter." },
+  ],
+  r2: [
+    { label: 'Rappel de la seconde visite', subject: 'Rappel de notre prochain rendez-vous', body: "Bonjour {Prénom},\n\nJe vous rappelle notre prochain rendez-vous au sujet de votre {TypeBien} à {Ville}. Si vous avez un imprévu, répondez simplement à cet e-mail ou appelez-moi : je m'adapterai." },
+    { label: 'Après la seconde visite', subject: 'Suite à notre rendez-vous', body: "Bonjour {Prénom},\n\nMerci pour notre échange. Je reste à votre disposition pour toute question avant que vous preniez votre décision, sans aucune pression." },
   ],
   mandat: [
     { label: 'Point sur votre vente', subject: 'Point sur la vente de votre bien', body: "Bonjour {Prénom},\n\nJe fais un point avec vous sur la commercialisation de votre {TypeBien} à {Ville}. Avez-vous un moment cette semaine pour en discuter ?" },
@@ -67,7 +65,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   }, []);
 
   const byStage = useMemo(() => {
-    const m: Record<Stage, Lead[]> = { lead: [], rdv: [], mandat: [], vente: [] };
+    const m: Record<Stage, Lead[]> = { lead: [], r1: [], r2: [], mandat: [], vente: [] };
     leads.forEach((l) => m[stageOf(l)].push(l));
     return m;
   }, [leads]);
@@ -97,7 +95,11 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     const today = new Date().toISOString().slice(0, 10);
     const s = stageOf(l);
     if (s === 'lead') onUpdateLead({ ...l, meetingBooked: true });
-    else if (s === 'rdv') {
+    else if (s === 'r1') {
+      const d = window.prompt(`Date du R2 pour ${l.name} (AAAA-MM-JJ) :`, today);
+      if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+      onUpdateLead({ ...l, visit2: { date: d, time: '10:00' } });
+    } else if (s === 'r2') {
       if (!window.confirm(`Passer ${l.name} en « Mandat signé » ? Les statistiques seront mises à jour.`)) return;
       onUpdateLead({ ...l, mandate: { ...(l.mandate || { type: 'simple' as const }), type: l.mandate?.type && l.mandate.type !== 'none' ? l.mandate.type : 'simple', status: 'signed', signedDate: today } as Lead['mandate'] });
     } else if (s === 'mandat') {
@@ -163,7 +165,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   };
 
   const field = 'w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/20';
-  const nextLabel: Record<Stage, string> = { lead: 'Passer en RDV confirmé', rdv: 'Passer en Mandat', mandat: 'Passer en Vente', vente: '' };
+  const nextLabel: Record<Stage, string> = { lead: 'Passer en R1', r1: 'Passer en R2', r2: 'Passer en Mandat', mandat: 'Passer en Vente', vente: '' };
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-5">

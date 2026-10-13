@@ -1,9 +1,36 @@
 import { PreVisitBrief } from './PreVisitBrief';
+import { stageOf, frDate } from '../utils/stage';
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
 
-/** « 2026-10-16 » → « 16 octobre 2026 » */
-const frDate = (d?: string) => (d && /^\d{4}-\d{2}-\d{2}/.test(d) ? new Date(`${d.slice(0, 10)}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }) : d || '');
+/** Seconde visite (R2) : date et heure fixées par la conseillère depuis la fiche. */
+const Visit2Box: React.FC<{ lead: Lead; onSave: (v: Lead['visit2'] | undefined) => void }> = ({ lead, onSave }) => {
+  const [date, setDate] = useState(lead.visit2?.date || '');
+  const [time, setTime] = useState(lead.visit2?.time || '10:00');
+  return (
+    <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-3 space-y-2">
+      <div className="text-[11px] font-bold uppercase tracking-wider text-orange-800">R2 • Seconde visite</div>
+      {lead.visit2?.date ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-stone-900">📅 {frDate(lead.visit2.date)}{lead.visit2.time ? ` à ${lead.visit2.time}` : ''}</p>
+          <button type="button" onClick={() => onSave(undefined)} className="text-xs underline text-stone-600">Retirer le R2</button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-end gap-2">
+          <div>
+            <label htmlFor="r2-date" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Date</label>
+            <input id="r2-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm bg-white" />
+          </div>
+          <div>
+            <label htmlFor="r2-time" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Heure</label>
+            <input id="r2-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm bg-white" />
+          </div>
+          <button type="button" id="btn-save-r2" disabled={!date} onClick={() => onSave({ date, time })} className="rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-40 text-white text-xs font-bold px-4 py-2">Fixer le R2</button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 /** Enregistrement d'une vente conclue : date et honoraires réellement encaissés. */
 const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number) => void }> = ({ lead, onSave }) => {
@@ -98,7 +125,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
-  const [mandateFilter, setMandateFilter] = useState<'ALL' | 'LEAD' | 'RDV' | 'MANDAT' | 'VENTE'>('ALL');
+  const [mandateFilter, setMandateFilter] = useState<'ALL' | 'lead' | 'r1' | 'r2' | 'mandat' | 'vente'>('ALL');
   const [activeTab, setActiveTab] = useState<'leads' | 'action_plan'>('leads');
   const [selectedLeadDrawer, setSelectedLeadDrawer] = useState<Lead | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -157,8 +184,7 @@ export const CrmPipelineView: React.FC<Props> = ({
     
     const matchesStatus = statusFilter === 'ALL' || l.status === statusFilter;
 
-    const stage = l.mandate?.soldDate ? 'VENTE' : l.mandate?.status === 'signed' ? 'MANDAT' : l.meetingBooked ? 'RDV' : 'LEAD';
-    const matchesMandate = mandateFilter === 'ALL' || mandateFilter === stage;
+    const matchesMandate = mandateFilter === 'ALL' || mandateFilter === stageOf(l);
 
     return matchesSearch && matchesStatus && matchesMandate;
   });
@@ -172,10 +198,11 @@ export const CrmPipelineView: React.FC<Props> = ({
   const signedSimpleLeads = leads.filter((l) => l.mandate?.status === 'signed' && l.mandate?.type === 'simple');
   const negotiationLeads = leads.filter((l) => l.mandate?.type === 'in_negotiation' || l.mandate?.status === 'pending_signature');
   const signedMandatesCount = signedExclusiveLeads.length + signedSimpleLeads.length;
-  const pipeSold = leads.filter((l) => Boolean(l.mandate?.soldDate));
-  const pipeMandates = leads.filter((l) => l.mandate?.status === 'signed' && !l.mandate?.soldDate);
-  const pipeVisits = leads.filter((l) => l.meetingBooked && l.mandate?.status !== 'signed' && !l.mandate?.soldDate);
-  const pipeLeads = leads.filter((l) => !l.meetingBooked && l.mandate?.status !== 'signed' && !l.mandate?.soldDate);
+  const pipeSold = leads.filter((l) => stageOf(l) === 'vente');
+  const pipeMandates = leads.filter((l) => stageOf(l) === 'mandat');
+  const pipeR2 = leads.filter((l) => stageOf(l) === 'r2');
+  const pipeVisits = leads.filter((l) => stageOf(l) === 'r1');
+  const pipeLeads = leads.filter((l) => stageOf(l) === 'lead');
 
   const exclusiveCommissions = signedExclusiveLeads.reduce(
     (acc, l) => acc + (l.mandate?.feeAmount || Math.round((l.mandate?.sellingPrice || l.estimatedValue) * ((l.mandate?.feeRatePercent || 4.5) / 100))),
@@ -428,14 +455,14 @@ export const CrmPipelineView: React.FC<Props> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl border border-stone-200 p-4">
           <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Leads estimations</div>
-          <div className="text-3xl font-extrabold text-stone-900 mt-1">{pipeLeads.length + pipeVisits.length + pipeMandates.length + pipeSold.length}</div>
+          <div className="text-3xl font-extrabold text-stone-900 mt-1">{leads.length}</div>
           <div className="text-[11px] text-stone-500">Générés via le site</div>
         </div>
         <div className="bg-white rounded-xl border border-stone-200 p-4">
           <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">RDV fixés</div>
           <div className="text-3xl font-extrabold text-stone-900 mt-1 flex items-baseline gap-2">
-            {pipeVisits.length + pipeMandates.length + pipeSold.length}
-            <span className="text-[11px] font-bold text-sky-700 bg-sky-50 rounded px-1.5 py-0.5">{leads.length ? Math.round(((pipeVisits.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % conv.</span>
+            {pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length}
+            <span className="text-[11px] font-bold text-sky-700 bg-sky-50 rounded px-1.5 py-0.5">{leads.length ? Math.round(((pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % conv.</span>
           </div>
           <div className="text-[11px] text-stone-500">Visites d'estimation sur place</div>
         </div>
@@ -459,14 +486,15 @@ export const CrmPipelineView: React.FC<Props> = ({
 
       <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5">
         <h2 className="text-base font-bold text-stone-900 mb-3">Pipeline de qualification &amp; suivi des mandats</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {([
             ['1. LEADS', 'border-sky-500', pipeLeads],
-            ['2. RDV FIXÉS', 'border-amber-500', pipeVisits],
-            ['3. MANDATS ACTIFS', 'border-violet-500', pipeMandates],
-            ['4. VENTES CONCLUES', 'border-emerald-500', pipeSold],
+            ['2. R1 • VISITE D\'ESTIMATION', 'border-amber-500', pipeVisits],
+            ['3. R2 • SECONDE VISITE', 'border-orange-500', pipeR2],
+            ['4. MANDATS ACTIFS', 'border-violet-500', pipeMandates],
+            ['5. VENTES CONCLUES', 'border-emerald-500', pipeSold],
           ] as Array<[string, string, Lead[]]>).map(([title, border, list]) => (
-            <div key={title} className={`rounded-xl bg-stone-50 border border-stone-200 p-2.5 ${openCol === title ? 'sm:col-span-2 lg:col-span-4' : openCol ? 'hidden' : ''}`}>
+            <div key={title} className={`rounded-xl bg-stone-50 border border-stone-200 p-2.5 ${openCol === title ? 'sm:col-span-2 lg:col-span-5' : openCol ? 'hidden' : ''}`}>
               <button
                 type="button"
                 onClick={() => setOpenCol(openCol === title ? null : title)}
@@ -488,13 +516,15 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <div className="text-[11px] text-stone-500 truncate">📍 {l.city} • {l.propertyType} {l.surface} m²</div>
                     {openCol === title && <div className="text-[11px] text-stone-500 truncate">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</div>}
                     <div className="text-[11px] mt-1 font-semibold text-stone-700">
-                      {title.startsWith('4')
+                      {title.startsWith('5')
                         ? `Honoraires : ${(l.mandate?.saleFee || l.mandate?.feeAmount || 0).toLocaleString('fr-FR')} €`
-                        : title.startsWith('3')
+                        : title.startsWith('4')
                           ? `${l.mandate?.type === 'exclusive' ? 'Exclusif' : 'Simple'} • ${(l.mandate?.sellingPrice || l.estimatedValue || 0).toLocaleString('fr-FR')} €`
-                          : title.startsWith('2')
-                            ? `📅 ${l.meetingDate ? new Date(`${l.meetingDate}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }) : 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
-                            : `${l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} € estimés` : 'À contacter'}`}
+                          : title.startsWith('3')
+                            ? `📅 ${l.visit2?.date ? frDate(l.visit2.date) : 'Date à fixer'}${l.visit2?.time ? ` à ${l.visit2.time}` : ''}`
+                            : title.startsWith('2')
+                              ? `📅 ${l.meetingDate ? frDate(l.meetingDate) : 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
+                              : `${l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} € estimés` : 'À contacter'}`}
                     </div>
                   </button>
                 ))}
@@ -610,10 +640,11 @@ export const CrmPipelineView: React.FC<Props> = ({
               <span className="text-xs font-semibold text-stone-600 mr-1 whitespace-nowrap flex-shrink-0">Étape :</span>
               {([
                 ['ALL', 'Tous', leads.length],
-                ['LEAD', 'Leads', pipeLeads.length],
-                ['RDV', 'RDV fixés', pipeVisits.length],
-                ['MANDAT', 'Mandats', pipeMandates.length],
-                ['VENTE', 'Ventes', pipeSold.length],
+                ['lead', 'Leads', pipeLeads.length],
+                ['r1', 'R1', pipeVisits.length],
+                ['r2', 'R2', pipeR2.length],
+                ['mandat', 'Mandat', pipeMandates.length],
+                ['vente', 'Vente', pipeSold.length],
               ] as const).map(([k, label, n]) => (
                 <button
                   key={k}
@@ -1461,6 +1492,20 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </div>
                 </div>
               </div>
+
+              <Visit2Box
+                key={`${selectedLeadDrawer.id}-${selectedLeadDrawer.visit2?.date || ''}`}
+                lead={selectedLeadDrawer}
+                onSave={(v) => {
+                  const updated = {
+                    ...selectedLeadDrawer,
+                    visit2: v,
+                    activities: [{ id: `act-${Date.now()}`, type: 'visit', label: v ? `R2 fixé le ${frDate(v.date)}${v.time ? ` à ${v.time}` : ''}` : 'R2 retiré', date: "À l'instant" }, ...(selectedLeadDrawer.activities || [])],
+                  } as Lead;
+                  onUpdateLead?.(updated);
+                  setSelectedLeadDrawer(updated);
+                }}
+              />
 
               {/* DEDICATED MANDATE STATUS & MANAGEMENT CARD (EXCLUSIF VS SIMPLE) */}
               <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs space-y-4">

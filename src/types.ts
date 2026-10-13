@@ -124,6 +124,8 @@ export interface Lead {
   meetingBooked: boolean;
   meetingDate?: string;
   meetingTime?: string;
+  /** Seconde visite (R2), fixée par la conseillère depuis la fiche */
+  visit2?: { date: string; time?: string };
   meetingType?: 'Visite estimation à domicile' | 'Point téléphonique approfondi (15 min)';
   nurtureStep?: string;
   customSequence?: ScheduledMessage[];

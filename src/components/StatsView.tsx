@@ -25,7 +25,7 @@ function periodStart(p: Period): Date | null {
 
 const isSold = (l: Lead) => Boolean(l.mandate?.soldDate);
 const hasMandate = (l: Lead) => l.mandate?.status === 'signed' || isSold(l);
-const hasVisit = (l: Lead) => l.meetingBooked || hasMandate(l);
+const hasVisit = (l: Lead) => l.meetingBooked || Boolean(l.visit2?.date) || hasMandate(l);
 const saleFee = (l: Lead) => l.mandate?.saleFee || l.mandate?.feeAmount || 0;
 const isAds = (l: Lead) => Boolean(l.attribution?.gclid || /google/i.test(l.attribution?.utmSource || ''));
 

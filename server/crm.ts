@@ -12,6 +12,7 @@ export const CRM_KEYS = [
   "lastAction",
   "status",
   "meetingType",
+  "visit2",
   "autoRelances",
 ] as const;
 
@@ -120,6 +121,7 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     tasks: crm.tasks,
     activities: crm.activities,
     mandate: crm.mandate,
+    visit2: crm.visit2,
     valuation: crm.valuation,
     autoRelances: crm.autoRelances,
     qualification: crm.qualification,
