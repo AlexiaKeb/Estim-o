@@ -34,7 +34,7 @@ const QualificationChatbot = lazy(() => import('./components/QualificationChatbo
 const CrmPipelineView = lazy(() => import('./components/CrmPipelineView').then((m) => ({ default: m.CrmPipelineView })));
 const EmailManagerView = lazy(() => import('./components/EmailManagerView').then((m) => ({ default: m.EmailManagerView })));
 const NurtureEngineView = lazy(() => import('./components/NurtureEngineView').then((m) => ({ default: m.NurtureEngineView })));
-const KpiRoiCalculator = lazy(() => import('./components/KpiRoiCalculator').then((m) => ({ default: m.KpiRoiCalculator })));
+const CommissionCalculator = lazy(() => import('./components/CommissionCalculator').then((m) => ({ default: m.CommissionCalculator })));
 const CalendarBookingModal = lazy(() => import('./components/CalendarBookingModal').then((m) => ({ default: m.CalendarBookingModal })));
 const BookingConfirmationView = lazy(() => import('./components/BookingConfirmationView').then((m) => ({ default: m.BookingConfirmationView })));
 const PrivacyShieldModal = lazy(() => import('./components/PrivacyShieldModal').then((m) => ({ default: m.PrivacyShieldModal })));
@@ -854,7 +854,7 @@ export default function App() {
           </div>
         )}
 
-        {currentView === 'calculator' && <KpiRoiCalculator />}
+        {currentView === 'calculator' && <CommissionCalculator />}
         {currentView === 'articles' && <ArticlesView />}
         {currentView === 'stats' && <StatsView leads={leads} />}
         </Suspense>
