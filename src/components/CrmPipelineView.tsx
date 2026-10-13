@@ -176,6 +176,10 @@ export const CrmPipelineView: React.FC<Props> = ({
   const signedSimpleLeads = leads.filter((l) => l.mandate?.status === 'signed' && l.mandate?.type === 'simple');
   const negotiationLeads = leads.filter((l) => l.mandate?.type === 'in_negotiation' || l.mandate?.status === 'pending_signature');
   const signedMandatesCount = signedExclusiveLeads.length + signedSimpleLeads.length;
+  const pipeSold = leads.filter((l) => Boolean(l.mandate?.soldDate));
+  const pipeMandates = leads.filter((l) => l.mandate?.status === 'signed' && !l.mandate?.soldDate);
+  const pipeVisits = leads.filter((l) => l.meetingBooked && l.mandate?.status !== 'signed' && !l.mandate?.soldDate);
+  const pipeLeads = leads.filter((l) => !l.meetingBooked && l.mandate?.status !== 'signed' && !l.mandate?.soldDate);
 
   const exclusiveCommissions = signedExclusiveLeads.reduce(
     (acc, l) => acc + (l.mandate?.feeAmount || Math.round((l.mandate?.sellingPrice || l.estimatedValue) * ((l.mandate?.feeRatePercent || 4.5) / 100))),
@@ -419,115 +423,84 @@ export const CrmPipelineView: React.FC<Props> = ({
         />
       )}
       {securityOpen && <SecurityPanel onClose={() => setSecurityOpen(false)} onLoggedOut={() => window.location.assign('/')} />}
-      {/* Top Metrics Banner - Clean Warm SaaS */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-white rounded-xl border border-stone-200/80 p-3.5 space-y-1 shadow-2xs">
-          <div className="text-[10px] font-medium text-stone-500 uppercase tracking-wider">
-            Total Dossiers Qualifiés
-          </div>
-          <div className="text-xl font-bold text-stone-900">{leads.length}</div>
-          <div className="text-[10px] text-stone-400 font-normal">Secteur Lyon + 50km</div>
-        </div>
+      {/* En-tête, indicateurs et pipeline à 4 colonnes */}
+      <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-2xs">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900">Dashboard CRM &amp; Pilotage</h1>
+        <p className="text-xs sm:text-sm text-stone-500 mt-0.5">Céline LEVRAT • Estimations • Région Lyonnaise &amp; Beaujolais</p>
+      </div>
 
-        <div className="bg-white rounded-xl border border-stone-200/80 p-3.5 space-y-1 shadow-2xs">
-          <div className="text-[10px] font-medium text-amber-700 uppercase tracking-wider flex items-center gap-1">
-            <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
-            Projets Chauds (&lt;3 mois)
-          </div>
-          <div className="text-xl font-bold text-stone-900">{hotLeadsCount}</div>
-          <div className="text-[10px] text-amber-700/90 font-medium">Priorité de contact</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white rounded-xl border border-stone-200 p-4">
+          <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Leads estimations</div>
+          <div className="text-3xl font-extrabold text-stone-900 mt-1">{pipeLeads.length + pipeVisits.length + pipeMandates.length + pipeSold.length}</div>
+          <div className="text-[11px] text-stone-500">Générés via le site</div>
         </div>
-
-        <div className="bg-white rounded-xl border border-stone-200/80 p-3.5 space-y-1 shadow-2xs">
-          <div className="text-[10px] font-medium text-emerald-700 uppercase tracking-wider flex items-center gap-1">
-            <Calendar className="w-3 h-3 text-emerald-600" />
-            Visites sur Place
+        <div className="bg-white rounded-xl border border-stone-200 p-4">
+          <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">RDV fixés</div>
+          <div className="text-3xl font-extrabold text-stone-900 mt-1 flex items-baseline gap-2">
+            {pipeVisits.length + pipeMandates.length + pipeSold.length}
+            <span className="text-[11px] font-bold text-sky-700 bg-sky-50 rounded px-1.5 py-0.5">{leads.length ? Math.round(((pipeVisits.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % conv.</span>
           </div>
-          <div className="text-xl font-bold text-stone-900">{meetingsBookedCount}</div>
-          <div className="text-[10px] text-emerald-700/90 font-medium">Synchronisées agenda</div>
+          <div className="text-[11px] text-stone-500">Visites d'estimation sur place</div>
         </div>
-
-        {/* DEDICATED MANDATE KPI: MANDATS SIGNÉS (EXCLUSIFS VS SIMPLES) */}
-        <div className="bg-amber-50/70 rounded-xl border border-amber-200/80 p-3.5 space-y-1 shadow-2xs">
-          <div className="text-[10px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1">
-            <Award className="w-3 h-3 text-amber-600" />
-            Mandats Signés
+        <div className="bg-violet-50/60 rounded-xl border border-violet-200 p-4">
+          <div className="text-[11px] font-bold text-violet-800 uppercase tracking-wider">Mandats</div>
+          <div className="text-3xl font-extrabold text-stone-900 mt-1 flex items-baseline gap-2">
+            {pipeMandates.length}
+            <span className="text-[11px] font-bold text-violet-700 bg-violet-100 rounded px-1.5 py-0.5">{(pipeMandates.reduce((n, l) => n + (l.mandate?.sellingPrice || 0), 0) / 1e6).toFixed(2).replace('.', ',')} M€</span>
           </div>
-          <div className="text-xl font-extrabold text-amber-950 flex items-baseline gap-2">
-            <span>{signedMandatesCount}</span>
-            <span className="text-xs font-semibold text-amber-800">
-              ({signedExclusiveLeads.length} Excl. • {signedSimpleLeads.length} Simple)
-            </span>
-          </div>
-          <div className="text-[10px] text-amber-800 font-medium">
-            {totalSignedCommissions.toLocaleString('fr-FR')} € d'honoraires signés
-          </div>
+          <div className="text-[11px] text-stone-500">Portefeuille sous mandat</div>
         </div>
-
-        <div className="bg-white rounded-xl border border-stone-200/80 p-3.5 space-y-1 shadow-2xs col-span-2 lg:col-span-1">
-          <div className="text-[10px] font-medium text-stone-600 uppercase tracking-wider flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-stone-600" />
-            Pipeline Total
+        <div className="bg-white rounded-xl border border-stone-200 p-4">
+          <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Ventes conclues</div>
+          <div className="text-3xl font-extrabold text-stone-900 mt-1 flex items-baseline gap-2">
+            {pipeSold.length}
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5">{pipeSold.reduce((n, l) => n + (l.mandate?.saleFee || l.mandate?.feeAmount || 0), 0).toLocaleString('fr-FR')} €</span>
           </div>
-          <div className="text-xl font-bold text-stone-900">
-            {estimatedCommissions.toLocaleString('fr-FR')} €
-          </div>
-          <div className="text-[10px] text-stone-500 font-normal">{(totalValue / 1000000).toFixed(2)} M€ de valeur sous mandat/estimation</div>
+          <div className="text-[11px] text-stone-500">Honoraires réalisés</div>
         </div>
       </div>
 
-      {/* REFINED OPERATIONAL ACTION TRACKER BANNER (Attio / Notion Style) */}
-      <div className="bg-[#18181b] rounded-2xl p-5 sm:p-6 text-stone-100 shadow-xs border border-zinc-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-800 text-stone-300 border border-zinc-700 text-[11px] font-medium">
-              <ListTodo className="w-3.5 h-3.5 text-amber-400" />
-              Pilotage Opérationnel Vendeurs & Mandats
-            </div>
-            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              Suivi Opérationnel : Fait vs À Réaliser & Mandats Signés
-            </h2>
-            <p className="text-xs text-stone-400 max-w-xl font-normal leading-relaxed">
-              Consultez en un coup d'œil l'avancée de chaque mandat (Exclusif ou Simple) et dossier vendeur : estimations remises, visites préparées, et signatures de mandats.
-            </p>
-          </div>
-
-          {/* Global Progress Gauge */}
-          <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 flex items-center gap-4 min-w-[260px]">
-            <div className="relative w-12 h-12 flex items-center justify-center flex-shrink-0">
-              <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-zinc-800"
-                  strokeWidth="3.5"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="text-emerald-400 transition-all duration-700"
-                  strokeDasharray={`${globalProgress}, 100`}
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <span className="absolute text-xs font-bold text-white">{globalProgress}%</span>
-            </div>
-            <div className="space-y-0.5">
-              <div className="text-xs font-semibold text-white flex items-center gap-1.5">
-                <span className="text-emerald-400 font-bold">{totalTasksDone} faites</span>
-                <span className="text-zinc-500">/</span>
-                <span className="text-amber-300 font-medium">{totalTasksPending} à faire</span>
+      <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5">
+        <h2 className="text-base font-bold text-stone-900 mb-3">Pipeline de qualification &amp; suivi des mandats</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {([
+            ['1. LEADS', 'border-sky-500', pipeLeads],
+            ['2. RDV FIXÉS', 'border-amber-500', pipeVisits],
+            ['3. MANDATS ACTIFS', 'border-violet-500', pipeMandates],
+            ['4. VENTES CONCLUES', 'border-emerald-500', pipeSold],
+          ] as Array<[string, string, Lead[]]>).map(([title, border, list]) => (
+            <div key={title} className="rounded-xl bg-stone-50 border border-stone-200 p-2.5">
+              <div className={`flex items-center justify-between border-b-4 ${border} pb-1.5 mb-2`}>
+                <span className="text-xs font-extrabold text-stone-800">{title}</span>
+                <span className="text-[11px] font-bold bg-stone-200 text-stone-700 rounded-full px-2">{list.length}</span>
               </div>
-              <div className="text-[11px] text-stone-400 font-normal">Sur tous les dossiers en cours</div>
+              <div className="space-y-2 max-h-72 overflow-y-auto">
+                {list.length === 0 && <p className="text-[11px] text-stone-400 text-center py-4">Aucun dossier</p>}
+                {list.map((l) => (
+                  <button key={l.id} type="button" onClick={() => setSelectedLeadDrawer(l)} className="w-full text-left rounded-lg bg-white border border-stone-200 hover:border-stone-400 p-2.5 shadow-2xs">
+                    <div className="text-sm font-bold text-stone-900 truncate">{l.name}</div>
+                    <div className="text-[11px] text-stone-500 truncate">📍 {l.city} • {l.propertyType} {l.surface} m²</div>
+                    <div className="text-[11px] mt-1 font-semibold text-stone-700">
+                      {title.startsWith('4')
+                        ? `Honoraires : ${(l.mandate?.saleFee || l.mandate?.feeAmount || 0).toLocaleString('fr-FR')} €`
+                        : title.startsWith('3')
+                          ? `${l.mandate?.type === 'exclusive' ? 'Exclusif' : 'Simple'} • ${(l.mandate?.sellingPrice || l.estimatedValue || 0).toLocaleString('fr-FR')} €`
+                          : title.startsWith('2')
+                            ? `📅 ${l.meetingDate || 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
+                            : `${l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} € estimés` : 'À contacter'}`}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
+      </div>
 
+      <div className="bg-[#18181b] rounded-2xl p-3 sm:p-4 text-stone-100 shadow-xs border border-zinc-800">
         {/* Tab switcher: Leads Table vs Full Action Plan */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-5 pt-4 border-t border-zinc-800">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <button
             type="button"
             onClick={() => setActiveTab('leads')}
