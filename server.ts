@@ -905,6 +905,28 @@ async function startServer() {
     res.json({ success: true, scheduled: rows.length, skipped });
   });
 
+  // Programs the same e-mail for several contacts at once (adds to, never replaces, their existing sequences)
+  app.post("/api/relances/schedule-bulk", requireAgent, rateLimit("relance-bulk", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ success: false, error: "Base de données non configurée." });
+    const { leadIds, subject, message, sendAt, step } = req.body || {};
+    const when = new Date(sendAt);
+    if (!Array.isArray(leadIds) || !leadIds.length || leadIds.length > 200 || !leadIds.every((i: any) => isUuidStr(i))) return res.status(400).json({ success: false, error: "Contacts invalides." });
+    if (typeof message !== "string" || message.trim().length < 5 || isNaN(when.getTime()) || when.getTime() < Date.now()) return res.status(400).json({ success: false, error: "Message ou date invalide." });
+    const rows = leadIds.map((id: string) => ({
+      lead_id: id,
+      step: typeof step === "string" ? step.slice(0, 80) : "Envoi groupé programmé",
+      channel: "Email",
+      subject: typeof subject === "string" ? subject.slice(0, 200) : null,
+      message: message.slice(0, 5000),
+      send_at: when.toISOString(),
+      status: "programme",
+    }));
+    const { error } = await client.from("relances").insert(rows);
+    if (error) return res.status(500).json({ success: false, error: error.message });
+    res.json({ success: true, scheduled: rows.length });
+  });
+
   app.get("/api/relances/lead/:leadId", requireAgent, async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client || !isUuidStr(req.params.leadId)) return res.json({ relances: [] });

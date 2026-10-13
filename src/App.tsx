@@ -32,6 +32,7 @@ import { fetchCrmLeads, saveCrmLead } from './lib/supabaseService';
 import { LandingSimulator } from './components/LandingSimulator';
 const QualificationChatbot = lazy(() => import('./components/QualificationChatbot').then((m) => ({ default: m.QualificationChatbot })));
 const CrmPipelineView = lazy(() => import('./components/CrmPipelineView').then((m) => ({ default: m.CrmPipelineView })));
+const EmailManagerView = lazy(() => import('./components/EmailManagerView').then((m) => ({ default: m.EmailManagerView })));
 const NurtureEngineView = lazy(() => import('./components/NurtureEngineView').then((m) => ({ default: m.NurtureEngineView })));
 const KpiRoiCalculator = lazy(() => import('./components/KpiRoiCalculator').then((m) => ({ default: m.KpiRoiCalculator })));
 const CalendarBookingModal = lazy(() => import('./components/CalendarBookingModal').then((m) => ({ default: m.CalendarBookingModal })));
@@ -302,6 +303,7 @@ export default function App() {
   // Notification toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedLeadForNurtureId, setSelectedLeadForNurtureId] = useState<string>('');
+  const [emailMode, setEmailMode] = useState<'group' | 'single'>('group');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -337,6 +339,7 @@ export default function App() {
 
   const handleNavigateToNurture = (leadId: string) => {
     setSelectedLeadForNurtureId(leadId);
+    setEmailMode('single');
     handleNavigate('nurture');
   };
 
@@ -831,12 +834,24 @@ export default function App() {
         )}
 
         {currentView === 'nurture' && (
-          <NurtureEngineView
-            leads={leads}
-            selectedLeadId={selectedLeadForNurtureId}
-            onUpdateLead={handleUpdateLead}
-            onShowToast={showToast}
-          />
+          <div className="space-y-5">
+            <div className="flex justify-center gap-2" role="tablist" aria-label="Mode e-mail">
+              {([['group', 'Envoi groupé'], ['single', 'Séquence par contact']] as const).map(([k, l]) => (
+                <button key={k} type="button" role="tab" aria-selected={emailMode === k} onClick={() => setEmailMode(k)}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold ${emailMode === k ? 'bg-[#0f1f3d] text-white' : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'}`}>{l}</button>
+              ))}
+            </div>
+            {emailMode === 'group' ? (
+              <EmailManagerView leads={leads} onUpdateLead={handleUpdateLead} onShowToast={showToast} />
+            ) : (
+              <NurtureEngineView
+                leads={leads}
+                selectedLeadId={selectedLeadForNurtureId}
+                onUpdateLead={handleUpdateLead}
+                onShowToast={showToast}
+              />
+            )}
+          </div>
         )}
 
         {currentView === 'calculator' && <KpiRoiCalculator />}
