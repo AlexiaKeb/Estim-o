@@ -32,6 +32,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const fillPreview = (text: string, lead: Lead) =>
   text
     .replace(/\{Prénom\}/g, lead.name.split(' ')[0] || '')
+    .replace(/\{Nom\}/g, lead.name || '')
+    .replace(/\{Adresse\}/g, lead.address || lead.city || 'votre bien')
     .replace(/\{Ville\}/g, lead.city || 'votre commune')
     .replace(/\{TypeBien\}/g, (lead.propertyType || 'bien').toLowerCase())
     .replace(/\{PrixEstime\}/g, lead.estimatedValue ? `${lead.estimatedValue.toLocaleString('fr-FR')} €` : 'votre estimation')

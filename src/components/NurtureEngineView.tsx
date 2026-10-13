@@ -953,6 +953,8 @@ export const NurtureEngineView: React.FC<Props> = ({
                         { label: '{TypeBien}', tag: `{TypeBien}` },
                         { label: '{PrixEstime}', tag: `{PrixEstime}` },
                         { label: '{Motif}', tag: `{Motif}` },
+                        { label: '{Nom}', tag: `{Nom}` },
+                        { label: '{Adresse}', tag: `{Adresse}` },
                       ].map((t) => (
                         <button
                           key={t.tag}

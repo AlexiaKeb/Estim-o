@@ -40,7 +40,7 @@ const TEMPLATES: Record<Stage, Array<{ label: string; subject: string; body: str
   ],
 };
 
-const VARS = ['{Prénom}', '{Ville}', '{TypeBien}', '{PrixEstime}', '{Motif}'];
+const VARS = ['{Prénom}', '{Nom}', '{Adresse}', '{Ville}', '{TypeBien}', '{PrixEstime}', '{Motif}'];
 
 interface Props {
   leads: Lead[];
