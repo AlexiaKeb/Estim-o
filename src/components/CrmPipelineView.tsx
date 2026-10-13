@@ -106,6 +106,7 @@ export const CrmPipelineView: React.FC<Props> = ({
   const [isEditingMandate, setIsEditingMandate] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);
   const [mailLead, setMailLead] = useState<Lead | null>(null);
+  const [openCol, setOpenCol] = useState<string | null>(null);
 
   // Helper copy function with temporary notification
   const handleCopyValue = (fieldKey: string, value: string) => {
@@ -470,24 +471,34 @@ export const CrmPipelineView: React.FC<Props> = ({
             ['3. MANDATS ACTIFS', 'border-violet-500', pipeMandates],
             ['4. VENTES CONCLUES', 'border-emerald-500', pipeSold],
           ] as Array<[string, string, Lead[]]>).map(([title, border, list]) => (
-            <div key={title} className="rounded-xl bg-stone-50 border border-stone-200 p-2.5">
-              <div className={`flex items-center justify-between border-b-4 ${border} pb-1.5 mb-2`}>
+            <div key={title} className={`rounded-xl bg-stone-50 border border-stone-200 p-2.5 ${openCol === title ? 'sm:col-span-2 lg:col-span-4' : openCol ? 'hidden' : ''}`}>
+              <button
+                type="button"
+                onClick={() => setOpenCol(openCol === title ? null : title)}
+                aria-expanded={openCol === title}
+                title={openCol === title ? 'Réduire' : 'Voir tous les dossiers de cette étape'}
+                className={`w-full flex items-center justify-between border-b-4 ${border} pb-1.5 mb-2 text-left`}
+              >
                 <span className="text-xs font-extrabold text-stone-800">{title}</span>
-                <span className="text-[11px] font-bold bg-stone-200 text-stone-700 rounded-full px-2">{list.length}</span>
-              </div>
-              <div className="space-y-2 max-h-72 overflow-y-auto">
+                <span className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold bg-stone-200 text-stone-700 rounded-full px-2">{list.length}</span>
+                  <span className="text-[11px] font-semibold text-sky-700 underline">{openCol === title ? '← Retour' : 'Tout voir'}</span>
+                </span>
+              </button>
+              <div className={openCol === title ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-2 max-h-72 overflow-y-auto'}>
                 {list.length === 0 && <p className="text-[11px] text-stone-400 text-center py-4">Aucun dossier</p>}
                 {list.map((l) => (
                   <button key={l.id} type="button" onClick={() => setSelectedLeadDrawer(l)} className="w-full text-left rounded-lg bg-white border border-stone-200 hover:border-stone-400 p-2.5 shadow-2xs">
                     <div className="text-sm font-bold text-stone-900 truncate">{l.name}</div>
                     <div className="text-[11px] text-stone-500 truncate">📍 {l.city} • {l.propertyType} {l.surface} m²</div>
+                    {openCol === title && <div className="text-[11px] text-stone-500 truncate">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</div>}
                     <div className="text-[11px] mt-1 font-semibold text-stone-700">
                       {title.startsWith('4')
                         ? `Honoraires : ${(l.mandate?.saleFee || l.mandate?.feeAmount || 0).toLocaleString('fr-FR')} €`
                         : title.startsWith('3')
                           ? `${l.mandate?.type === 'exclusive' ? 'Exclusif' : 'Simple'} • ${(l.mandate?.sellingPrice || l.estimatedValue || 0).toLocaleString('fr-FR')} €`
                           : title.startsWith('2')
-                            ? `📅 ${l.meetingDate || 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
+                            ? `📅 ${l.meetingDate ? new Date(`${l.meetingDate}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }) : 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
                             : `${l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} € estimés` : 'À contacter'}`}
                     </div>
                   </button>
