@@ -1560,7 +1560,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-stone-900 flex items-center gap-2">
-                        <span>Statut du mandat & vente</span>
+                        <span>Mandat</span>
                         {selectedLeadDrawer.mandate?.status === 'signed' && (
                           <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
                             selectedLeadDrawer.mandate.type === 'exclusive'
@@ -1572,7 +1572,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                         )}
                       </h4>
                       <p className="text-[11px] text-stone-500">
-                        Mandat simple ou exclusif, puis enregistrez la vente
+                        {selectedLeadDrawer.mandate?.status === 'signed' ? `Signé le ${frDate(selectedLeadDrawer.mandate.signedDate)}` : 'Simple ou exclusif'}
                       </p>
                     </div>
                   </div>
@@ -1605,25 +1605,6 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {/* Mandate Metrics Grid */}
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
-                    <span className="text-[10px] text-stone-500 font-bold uppercase">Type de Mandat</span>
-                    <div className="text-xs font-extrabold text-stone-900 mt-1">
-                      {selectedLeadDrawer.mandate?.type === 'exclusive'
-                        ? 'Mandat exclusif'
-                        : selectedLeadDrawer.mandate?.type === 'simple'
-                        ? 'Mandat simple'
-                        : selectedLeadDrawer.mandate?.type === 'in_negotiation'
-                        ? '⏳ En Négociation'
-                        : 'Aucun mandat'}
-                    </div>
-                    <div className="text-[10px] text-stone-400 mt-0.5">
-                      {selectedLeadDrawer.mandate?.status === 'signed' ? `Signé le ${selectedLeadDrawer.mandate.signedDate || 'Récemment'}` : 'En cours de négociation'}
-                    </div>
-                  </div>
-
-                </div>
               </div>
 
               {/* 5. VENTE */}
