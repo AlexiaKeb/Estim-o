@@ -1609,7 +1609,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 
               {/* 5. VENTE */}
               <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs space-y-3">
-                <h4 className="text-sm font-bold text-stone-900">5 • Vente</h4>
+                <h4 className="text-sm font-bold text-stone-900">Vente</h4>
                 {selectedLeadDrawer.mandate?.status === 'signed' ? (
                   <SaleBox
                     key={selectedLeadDrawer.id + (selectedLeadDrawer.mandate?.soldDate || '')}
