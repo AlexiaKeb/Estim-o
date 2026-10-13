@@ -95,7 +95,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
-  const [mandateFilter, setMandateFilter] = useState<'ALL' | 'EXCLUSIVE' | 'SIMPLE' | 'NEGOTIATION' | 'NONE'>('ALL');
+  const [mandateFilter, setMandateFilter] = useState<'ALL' | 'LEAD' | 'RDV' | 'MANDAT' | 'VENTE'>('ALL');
   const [activeTab, setActiveTab] = useState<'leads' | 'action_plan'>('leads');
   const [selectedLeadDrawer, setSelectedLeadDrawer] = useState<Lead | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -154,16 +154,8 @@ export const CrmPipelineView: React.FC<Props> = ({
     
     const matchesStatus = statusFilter === 'ALL' || l.status === statusFilter;
 
-    let matchesMandate = true;
-    if (mandateFilter === 'EXCLUSIVE') {
-      matchesMandate = l.mandate?.type === 'exclusive' && l.mandate?.status === 'signed';
-    } else if (mandateFilter === 'SIMPLE') {
-      matchesMandate = l.mandate?.type === 'simple' && l.mandate?.status === 'signed';
-    } else if (mandateFilter === 'NEGOTIATION') {
-      matchesMandate = l.mandate?.type === 'in_negotiation' || l.mandate?.status === 'pending_signature' || l.mandate?.status === 'draft';
-    } else if (mandateFilter === 'NONE') {
-      matchesMandate = !l.mandate || l.mandate.type === 'none' || (!l.mandate.status);
-    }
+    const stage = l.mandate?.soldDate ? 'VENTE' : l.mandate?.status === 'signed' ? 'MANDAT' : l.meetingBooked ? 'RDV' : 'LEAD';
+    const matchesMandate = mandateFilter === 'ALL' || mandateFilter === stage;
 
     return matchesSearch && matchesStatus && matchesMandate;
   });
@@ -610,81 +602,28 @@ export const CrmPipelineView: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* MANDATE FILTER ROW: CLASSIFICATION DES MANDATS (EXCLUSIF / SIMPLE / NÉGO) */}
+            {/* Tri par étape du pipeline */}
             <div className="flex items-center gap-1.5 pt-2 border-t border-stone-100 overflow-x-auto scrollbar-none">
-              <span className="text-xs font-semibold text-amber-900 mr-1 flex items-center gap-1 whitespace-nowrap flex-shrink-0">
-                <Award className="w-3.5 h-3.5 text-amber-600" />
-                Type de Mandat :
-              </span>
-              
-              <button
-                type="button"
-                onClick={() => setMandateFilter('ALL')}
-                className={`py-1 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  mandateFilter === 'ALL'
-                    ? 'bg-stone-800 text-white font-semibold'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
-              >
-                Tous les mandats
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMandateFilter('EXCLUSIVE')}
-                className={`py-1 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1 ${
-                  mandateFilter === 'EXCLUSIVE'
-                    ? 'bg-amber-600 text-white font-semibold shadow-2xs'
-                    : 'bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200/80'
-                }`}
-              >
-                <span>🌟 Exclusifs Signés</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-bold">
-                  {signedExclusiveLeads.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMandateFilter('SIMPLE')}
-                className={`py-1 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1 ${
-                  mandateFilter === 'SIMPLE'
-                    ? 'bg-blue-600 text-white font-semibold shadow-2xs'
-                    : 'bg-blue-50 text-blue-900 hover:bg-blue-100 border border-blue-200/80'
-                }`}
-              >
-                <span>📄 Simples Signés</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-bold">
-                  {signedSimpleLeads.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMandateFilter('NEGOTIATION')}
-                className={`py-1 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1 ${
-                  mandateFilter === 'NEGOTIATION'
-                    ? 'bg-purple-600 text-white font-semibold shadow-2xs'
-                    : 'bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200/80'
-                }`}
-              >
-                <span>⏳ En Négociation</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-bold">
-                  {negotiationLeads.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMandateFilter('NONE')}
-                className={`py-1 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  mandateFilter === 'NONE'
-                    ? 'bg-stone-700 text-white font-semibold'
-                    : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-                }`}
-              >
-                Sans mandat
-              </button>
+              <span className="text-xs font-semibold text-stone-600 mr-1 whitespace-nowrap flex-shrink-0">Étape :</span>
+              {([
+                ['ALL', 'Tous', leads.length],
+                ['LEAD', 'Leads', pipeLeads.length],
+                ['RDV', 'RDV fixés (R1)', pipeVisits.length],
+                ['MANDAT', 'Mandats (R2)', pipeMandates.length],
+                ['VENTE', 'Ventes', pipeSold.length],
+              ] as const).map(([k, label, n]) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setMandateFilter(k)}
+                  className={`py-1 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    mandateFilter === k ? 'bg-stone-800 text-white font-semibold' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                  }`}
+                >
+                  {label}
+                  <span className="px-1.5 rounded-full bg-white/25 text-[10px] font-bold">{n}</span>
+                </button>
+              ))}
             </div>
           </div>
 
