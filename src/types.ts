@@ -87,6 +87,8 @@ export interface MandateDetails {
   /** Vente conclue (acte signé) : date et honoraires réellement encaissés, pour les statistiques */
   soldDate?: string;
   saleFee?: number;
+  /** Prix de vente final (acte) */
+  salePrice?: number;
 }
 
 export interface LeadActivity {

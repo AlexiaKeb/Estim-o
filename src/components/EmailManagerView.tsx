@@ -104,7 +104,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
       onUpdateLead({ ...l, mandate: { ...(l.mandate || { type: 'simple' as const }), type: l.mandate?.type && l.mandate.type !== 'none' ? l.mandate.type : 'simple', status: 'signed', signedDate: today } as Lead['mandate'] });
     } else if (s === 'mandat') {
       if (!window.confirm(`Marquer la vente de ${l.name} comme conclue ? Pensez à renseigner les honoraires encaissés dans sa fiche.`)) return;
-      onUpdateLead({ ...l, mandate: { ...l.mandate!, soldDate: today, saleFee: l.mandate?.saleFee || l.mandate?.feeAmount || 0 } });
+      onUpdateLead({ ...l, mandate: { ...l.mandate!, soldDate: today, saleFee: l.mandate?.saleFee || 0 } });
     }
     setSelected((p) => { const n = new Set(p); n.delete(l.id); return n; });
   };

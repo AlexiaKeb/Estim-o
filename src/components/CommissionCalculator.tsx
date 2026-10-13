@@ -55,7 +55,13 @@ export const CommissionFields: React.FC<{ initial?: { price?: number; rate?: num
 
   const edit = (k: Key, value: string) => {
     setTexts((t) => ({ ...t, [k]: value }));
-    setInputs((prev) => (prev.includes(k) ? (prev[0] === k ? prev : [prev[1], k]) : [prev[1], k]));
+    setInputs((prev) => {
+      if (prev.includes(k)) return prev;
+      // Un champ source resté vide est remplacé en priorité ; sinon on remplace le plus ancien
+      if (texts[prev[0]].trim() === '') return [k, prev[1]];
+      if (texts[prev[1]].trim() === '') return [prev[0], k];
+      return [prev[1], k];
+    });
   };
 
   const shown = (k: Key) => (inputs.includes(k) ? texts[k] : result ? String(round(result[k], k === 'rate' ? 2 : 0)) : '');
