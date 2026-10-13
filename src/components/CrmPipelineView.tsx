@@ -188,7 +188,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 
     const text = `📋 FICHE PROSPECT - AGENT ESTIMATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 NOM : ${lead.name}
+👤 NOM : ${lead.name.toUpperCase()}
 📞 TÉL : ${lead.phone}
 ✉️ EMAIL : ${lead.email}
 📍 ADRESSE : ${lead.address || lead.city}
@@ -561,7 +561,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <div className="flex items-center gap-2.5">
                       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${grad} text-white text-xs font-extrabold`}>{l.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}</span>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-stone-900">{l.name}</p>
+                        <p className="truncate text-sm font-bold text-stone-900 uppercase">{l.name}</p>
                         <p className="truncate text-[11px] text-stone-500">📍 {l.city} • {l.propertyType} {l.surface} m²</p>
                       </div>
                     </div>
@@ -722,7 +722,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-stone-900 text-sm">{lead.name}</span>
+                        <span className="font-bold text-stone-900 text-sm uppercase">{lead.name}</span>
                         {hasChat && (
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[10px] font-medium border border-stone-200">
                             <MessageSquare className="w-2.5 h-2.5" />
@@ -964,7 +964,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                         {/* Prospect Name & Quick Copy */}
                         <td className="py-3.5 px-4">
                           <div className="font-semibold text-stone-900 flex items-center gap-1.5">
-                            <span>{lead.name}</span>
+                            <span className="uppercase">{lead.name}</span>
                             {hasChat && (
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 text-[10px] font-medium border border-stone-200" title="Historique d'échange complet">
                                 <MessageSquare className="w-3 h-3 text-stone-500" />
@@ -1160,7 +1160,7 @@ export const CrmPipelineView: React.FC<Props> = ({
             <div className="bg-slate-900 text-white p-5 sm:p-6 flex items-start justify-between">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white">{selectedLeadDrawer.name}</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white uppercase">{selectedLeadDrawer.name}</h3>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                       selectedLeadDrawer.status === 'HOT'
@@ -1290,7 +1290,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   {/* Copy Name */}
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between">
                     <span className="text-[10px] text-slate-500 font-bold uppercase">Nom / Vendeur</span>
-                    <div className="text-xs font-bold text-slate-900 truncate my-1">{selectedLeadDrawer.name}</div>
+                    <div className="text-xs font-bold text-slate-900 truncate my-1 uppercase">{selectedLeadDrawer.name}</div>
                     <button
                       type="button"
                       onClick={() => handleCopyValue('name', selectedLeadDrawer.name)}
@@ -1629,7 +1629,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                               }`}
                             >
                               <div className="flex items-center justify-between gap-4 mb-1 text-[10px] font-semibold opacity-75">
-                                <span>{isAssistant ? 'Conseillère Céline • Agent Estimation' : selectedLeadDrawer.name}</span>
+                                <span>{isAssistant ? 'Conseillère Céline • Agent Estimation' : selectedLeadDrawer.name.toUpperCase()}</span>
                                 <span>{msg.timestamp || 'Enregistré'}</span>
                               </div>
                               <p className="whitespace-pre-wrap">{msg.content}</p>

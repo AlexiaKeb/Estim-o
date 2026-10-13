@@ -381,7 +381,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
               <ul className="divide-y divide-stone-100 max-h-[32rem] overflow-y-auto">
                 {upcoming.map((u) => (
                   <li key={u.id} className="py-2 flex items-center gap-2 text-sm">
-                    <div className="min-w-0 flex-1"><p className="font-semibold text-stone-900 truncate">{u.leadName}</p><p className="text-xs text-stone-500 truncate">{u.subject || 'Sans objet'} • {new Date(u.sendAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p></div>
+                    <div className="min-w-0 flex-1"><p className="font-semibold text-stone-900 truncate uppercase">{u.leadName}</p><p className="text-xs text-stone-500 truncate">{u.subject || 'Sans objet'} • {new Date(u.sendAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p></div>
                     <button type="button" onClick={() => cancelScheduled(u.id)} className="text-xs underline text-rose-700 shrink-0">Annuler</button>
                   </li>
                 ))}
@@ -395,7 +395,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
               <ul className="divide-y divide-stone-100 max-h-[32rem] overflow-y-auto">
                 {sentLogs.map((l) => (
                   <li key={l.id} className="py-2 text-sm">
-                    <p className="font-semibold text-stone-900 truncate">{l.leadName} {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
+                    <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
                     <p className="text-xs text-stone-500 truncate">{l.subject || 'Sans objet'} • {new Date(l.sentAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p>
                   </li>
                 ))}
@@ -436,7 +436,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
                     <div className="flex items-start gap-3">
                       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${stageStyle[stage]} text-white text-sm font-extrabold`}>{initials(l.name)}</span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-bold text-stone-900">{l.name}</p>
+                        <p className="truncate font-bold text-stone-900 uppercase">{l.name}</p>
                         <p className="truncate text-xs text-stone-500">{l.propertyType} {l.surface} m² • {l.city}</p>
                         <p className="text-xs font-semibold text-stone-700">{l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} €` : '—'}</p>
                       </div>

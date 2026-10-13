@@ -252,7 +252,7 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
           {s.archived.length > 0 && (
             <ul className="mt-2 text-xs text-stone-700 space-y-1">
               {s.archived.slice(0, 6).map((l) => (
-                <li key={l.id}>• <strong>{l.name}</strong> ({l.city}) : {l.archive!.kind === 'mandat_perdu' ? 'mandat perdu' : 'archivé'}{l.archive!.reason ? `, ${l.archive!.reason}` : ''}</li>
+                <li key={l.id}>• <strong className="uppercase">{l.name}</strong> ({l.city}) : {l.archive!.kind === 'mandat_perdu' ? 'mandat perdu' : 'archivé'}{l.archive!.reason ? `, ${l.archive!.reason}` : ''}</li>
               ))}
             </ul>
           )}
