@@ -14,7 +14,7 @@ const SaleBox: React.FC<{ lead: Lead; onSave: (soldDate: string, saleFee: number
     return (
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3">
         <p className="text-sm text-emerald-900">
-          <strong>🏁 Vente conclue le {m.soldDate}</strong> · honoraires encaissés : {(m.saleFee || m.feeAmount || 0).toLocaleString('fr-FR')} €
+          <strong>🏁 Vente conclue le {frDate(m.soldDate)}</strong> · honoraires encaissés : {(m.saleFee || m.feeAmount || 0).toLocaleString('fr-FR')} €
         </p>
         <button type="button" onClick={() => onSave('', 0)} className="text-xs underline text-emerald-900">Annuler la vente</button>
       </div>
