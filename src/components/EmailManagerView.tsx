@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CalendarClock, Loader2, Mail, Send } from 'lucide-react';
+import { CalendarClock, Loader2, Mail, Plus, Save, Send, Trash2 } from 'lucide-react';
 import { Lead } from '../types';
 import { AGENT } from '../data/siteContent';
 
@@ -40,6 +40,8 @@ const TEMPLATES: Record<Stage, Array<{ label: string; subject: string; body: str
   ],
 };
 
+interface CustomTpl { id: string; stage: Stage; label: string; subject: string; body: string }
+
 const VARS = ['{Prénom}', '{Nom}', '{Adresse}', '{Ville}', '{TypeBien}', '{PrixEstime}', '{Motif}'];
 
 interface Props {
@@ -52,6 +54,11 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [stage, setStage] = useState<Stage>('lead');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [tplIdx, setTplIdx] = useState(0);
+  const [customs, setCustoms] = useState<CustomTpl[]>([]);
+  // Modèle sélectionné : intégré (index), personnalisé (id) ou nouveau message (null)
+  const [current, setCurrent] = useState<{ kind: 'builtin'; i: number } | { kind: 'custom'; id: string } | null>({ kind: 'builtin', i: 0 });
+  const [tplName, setTplName] = useState('');
+  const [tplMsg, setTplMsg] = useState<string | null>(null);
   const [subject, setSubject] = useState(TEMPLATES.lead[0].subject);
   const [body, setBody] = useState(TEMPLATES.lead[0].body);
   const [date, setDate] = useState('');
@@ -62,6 +69,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   useEffect(() => {
     fetch('/api/relances/status', { credentials: 'same-origin' }).then((r) => r.json()).then(setStatus).catch(() => setStatus(null));
+    fetch('/api/email-templates', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setCustoms(Array.isArray(d.templates) ? d.templates : [])).catch(() => {});
   }, []);
 
   const byStage = useMemo(() => {
@@ -79,14 +87,63 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     setStage(s);
     setSelected(new Set());
     setTplIdx(0);
+    setCurrent({ kind: 'builtin', i: 0 });
+    setTplName('');
+    setTplMsg(null);
     setSubject(TEMPLATES[s][0].subject);
     setBody(TEMPLATES[s][0].body);
     setReport(null);
   };
   const pickTemplate = (i: number) => {
     setTplIdx(i);
+    setCurrent({ kind: 'builtin', i });
+    setTplName('');
+    setTplMsg(null);
     setSubject(TEMPLATES[stage][i].subject);
     setBody(TEMPLATES[stage][i].body);
+  };
+  const pickCustom = (t: CustomTpl) => {
+    setCurrent({ kind: 'custom', id: t.id });
+    setTplName(t.label);
+    setTplMsg(null);
+    setSubject(t.subject);
+    setBody(t.body);
+  };
+  const newMessage = () => {
+    setCurrent(null);
+    setTplName('');
+    setTplMsg(null);
+    setSubject('');
+    setBody('Bonjour {Prénom},\n\n');
+  };
+  const persistCustoms = async (next: CustomTpl[]) => {
+    try {
+      const r = await fetch('/api/email-templates', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ templates: next }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { setTplMsg(d.error || "L'enregistrement a échoué."); return false; }
+      setCustoms(d.templates || next);
+      return true;
+    } catch {
+      setTplMsg('Serveur injoignable.');
+      return false;
+    }
+  };
+  const saveTemplate = async () => {
+    const label = tplName.trim();
+    if (!label || body.trim().length < 5) { setTplMsg('Donnez un nom au message et écrivez son contenu.'); return; }
+    const existing = current?.kind === 'custom' ? customs.find((c) => c.id === current.id) : undefined;
+    const tpl: CustomTpl = { id: existing?.id || `t-${Date.now()}`, stage, label, subject, body };
+    const next = existing ? customs.map((c) => (c.id === existing.id ? tpl : c)) : [...customs, tpl];
+    if (await persistCustoms(next)) {
+      setCurrent({ kind: 'custom', id: tpl.id });
+      setTplMsg(existing ? 'Message mis à jour.' : 'Message enregistré : il reste disponible pour cette étape.');
+    }
+  };
+  const deleteTemplate = async (t: CustomTpl) => {
+    if (!window.confirm(`Supprimer le message « ${t.label} » ?`)) return;
+    if (await persistCustoms(customs.filter((c) => c.id !== t.id))) {
+      if (current?.kind === 'custom' && current.id === t.id) pickTemplate(0);
+    }
   };
   const toggle = (id: string) => setSelected((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const allOn = list.length > 0 && list.every((l) => selected.has(l.id));
@@ -228,13 +285,25 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
       <div className="grid lg:grid-cols-[18rem_1fr] gap-4">
         <div className="bg-white rounded-2xl border border-stone-200 p-3">
-          <div className="text-xs font-bold uppercase text-stone-500 mb-2">Messages types ({TEMPLATES[stage].length})</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-bold uppercase text-stone-500">Messages ({TEMPLATES[stage].length + customs.filter((c) => c.stage === stage).length})</div>
+            <button type="button" id="btn-new-mail" onClick={newMessage} className="inline-flex items-center gap-1 rounded-lg bg-[#0f1f3d] hover:bg-[#1a3060] text-white text-xs font-bold px-2.5 py-1.5"><Plus className="w-3.5 h-3.5" /> Nouveau</button>
+          </div>
           <div className="space-y-2">
             {TEMPLATES[stage].map((t, i) => (
-              <button key={t.label} type="button" onClick={() => pickTemplate(i)} className={`w-full text-left rounded-xl border p-2.5 text-sm ${tplIdx === i ? 'border-sky-500 bg-sky-50' : 'border-stone-200 hover:bg-stone-50'}`}>
+              <button key={t.label} type="button" onClick={() => pickTemplate(i)} className={`w-full text-left rounded-xl border p-2.5 text-sm ${current?.kind === 'builtin' && current.i === i ? 'border-sky-500 bg-sky-50' : 'border-stone-200 hover:bg-stone-50'}`}>
                 <span className="inline-flex w-5 h-5 mr-2 items-center justify-center rounded-full bg-[#0f1f3d] text-white text-[11px] font-bold">{i + 1}</span>
                 <span className="font-semibold text-stone-800">{t.label}</span>
               </button>
+            ))}
+            {customs.filter((c) => c.stage === stage).map((c) => (
+              <div key={c.id} className={`flex items-center gap-1 rounded-xl border p-1 ${current?.kind === 'custom' && current.id === c.id ? 'border-sky-500 bg-sky-50' : 'border-stone-200'}`}>
+                <button type="button" onClick={() => pickCustom(c)} className="flex-1 text-left text-sm p-1.5 min-w-0">
+                  <span className="inline-block mr-2 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5">À moi</span>
+                  <span className="font-semibold text-stone-800">{c.label}</span>
+                </button>
+                <button type="button" onClick={() => deleteTemplate(c)} aria-label={`Supprimer ${c.label}`} className="p-1.5 text-stone-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
+              </div>
             ))}
           </div>
         </div>
@@ -256,6 +325,14 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
               <span className="text-stone-500">Balises :</span>
               {VARS.map((v) => <button key={v} type="button" onClick={() => setBody((b) => `${b}${v}`)} className="rounded border border-sky-200 bg-sky-50 text-sky-800 px-2 py-0.5 font-semibold">+ {v}</button>)}
             </div>
+          </div>
+          <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 flex flex-wrap items-end gap-2">
+            <div className="flex-1 min-w-[12rem]">
+              <label htmlFor="tpl-name" className="text-[10px] font-bold uppercase text-stone-500 block mb-1">Nom du message (pour le retrouver)</label>
+              <input id="tpl-name" className={field} value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Ex : Relance après visite" />
+            </div>
+            <button type="button" id="btn-save-tpl" onClick={saveTemplate} className="rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-3 py-2.5 flex items-center gap-1.5"><Save className="w-4 h-4" /> {current?.kind === 'custom' ? 'Mettre à jour' : 'Enregistrer ce message'}</button>
+            {tplMsg && <p role="status" className="basis-full text-xs text-stone-600">{tplMsg}</p>}
           </div>
           {report && <p role="status" className={`text-sm rounded-lg p-2.5 ${report.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>{report.text}</p>}
           <div className="rounded-xl bg-[#0f1f3d] text-white p-3 flex flex-wrap items-center justify-between gap-3">

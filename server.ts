@@ -1540,6 +1540,36 @@ async function startServer() {
     res.json({ spend });
   });
 
+  // Message templates created by the advisor (kept with her profile, shared across devices)
+  app.get("/api/email-templates", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.json({ templates: [] });
+    const { sq } = await readSpend(client);
+    res.json({ templates: Array.isArray(sq.email_templates) ? sq.email_templates : [] });
+  });
+  app.put("/api/email-templates", requireAgent, rateLimit("email-templates", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const STAGES = ["lead", "r1", "r2", "mandat", "vente"];
+    const input = Array.isArray(req.body?.templates) ? req.body.templates : null;
+    if (!input || input.length > 60) return res.status(400).json({ error: "Modèles invalides." });
+    const templates = input
+      .filter((t: any) => t && typeof t.label === "string" && typeof t.body === "string" && STAGES.includes(t.stage))
+      .map((t: any) => ({
+        id: String(t.id || "").slice(0, 40) || `t-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        stage: t.stage,
+        label: t.label.trim().slice(0, 80),
+        subject: typeof t.subject === "string" ? t.subject.slice(0, 200) : "",
+        body: t.body.slice(0, 5000),
+      }))
+      .filter((t: any) => t.label && t.body.trim());
+    const { id, sq } = await readSpend(client);
+    if (!id) return res.status(409).json({ error: "Aucune fiche conseillère en base : créez d'abord un prospect." });
+    const { error } = await client.from("agents").update({ script_qualification: { ...sq, email_templates: templates } }).eq("id", id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ templates });
+  });
+
   // Deletes a contact AND everything attached to it (messages, e-mails, conversation, appointments).
   // The Cal.com booking is cancelled too, so the slot becomes free again. The opt-out list is kept on purpose.
   app.delete("/api/crm/leads/:id", requireAgent, rateLimit("lead-delete", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
