@@ -24,14 +24,16 @@ const KEY = 'agent-estimation-attribution';
 const CONSENT_KEY = 'agent-estimation-ads-consent';
 const env = (import.meta as any).env || {};
 const ADS_ID: string = env.VITE_GOOGLE_ADS_ID || '';
-// Google Tag Manager (Google Analytics, balises de conversion) : chargé lui aussi seulement après consentement.
+// Google Analytics 4 (mesure d'audience), chargé après consentement comme le reste.
+const GA_ID: string = env.VITE_GA_ID || 'G-Q1DCVQ9HS9';
+// Google Tag Manager (balises supplémentaires, balises de conversion) : chargé lui aussi seulement après consentement.
 const GTM_ID: string = env.VITE_GTM_ID || 'GTM-5HGX9ZBL';
 const LABELS: Record<string, string> = {
   lead: env.VITE_GOOGLE_ADS_LEAD_LABEL || '',
   booking: env.VITE_GOOGLE_ADS_BOOKING_LABEL || '',
 };
 
-export const trackingConfigured = Boolean(ADS_ID || GTM_ID);
+export const trackingConfigured = Boolean(ADS_ID || GA_ID || GTM_ID);
 
 const safeGet = (k: string): string | null => {
   try { return window.localStorage.getItem(k); } catch { return null; }
@@ -77,16 +79,19 @@ export const getConsent = (): AdsConsent => {
 
 let loaded = false;
 function loadGoogleTag(): void {
-  if (loaded || !ADS_ID || typeof document === 'undefined') return;
+  const ids = [GA_ID, ADS_ID].filter(Boolean);
+  if (loaded || !ids.length || typeof document === 'undefined') return;
+  // L'espace conseillère n'est jamais mesuré
+  if (window.location.pathname.startsWith('/agent')) return;
   loaded = true;
   const w = window as any;
   w.dataLayer = w.dataLayer || [];
   w.gtag = function () { w.dataLayer.push(arguments); };
   w.gtag('js', new Date());
-  w.gtag('config', ADS_ID);
+  ids.forEach((id) => w.gtag('config', id));
   const s = document.createElement('script');
   s.async = true;
-  s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ADS_ID)}`;
+  s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ids[0])}`;
   document.head.appendChild(s);
 }
 
