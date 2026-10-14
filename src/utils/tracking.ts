@@ -24,12 +24,14 @@ const KEY = 'agent-estimation-attribution';
 const CONSENT_KEY = 'agent-estimation-ads-consent';
 const env = (import.meta as any).env || {};
 const ADS_ID: string = env.VITE_GOOGLE_ADS_ID || '';
+// Google Tag Manager (Google Analytics, balises de conversion) : chargé lui aussi seulement après consentement.
+const GTM_ID: string = env.VITE_GTM_ID || 'GTM-5HGX9ZBL';
 const LABELS: Record<string, string> = {
   lead: env.VITE_GOOGLE_ADS_LEAD_LABEL || '',
   booking: env.VITE_GOOGLE_ADS_BOOKING_LABEL || '',
 };
 
-export const trackingConfigured = Boolean(ADS_ID);
+export const trackingConfigured = Boolean(ADS_ID || GTM_ID);
 
 const safeGet = (k: string): string | null => {
   try { return window.localStorage.getItem(k); } catch { return null; }
@@ -88,14 +90,35 @@ function loadGoogleTag(): void {
   document.head.appendChild(s);
 }
 
+let gtmLoaded = false;
+function loadGtm(): void {
+  if (gtmLoaded || !GTM_ID || typeof document === 'undefined') return;
+  // L'espace conseillère n'est jamais mesuré
+  if (window.location.pathname.startsWith('/agent')) return;
+  gtmLoaded = true;
+  const w = window as any;
+  w.dataLayer = w.dataLayer || [];
+  w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(GTM_ID)}`;
+  document.head.appendChild(s);
+}
+
 export function setConsent(value: 'granted' | 'denied'): void {
   safeSet(CONSENT_KEY, value);
-  if (value === 'granted') loadGoogleTag();
+  if (value === 'granted') {
+    loadGoogleTag();
+    loadGtm();
+  }
 }
 
 export function initTracking(): void {
   captureAttribution();
-  if (getConsent() === 'granted') loadGoogleTag();
+  if (getConsent() === 'granted') {
+    loadGoogleTag();
+    loadGtm();
+  }
 }
 
 /** Conversion Google Ads (uniquement si le visiteur a accepté et que les identifiants sont configurés). */

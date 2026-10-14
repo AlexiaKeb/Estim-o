@@ -17,7 +17,7 @@ export const ConsentBanner: React.FC = () => {
     >
       <div className="max-w-3xl mx-auto bg-white border border-stone-200 shadow-xl rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <p className="text-sm text-stone-600 leading-relaxed flex-1">
-          Avec votre accord, nous mesurons l'efficacité de nos annonces Google (cookies publicitaires). Aucun cookie
+          Avec votre accord, nous mesurons la fréquentation du site et l'efficacité de nos annonces Google (Google Analytics, cookies publicitaires). Aucun cookie
           n'est déposé sans votre choix.{' '}
           <a href="/confidentialite" className="underline text-stone-800">En savoir plus</a>
         </p>

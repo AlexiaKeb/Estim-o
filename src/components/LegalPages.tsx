@@ -143,7 +143,7 @@ export const Confidentialite: React.FC = () => (
     <Section title="Cookies">
       <p>
         Le site n'utilise aucun cookie sans votre accord, hormis ce qui est nécessaire à son fonctionnement. Vous
-        pouvez accepter ou refuser la mesure publicitaire dans le bandeau affiché à votre première visite ; effacer les
+        pouvez accepter ou refuser la mesure d'audience (Google Analytics) et publicitaire (Google Ads), via Google Tag Manager, dans le bandeau affiché à votre première visite ; effacer les
         données de votre navigateur permet de refaire ce choix.
       </p>
     </Section>
