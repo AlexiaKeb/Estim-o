@@ -64,6 +64,12 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [view, setView] = useState<'compose' | 'follow'>('compose');
   const [upcoming, setUpcoming] = useState<Array<{ id: string; leadName: string; subject: string; sendAt: string }> | null>(null);
   const [sentLogs, setSentLogs] = useState<Array<{ id: string; leadName: string; subject: string; status: string; sentAt: string }> | null>(null);
+  // Recherche et filtres de la liste des contacts (utile avec des centaines de dossiers)
+  const [q, setQ] = useState('');
+  const [cityF, setCityF] = useState('');
+  const [heatF, setHeatF] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
+  const [onlyEmail, setOnlyEmail] = useState(false);
+  const [limit, setLimit] = useState(50);
   const [tplName, setTplName] = useState('');
   const [tplMsg, setTplMsg] = useState<string | null>(null);
   const [subject, setSubject] = useState(TEMPLATES.lead[0].subject);
@@ -87,6 +93,17 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   const list = byStage[stage];
   const sendable = (l: Lead) => UUID_RE.test(l.id) && EMAIL_RE.test(l.email || '');
+  const cities = useMemo(() => (Array.from(new Set(list.map((l) => l.city).filter(Boolean))) as string[]).sort((a, b) => a.localeCompare(b, 'fr')), [list]);
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return list.filter((l) => {
+      if (needle && !`${l.name} ${l.city} ${l.email} ${l.phone}`.toLowerCase().includes(needle)) return false;
+      if (cityF && l.city !== cityF) return false;
+      if (heatF !== 'ALL' && l.status !== heatF) return false;
+      if (onlyEmail && !(UUID_RE.test(l.id) && EMAIL_RE.test(l.email || ''))) return false;
+      return true;
+    });
+  }, [list, q, cityF, heatF, onlyEmail]);
   const chosen = list.filter((l) => selected.has(l.id));
   const targets = chosen.filter(sendable);
 
@@ -124,6 +141,11 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const pickStage = (s: Stage) => {
     setStage(s);
     setSelected(new Set());
+    setQ('');
+    setCityF('');
+    setHeatF('ALL');
+    setOnlyEmail(false);
+    setLimit(50);
     setTplIdx(0);
     setCurrent({ kind: 'builtin', i: 0 });
     setTplName('');
@@ -192,7 +214,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     }
   };
   const toggle = (id: string) => setSelected((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const allOn = list.length > 0 && list.every((l) => selected.has(l.id));
+  const allOn = filtered.length > 0 && filtered.every((l) => selected.has(l.id));
+  const selectFiltered = (on: boolean) => setSelected((p) => { const n = new Set(p); filtered.forEach((l) => (on ? n.add(l.id) : n.delete(l.id))); return n; });
 
   const advance = (l: Lead) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -424,32 +447,54 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
           <p className="rounded-2xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-400">Aucun contact à cette étape.</p>
         ) : (
           <>
-            <div className="flex items-center justify-between mb-3 text-sm">
-              <label className="flex items-center gap-2 font-semibold text-stone-700 cursor-pointer"><input type="checkbox" aria-label="Tout sélectionner" checked={allOn} onChange={() => setSelected(allOn ? new Set() : new Set(list.map((l) => l.id)))} className="h-4 w-4" /> Tout sélectionner</label>
-              <span className={`rounded-full px-3 py-1 text-xs font-bold ${chosen.length ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-500'}`}>{chosen.length} sélectionné{chosen.length > 1 ? 's' : ''}</span>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <div className="relative min-w-[14rem] flex-1">
+                <input value={q} onChange={(e) => { setQ(e.target.value); setLimit(50); }} placeholder="Rechercher un nom, une ville, un e-mail…" aria-label="Rechercher un contact" className="w-full rounded-full border border-stone-300 bg-stone-50 py-2.5 pl-4 pr-9 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-300" />
+                {q && <button type="button" onClick={() => setQ('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700" aria-label="Effacer la recherche">✕</button>}
+              </div>
+              <select value={cityF} onChange={(e) => { setCityF(e.target.value); setLimit(50); }} aria-label="Filtrer par ville" className="rounded-full border border-stone-300 bg-white px-3 py-2.5 text-sm">
+                <option value="">Toutes les villes</option>
+                {cities.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <div className="flex items-center gap-1">
+                {([['ALL', 'Tous'], ['HOT', '🔥'], ['WARM', '🟡'], ['COLD', '❄️']] as const).map(([k, l]) => (
+                  <button key={k} type="button" onClick={() => { setHeatF(k); setLimit(50); }} title={k === 'HOT' ? 'Chauds' : k === 'WARM' ? 'Tièdes' : k === 'COLD' ? 'Froids' : 'Tous'} className={`rounded-full px-3 py-2 text-xs font-bold ${heatF === k ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{l}</button>
+                ))}
+              </div>
+              <label className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-stone-600"><input type="checkbox" checked={onlyEmail} onChange={(e) => { setOnlyEmail(e.target.checked); setLimit(50); }} className="h-4 w-4" /> Avec e-mail valide</label>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[26rem] overflow-y-auto pr-1">
-              {list.map((l) => {
-                const on = selected.has(l.id);
-                return (
-                  <div key={l.id} onClick={() => toggle(l.id)} className={`cursor-pointer rounded-2xl border-2 p-3 transition-all ${on ? 'border-sky-500 bg-sky-50 shadow-sm' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
-                    <div className="flex items-start gap-3">
-                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${stageStyle[stage]} text-white text-sm font-extrabold`}>{initials(l.name)}</span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-bold text-stone-900 uppercase">{l.name}</p>
-                        <p className="truncate text-xs text-stone-500">{l.propertyType} {l.surface} m² • {l.city}</p>
-                        <p className="text-xs font-semibold text-stone-700">{l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} €` : '—'}</p>
-                      </div>
-                      <input type="checkbox" aria-label={`Sélectionner ${l.name}`} checked={on} onChange={() => toggle(l.id)} onClick={(e) => e.stopPropagation()} className="mt-1 h-4 w-4" />
-                    </div>
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px]">
-                      <span className="truncate text-stone-500">{sendable(l) ? l.email : <span className="font-semibold text-rose-600">pas d'e-mail valide</span>}</span>
-                      {stage !== 'vente' && <button type="button" onClick={(e) => { e.stopPropagation(); advance(l); }} className="shrink-0 font-semibold text-sky-700 underline">{nextLabel[stage]} →</button>}
-                    </div>
-                  </div>
-                );
-              })}
+
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+              <label className="flex cursor-pointer items-center gap-2 font-semibold text-stone-700"><input type="checkbox" aria-label="Tout sélectionner" checked={allOn} onChange={() => selectFiltered(!allOn)} className="h-4 w-4" /> Tout sélectionner{filtered.length !== list.length ? ` (${filtered.length} résultat${filtered.length > 1 ? 's' : ''})` : ` (${filtered.length})`}</label>
+              <span className="flex items-center gap-2">
+                {chosen.length > 0 && <button type="button" onClick={() => setSelected(new Set())} className="text-xs font-semibold text-stone-500 underline">Tout désélectionner</button>}
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${chosen.length ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-500'}`}>{chosen.length} sélectionné{chosen.length > 1 ? 's' : ''}</span>
+              </span>
             </div>
+
+            <div className="overflow-hidden rounded-2xl border border-stone-200">
+              <ul className="max-h-[22rem] divide-y divide-stone-100 overflow-y-auto">
+                {filtered.length === 0 && <li className="p-6 text-center text-sm text-stone-400">Aucun contact ne correspond à cette recherche.</li>}
+                {filtered.slice(0, limit).map((l) => {
+                  const on = selected.has(l.id);
+                  return (
+                    <li key={l.id} onClick={() => toggle(l.id)} className={`flex cursor-pointer items-center gap-3 px-3 py-2 text-sm transition-colors ${on ? 'bg-sky-50' : 'hover:bg-stone-50'}`}>
+                      <input type="checkbox" aria-label={`Sélectionner ${l.name}`} checked={on} onChange={() => toggle(l.id)} onClick={(e) => e.stopPropagation()} className="h-4 w-4 shrink-0" />
+                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${stageStyle[stage]} text-[11px] font-extrabold text-white`}>{initials(l.name)}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold uppercase text-stone-900">{l.name}</span>
+                        <span className="block truncate text-[11px] text-stone-500">{l.city} • {l.propertyType} {l.surface} m²{l.estimatedValue ? ` • ${l.estimatedValue.toLocaleString('fr-FR')} €` : ''}</span>
+                      </span>
+                      <span className="hidden w-52 truncate text-xs text-stone-500 md:block">{sendable(l) ? l.email : <span className="font-semibold text-rose-600">pas d'e-mail valide</span>}</span>
+                      {stage !== 'vente' && <button type="button" onClick={(e) => { e.stopPropagation(); advance(l); }} className="hidden shrink-0 text-[11px] font-semibold text-sky-700 underline sm:block">{nextLabel[stage]} →</button>}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            {filtered.length > limit && (
+              <button type="button" onClick={() => setLimit((n) => n + 100)} className="mt-3 w-full rounded-full border border-stone-300 bg-white py-2 text-sm font-bold text-stone-700 hover:bg-stone-50">Afficher plus ({filtered.length - limit} restants)</button>
+            )}
           </>
         )}
       </section>
