@@ -66,14 +66,24 @@ export const CommissionFields: React.FC<{ initial?: { price?: number; rate?: num
   const shown = (k: Key) => (isSource(k) || k === lastEdited ? texts[k] : result ? String(round(result[k], k === 'rate' ? 2 : 0)) : '');
   const isCalc = (k: Key) => !isSource(k) && k !== lastEdited && Boolean(result);
 
+  const TONE: Record<Key, { icon: string; ring: string; tint: string; badge: string }> = {
+    price: { icon: '🏠', ring: 'focus:ring-sky-300 focus:border-sky-400', tint: 'bg-sky-50 border-sky-200', badge: 'from-sky-500 to-sky-600' },
+    rate: { icon: '％', ring: 'focus:ring-amber-300 focus:border-amber-400', tint: 'bg-amber-50 border-amber-200', badge: 'from-amber-500 to-amber-600' },
+    fee: { icon: '💼', ring: 'focus:ring-orange-300 focus:border-orange-400', tint: 'bg-orange-50 border-orange-200', badge: 'from-orange-500 to-orange-600' },
+    net: { icon: '🤝', ring: 'focus:ring-emerald-300 focus:border-emerald-400', tint: 'bg-emerald-50 border-emerald-200', badge: 'from-emerald-500 to-emerald-600' },
+  };
+
   return (
     <>
-      <div className="bg-white rounded-2xl border border-stone-200 p-5 grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 gap-4">
         {(['price', 'rate', 'fee', 'net'] as Key[]).map((k) => (
-          <div key={k}>
-            <label htmlFor={`calc-${k}`} className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">
-              {LABELS[k].label}
-              {isCalc(k) && <span className="text-[10px] normal-case font-semibold text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5">calculé</span>}
+          <div key={k} className={`rounded-3xl border-2 p-4 sm:p-5 transition-all ${isCalc(k) ? `${TONE[k].tint} shadow-inner` : 'bg-white border-stone-200 shadow-sm'}`}>
+            <label htmlFor={`calc-${k}`} className="flex items-center justify-between gap-2 mb-2">
+              <span className="flex items-center gap-2.5">
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${TONE[k].badge} text-white text-base font-extrabold shadow`}>{TONE[k].icon}</span>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-stone-700">{LABELS[k].label}</span>
+              </span>
+              {isCalc(k) && <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">✨ calculé</span>}
             </label>
             <div className="relative">
               <input
@@ -82,11 +92,11 @@ export const CommissionFields: React.FC<{ initial?: { price?: number; rate?: num
                 value={shown(k)}
                 onChange={(e) => edit(k, e.target.value)}
                 placeholder="0"
-                className={`w-full rounded-xl border px-4 py-3 pr-10 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 ${isCalc(k) ? 'bg-emerald-50/50 border-emerald-200 text-emerald-900' : 'bg-white border-stone-300 text-stone-900'}`}
+                className={`w-full rounded-2xl border bg-white px-4 py-3.5 pr-12 text-2xl font-extrabold text-stone-900 focus:outline-none focus:ring-4 ${TONE[k].ring} ${isCalc(k) ? 'border-transparent' : 'border-stone-300'}`}
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 font-semibold">{LABELS[k].unit}</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg font-bold text-stone-400">{LABELS[k].unit}</span>
             </div>
-            <p className="text-[11px] text-stone-400 mt-1">{LABELS[k].hint}</p>
+            <p className="mt-1.5 text-[11px] text-stone-500">{LABELS[k].hint}</p>
           </div>
         ))}
       </div>
@@ -113,31 +123,54 @@ export const CommissionCalculator: React.FC = () => {
     });
   };
 
+  const feePct = result ? Math.min(100, Math.max(0, (result.fee / result.price) * 100)) : 0;
+
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-5">
-      <div className="bg-white rounded-2xl border border-stone-200 p-5">
-        <h1 className="text-xl font-extrabold text-stone-900 flex items-center gap-2"><Calculator className="w-5 h-5" /> Calculatrice de commission</h1>
-        <p className="text-sm text-stone-500 mt-1">Renseignez deux champs, quels qu'ils soient : les deux autres se calculent automatiquement. Modifiez-en un autre à tout moment pour changer la base du calcul.</p>
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
+        <div className="relative">
+          <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2.5"><Calculator className="w-7 h-7 text-amber-300" /> Calculatrice de commission</h1>
+          <p className="mt-1.5 text-sm text-slate-300 max-w-xl">Renseignez deux champs, n'importe lesquels : les deux autres se calculent tout seuls. Changez-en un autre à tout moment pour repartir sur une autre base.</p>
+        </div>
       </div>
+
       <CommissionFields key={resetKey} initial={resetKey ? {} : { price: 350000, rate: 4 }} onResult={setResult} />
+
       {result && (
-        <div className="rounded-2xl bg-[#0f1f3d] text-white p-5 space-y-3">
-          <div className="grid sm:grid-cols-3 gap-3 text-center">
-            <div><div className="text-[11px] uppercase text-slate-300">Prix de vente</div><div className="text-xl font-extrabold">{showNum(result.price, 'price')} €</div></div>
-            <div><div className="text-[11px] uppercase text-amber-300">Commission {showNum(result.rate, 'rate')} %</div><div className="text-xl font-extrabold text-amber-300">{showNum(result.fee, 'fee')} €</div></div>
-            <div><div className="text-[11px] uppercase text-slate-300">Net vendeur</div><div className="text-xl font-extrabold">{showNum(result.net, 'net')} €</div></div>
+        <div className="rounded-3xl bg-white border border-stone-200 shadow-sm p-5 sm:p-6 space-y-5">
+          <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <h2 className="text-base font-extrabold text-stone-900">Répartition du prix de vente</h2>
+              <span className="text-xs text-stone-500">{showNum(result.price, 'price')} €</span>
+            </div>
+            <div className="flex h-10 w-full overflow-hidden rounded-2xl bg-stone-100 text-xs font-extrabold text-white" role="img" aria-label={`Net vendeur ${showNum(100 - feePct, 'rate')} %, commission ${showNum(feePct, 'rate')} %`}>
+              <div className="flex items-center justify-center bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all" style={{ width: `${100 - feePct}%` }}>{feePct < 92 ? `Net vendeur ${showNum(100 - feePct, 'rate')} %` : ''}</div>
+              <div className="flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 transition-all" style={{ width: `${feePct}%` }}>{feePct >= 12 ? `${showNum(feePct, 'rate')} %` : ''}</div>
+            </div>
+            <div className="mt-2 flex justify-between text-[11px] font-semibold">
+              <span className="text-emerald-700">● Net vendeur</span>
+              <span className="text-orange-600">● Commission agence</span>
+            </div>
           </div>
-          <div className="flex flex-wrap justify-center gap-2 pt-1">
-            <button type="button" onClick={copy} className="rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
+
+          <div className="grid sm:grid-cols-3 gap-3 text-center">
+            <div className="rounded-2xl bg-sky-50 border border-sky-200 p-4"><p className="text-[11px] font-bold uppercase text-sky-800">Prix de vente</p><p className="mt-1 text-2xl font-extrabold text-sky-950">{showNum(result.price, 'price')} €</p></div>
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4"><p className="text-[11px] font-bold uppercase text-amber-800">Commission {showNum(result.rate, 'rate')} %</p><p className="mt-1 text-2xl font-extrabold text-amber-950">{showNum(result.fee, 'fee')} €</p></div>
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4"><p className="text-[11px] font-bold uppercase text-emerald-800">Net vendeur</p><p className="mt-1 text-2xl font-extrabold text-emerald-950">{showNum(result.net, 'net')} €</p></div>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-2">
+            <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] px-5 py-2.5 text-sm font-bold text-white">
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? 'Copié' : 'Copier le résumé'}
             </button>
-            <button type="button" onClick={() => setResetKey((k) => k + 1)} className="rounded-lg bg-white/15 hover:bg-white/25 text-xs font-bold px-3 py-2 flex items-center gap-1.5">
+            <button type="button" onClick={() => setResetKey((k) => k + 1)} className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white hover:bg-stone-50 px-5 py-2.5 text-sm font-bold text-stone-700">
               <RotateCcw className="w-4 h-4" /> Effacer
             </button>
           </div>
         </div>
       )}
-      <p className="text-[11px] text-stone-400 text-center">Calcul indicatif : net vendeur = prix de vente − commission. Les honoraires sont supposés à la charge du vendeur et compris dans le prix de vente.</p>
+      <p className="text-center text-[11px] text-stone-400">Calcul indicatif : net vendeur = prix de vente − commission. Les honoraires sont supposés à la charge du vendeur et compris dans le prix de vente.</p>
     </div>
   );
 };
