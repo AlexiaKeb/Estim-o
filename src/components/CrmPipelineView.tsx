@@ -169,6 +169,8 @@ export const CrmPipelineView: React.FC<Props> = ({
   const [securityOpen, setSecurityOpen] = useState(false);
   const [mailLead, setMailLead] = useState<Lead | null>(null);
   const [openCol, setOpenCol] = useState<string | null>(null);
+  const lastOpened = React.useRef<string | null>(null);
+  React.useEffect(() => { if (!selectedLeadDrawer) lastOpened.current = null; }, [selectedLeadDrawer]);
 
   // Helper copy function with temporary notification
   const handleCopyValue = (fieldKey: string, value: string) => {
@@ -489,6 +491,7 @@ export const CrmPipelineView: React.FC<Props> = ({
         />
       )}
       {securityOpen && <SecurityPanel onClose={() => setSecurityOpen(false)} onLoggedOut={() => window.location.assign('/')} />}
+      <div className={selectedLeadDrawer ? 'hidden' : 'space-y-6'}>
       {/* Bandeau d'accueil */}
       <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
@@ -752,10 +755,13 @@ export const CrmPipelineView: React.FC<Props> = ({
       )}
 
 
-      {/* LEAD DETAILS DRAWER / MODAL WITH ACTION TRACKER & QUICK-COPY BAR */}
+      </div>
+
+      {/* FICHE DU DOSSIER : page pleine largeur */}
       {selectedLeadDrawer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-4xl overflow-hidden max-h-[92vh] flex flex-col">
+        <div className="animate-in fade-in" ref={(el) => { if (el && lastOpened.current !== selectedLeadDrawer.id) { lastOpened.current = selectedLeadDrawer.id; window.scrollTo({ top: 0 }); } }}>
+          <button type="button" onClick={() => setSelectedLeadDrawer(null)} className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-300 hover:bg-stone-50 px-4 py-2 text-sm font-bold text-stone-800 shadow-sm">← Retour aux dossiers</button>
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm w-full overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="bg-slate-900 text-white p-5 sm:p-6 flex items-start justify-between">
               <div>
@@ -784,12 +790,12 @@ export const CrmPipelineView: React.FC<Props> = ({
                 className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
                 title="Fermer"
               >
-                ✕
+                ✕ Fermer
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 sm:p-6 space-y-6 overflow-y-auto flex-1 bg-slate-50/50">
+            <div className="p-5 sm:p-8 space-y-6 bg-slate-50/50">
               
               {selectedLeadDrawer.archive && (
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-300 bg-stone-100 p-3">
