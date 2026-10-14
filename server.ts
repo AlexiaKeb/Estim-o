@@ -2627,19 +2627,35 @@ async function startServer() {
   app.get(["/estimation-immobiliere", "/estimation-immobiliere/*"], (_req: Request, res: Response) => res.redirect(301, "/"));
 
   // ---- Blog articles written by the advisor (dashboard) ----
-  const ARTICLE_COLS = "id, slug, title, meta_title, description, category, cover_url, intro, blocks, status, reading_minutes, published_at, created_at, updated_at";
+  const ARTICLE_COLS_BASE = "id, slug, title, meta_title, description, category, cover_url, intro, blocks, status, reading_minutes, published_at, created_at, updated_at";
+  // Tags need the column added by migration 20261014000000_article_tags.sql: the app keeps working without it
+  let tagsProbe: { ok: boolean; at: number } | null = null;
+  const articleTagsReady = async (client: any): Promise<boolean> => {
+    if (tagsProbe && (tagsProbe.ok || Date.now() - tagsProbe.at < 60_000)) return tagsProbe.ok;
+    const { error } = await client.from("articles").select("tags").limit(1);
+    tagsProbe = { ok: !error, at: Date.now() };
+    return tagsProbe.ok;
+  };
   const articlesMissing = (error: any) => error && (error.code === "42P01" || /relation .*articles|schema cache/i.test(error.message || ""));
   const MISSING_MSG = "La table des articles n'existe pas encore : exécutez la migration 20261006000000_articles.sql dans Supabase (SQL Editor).";
 
   app.get("/api/articles", requireAgent, async (_req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client) return res.status(503).json({ error: "Supabase non configuré" });
-    const { data, error } = await client.from("articles").select("id, slug, title, category, status, cover_url, published_at, updated_at").order("updated_at", { ascending: false }).limit(200);
+    const tagsOk = await articleTagsReady(client);
+    const { data: raw, error } = await client.from("articles").select(`id, slug, title, category, status, cover_url, published_at, updated_at, intro, blocks${tagsOk ? ", tags" : ""}`).order("updated_at", { ascending: false }).limit(300);
     if (articlesMissing(error)) return res.status(409).json({ error: MISSING_MSG });
     if (error) return res.status(500).json({ error: error.message });
+    // Plain text of each article, so the screen can search inside the content
+    const data = (raw || []).map((a: any) => {
+      const text = [a.intro || "", ...(Array.isArray(a.blocks) ? a.blocks.map((b: any) => (b.type === "ul" ? (b.items || []).join(" ") : b.type === "img" ? b.alt || "" : b.text || "")) : [])].join(" ");
+      const { blocks: _b, intro: _i, ...rest } = a;
+      return { ...rest, tags: Array.isArray(a.tags) ? a.tags : [], search: text.slice(0, 6000) };
+    });
     // Articles delivered with the site that are not editable yet (not copied into the database)
     const inDb = new Set((data || []).map((a: any) => a.slug));
     res.json({
+      tagsEnabled: tagsOk,
       articles: data || [],
       builtIn: BLOG_POSTS.filter((p) => !inDb.has(p.slug)).map((p) => ({ slug: p.slug, title: p.title, category: p.category, date: p.date })),
     });
@@ -2678,7 +2694,7 @@ async function startServer() {
   app.get("/api/articles/:id", requireAgent, async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client || !isUuidStr(req.params.id)) return res.status(400).json({ error: "Article introuvable" });
-    const { data, error } = await client.from("articles").select(ARTICLE_COLS).eq("id", req.params.id).maybeSingle();
+    const { data, error } = await client.from("articles").select(ARTICLE_COLS_BASE + ((await articleTagsReady(client)) ? ", tags" : "")).eq("id", req.params.id).maybeSingle();
     if (error || !data) return res.status(404).json({ error: "Article introuvable" });
     res.json({ article: data });
   });
@@ -2725,8 +2741,10 @@ async function startServer() {
       }
       fields.slug = slug;
     }
+    const tagsOk = await articleTagsReady(client);
+    if (tagsOk) fields.tags = a.tags || [];
     const q = existing ? client.from("articles").update(fields).eq("id", existing.id) : client.from("articles").insert(fields);
-    const { data, error } = await q.select(ARTICLE_COLS).single();
+    const { data, error } = await q.select(ARTICLE_COLS_BASE + (tagsOk ? ", tags" : "")).single();
     if (articlesMissing(error)) return res.status(409).json({ error: MISSING_MSG });
     if (error) return res.status(500).json({ error: error.message });
     invalidateArticles();

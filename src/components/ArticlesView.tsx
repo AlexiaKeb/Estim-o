@@ -12,6 +12,8 @@ interface Row {
   cover_url: string | null;
   published_at: string | null;
   updated_at: string;
+  tags?: string[];
+  search?: string;
 }
 
 interface Draft {
@@ -25,10 +27,11 @@ interface Draft {
   blocks: ArticleBlock[];
   metaTitle: string;
   description: string;
+  tags: string[];
   published_at?: string | null;
 }
 
-const EMPTY: Draft = { status: 'brouillon', title: '', category: 'Conseils', coverUrl: '', intro: '', blocks: [], metaTitle: '', description: '' };
+const EMPTY: Draft = { status: 'brouillon', title: '', category: 'Conseils', coverUrl: '', intro: '', blocks: [], metaTitle: '', description: '', tags: [] };
 const CATEGORIES = ['Conseils', 'Estimation', 'Marché', 'Préparer sa vente', 'Vendre', 'Quartiers'];
 const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 
@@ -97,6 +100,14 @@ export const ArticlesView: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [tagsEnabled, setTagsEnabled] = useState(true);
+  const [tagInput, setTagInput] = useState('');
+  // Filtres de la liste
+  const [fq, setFq] = useState('');
+  const [fCat, setFCat] = useState('');
+  const [fStatus, setFStatus] = useState<'' | 'publie' | 'brouillon'>('');
+  const [fTag, setFTag] = useState('');
+  const [sort, setSort] = useState<'recent' | 'old' | 'title'>('recent');
 
   const flash = (ok: boolean, text: string) => {
     setNotice({ ok, text });
@@ -114,6 +125,7 @@ export const ArticlesView: React.FC = () => {
       }
       setRows(data.articles || []);
       setBuiltIn(data.builtIn || []);
+      setTagsEnabled(data.tagsEnabled !== false);
     } catch {
       setRows([]);
       flash(false, 'Serveur injoignable.');
@@ -129,7 +141,7 @@ export const ArticlesView: React.FC = () => {
     const data = await res.json().catch(() => ({}));
     const a = data.article;
     if (!res.ok || !a) return flash(false, 'Article introuvable.');
-    setDraft({ id: a.id, slug: a.slug, status: a.status, title: a.title, category: a.category || 'Conseils', coverUrl: a.cover_url || '', intro: a.intro || '', blocks: a.blocks || [], metaTitle: a.meta_title || '', description: a.description || '', published_at: a.published_at });
+    setDraft({ id: a.id, slug: a.slug, status: a.status, title: a.title, category: a.category || 'Conseils', coverUrl: a.cover_url || '', intro: a.intro || '', blocks: a.blocks || [], metaTitle: a.meta_title || '', description: a.description || '', tags: Array.isArray(a.tags) ? a.tags : [], published_at: a.published_at });
     setDirty(false);
   };
 
@@ -220,6 +232,13 @@ export const ArticlesView: React.FC = () => {
 
   // ---------------- List ----------------
   if (!draft) {
+    const allCats = Array.from(new Set((rows || []).map((r) => r.category).filter(Boolean))) as string[];
+    const allTags = (Array.from(new Set((rows || []).flatMap((r) => r.tags || []))) as string[]).sort((a, b) => a.localeCompare(b, 'fr'));
+    const needle = fq.trim().toLowerCase();
+    const shown = (rows || [])
+      .filter((r) => (!needle || `${r.title} ${r.category || ''} ${(r.tags || []).join(' ')} ${r.search || ''}`.toLowerCase().includes(needle)) && (!fCat || r.category === fCat) && (!fStatus || r.status === fStatus) && (!fTag || (r.tags || []).includes(fTag)))
+      .sort((a, b) => (sort === 'title' ? a.title.localeCompare(b.title, 'fr') : sort === 'old' ? a.updated_at.localeCompare(b.updated_at) : b.updated_at.localeCompare(a.updated_at)));
+    const filtering = Boolean(needle || fCat || fStatus || fTag);
     return (
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-7 shadow-md relative overflow-hidden flex flex-wrap items-center justify-between gap-4">
@@ -262,12 +281,44 @@ export const ArticlesView: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 text-sm text-stone-600">
-              <span className="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1 font-bold">{rows.filter((r) => r.status === 'publie').length} publié{rows.filter((r) => r.status === 'publie').length > 1 ? 's' : ''}</span>
-              <span className="rounded-full bg-amber-100 text-amber-800 px-3 py-1 font-bold">{rows.filter((r) => r.status !== 'publie').length} brouillon{rows.filter((r) => r.status !== 'publie').length > 1 ? 's' : ''}</span>
+            <div className="rounded-3xl bg-white border border-stone-200 shadow-sm p-4 sm:p-5 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative min-w-[14rem] flex-1">
+                  <input value={fq} onChange={(e) => setFq(e.target.value)} placeholder="Rechercher un mot-clé dans les titres, tags et textes…" aria-label="Rechercher un article" className="w-full rounded-full border border-stone-300 bg-stone-50 py-2.5 pl-4 pr-9 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-300" />
+                  {fq && <button type="button" onClick={() => setFq('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700" aria-label="Effacer la recherche">✕</button>}
+                </div>
+                <div className="inline-flex rounded-full bg-stone-100 p-1">
+                  {([['', 'Tous'], ['publie', 'Publiés'], ['brouillon', 'Brouillons']] as const).map(([k, l]) => (
+                    <button key={k} type="button" onClick={() => setFStatus(k)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${fStatus === k ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-600'}`}>{l}</button>
+                  ))}
+                </div>
+                <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Trier" className="rounded-full border border-stone-300 bg-white px-3 py-2 text-xs font-semibold">
+                  <option value="recent">Plus récents</option>
+                  <option value="old">Plus anciens</option>
+                  <option value="title">Titre (A→Z)</option>
+                </select>
+              </div>
+              {allCats.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-bold uppercase text-stone-400 mr-1">Catégorie</span>
+                  <button type="button" onClick={() => setFCat('')} className={`rounded-full px-3 py-1 text-xs font-bold ${!fCat ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>Toutes</button>
+                  {allCats.map((c) => <button key={c} type="button" onClick={() => setFCat(fCat === c ? '' : c)} className={`rounded-full px-3 py-1 text-xs font-bold ${fCat === c ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{c}</button>)}
+                </div>
+              )}
+              {allTags.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-bold uppercase text-stone-400 mr-1">Tags</span>
+                  {allTags.map((t) => <button key={t} type="button" onClick={() => setFTag(fTag === t ? '' : t)} className={`rounded-full px-3 py-1 text-xs font-bold ${fTag === t ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 hover:bg-sky-100'}`}>#{t}</button>)}
+                </div>
+              )}
+              <div className="flex items-center justify-between text-xs text-stone-500">
+                <span>{shown.length} article{shown.length > 1 ? 's' : ''}{filtering ? ` sur ${rows.length}` : ''} • {rows.filter((r) => r.status === 'publie').length} publié(s), {rows.filter((r) => r.status !== 'publie').length} brouillon(s)</span>
+                {filtering && <button type="button" onClick={() => { setFq(''); setFCat(''); setFStatus(''); setFTag(''); }} className="font-bold text-sky-700 underline">Effacer les filtres</button>}
+              </div>
             </div>
+            {shown.length === 0 && <p className="rounded-3xl border-2 border-dashed border-stone-300 bg-white p-8 text-center text-sm text-stone-500">Aucun article ne correspond à ces filtres.</p>}
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rows.map((r) => (
+              {shown.map((r) => (
                 <li key={r.id} className="group flex flex-col overflow-hidden rounded-3xl bg-white border border-stone-200 shadow-sm hover:shadow-md transition-all">
                   <button type="button" onClick={() => open(r.id)} className="text-left">
                     {r.cover_url ? <img src={r.cover_url} alt="" className="h-40 w-full object-cover" /> : <div className="h-40 w-full bg-gradient-to-br from-sky-100 via-stone-100 to-amber-100 flex items-center justify-center text-4xl">📰</div>}
@@ -277,7 +328,8 @@ export const ArticlesView: React.FC = () => {
                         <span className="text-stone-500">{r.category}</span>
                       </div>
                       <p className="mt-2 font-extrabold text-stone-900 leading-snug line-clamp-2">{r.title || 'Sans titre'}</p>
-                      <p className="mt-1 text-xs text-stone-500">Modifié le {fmtDate(r.updated_at)}</p>
+                      {(r.tags || []).length > 0 && <div className="mt-2 flex flex-wrap gap-1">{(r.tags || []).slice(0, 4).map((t) => <span key={t} className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-800">#{t}</span>)}</div>}
+                      <p className="mt-1.5 text-xs text-stone-500">Modifié le {fmtDate(r.updated_at)}</p>
                     </div>
                   </button>
                   <div className="mt-auto flex items-center gap-2 border-t border-stone-100 p-3">
@@ -334,6 +386,36 @@ export const ArticlesView: React.FC = () => {
             <span className={label}>Photo d'illustration</span>
             <PhotoPicker url={draft.coverUrl} onChange={(url) => patch({ coverUrl: url })} onError={(m) => flash(false, m)} title="Photo d'illustration" />
           </div>
+        </div>
+        <div>
+          <label htmlFor="art-tag" className={label}>Mots-clés (tags)</label>
+          {tagsEnabled ? (
+            <>
+              <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-stone-300 bg-white px-3 py-2">
+                {draft.tags.map((t) => (
+                  <span key={t} className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-800">#{t}<button type="button" onClick={() => patch({ tags: draft.tags.filter((x) => x !== t) })} aria-label={`Retirer ${t}`} className="text-sky-500 hover:text-rose-600">✕</button></span>
+                ))}
+                <input
+                  id="art-tag"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+                      e.preventDefault();
+                      const t = tagInput.trim().replace(/^#/, '').toLowerCase().slice(0, 30);
+                      if (t && !draft.tags.includes(t) && draft.tags.length < 10) patch({ tags: [...draft.tags, t] });
+                      setTagInput('');
+                    }
+                  }}
+                  placeholder={draft.tags.length ? 'Ajouter un tag…' : 'Ex : estimation, lyon, vendre (Entrée pour valider)'}
+                  className="min-w-[10rem] flex-1 bg-transparent py-1 text-sm focus:outline-none"
+                />
+              </div>
+              <p className="mt-1 text-[11px] text-stone-400">Tapez un mot puis Entrée. Les tags servent à retrouver vos articles.</p>
+            </>
+          ) : (
+            <p className="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">Les tags ne sont pas encore activés : exécutez le fichier <code>supabase/migrations/20261014000000_article_tags.sql</code> dans Supabase (SQL Editor), puis rechargez la page.</p>
+          )}
         </div>
         <div>
           <label htmlFor="art-intro" className={label}>Introduction</label>

@@ -10,6 +10,7 @@ export interface ArticleInput {
   coverUrl?: string;
   intro?: string;
   blocks: ArticleBlock[];
+  tags?: string[];
 }
 
 const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
@@ -55,6 +56,7 @@ export function sanitizeArticle(body: any): { ok: true; value: ArticleInput } | 
       coverUrl: httpsUrl(body?.coverUrl),
       intro: clip(body?.intro, 1500),
       blocks,
+      tags: Array.from(new Set((Array.isArray(body?.tags) ? body.tags : []).map((t: unknown) => clip(t, 30).toLowerCase()).filter(Boolean))).slice(0, 10) as string[],
     },
   };
 }
