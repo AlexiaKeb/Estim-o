@@ -170,6 +170,22 @@ export const CrmPipelineView: React.FC<Props> = ({
   const [mailLead, setMailLead] = useState<Lead | null>(null);
   const [openCol, setOpenCol] = useState<string | null>(null);
   const lastOpened = React.useRef<string | null>(null);
+  const [alertInfo, setAlertInfo] = React.useState<{ email: string | null; telegram: boolean } | null>(null);
+  const [alertMsg, setAlertMsg] = React.useState<{ ok: boolean; text: string } | null>(null);
+  React.useEffect(() => {
+    fetch('/api/alerts/status', { credentials: 'same-origin' }).then((r) => r.json()).then(setAlertInfo).catch(() => {});
+  }, []);
+  const testAlert = async () => {
+    setAlertMsg(null);
+    try {
+      const r = await fetch('/api/alerts/test', { method: 'POST', credentials: 'same-origin' });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.success) setAlertMsg({ ok: true, text: `Alerte envoyée${d.email ? ' par e-mail' : ''}${d.email && d.telegram ? ' et' : ''}${d.telegram ? ' sur Telegram' : ''}.` });
+      else setAlertMsg({ ok: false, text: d.error || (d.errors || []).join(' ') || "L'envoi a échoué." });
+    } catch {
+      setAlertMsg({ ok: false, text: 'Serveur injoignable.' });
+    }
+  };
   React.useEffect(() => { if (!selectedLeadDrawer) lastOpened.current = null; }, [selectedLeadDrawer]);
 
   // Helper copy function with temporary notification
@@ -595,9 +611,19 @@ export const CrmPipelineView: React.FC<Props> = ({
 
           <button
             type="button"
+            id="btn-test-alert"
+            onClick={testAlert}
+            title={alertInfo ? `Alertes : ${[alertInfo.email ? `e-mail (${alertInfo.email})` : '', alertInfo.telegram ? 'Telegram' : ''].filter(Boolean).join(' + ') || 'aucun canal configuré'}` : 'Tester les alertes'}
+            className="sm:ml-auto px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-stone-100 text-stone-700 hover:bg-stone-200"
+          >
+            <span>🔔 Tester les alertes{alertInfo && !alertInfo.email && !alertInfo.telegram ? ' (non configurées)' : ''}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setSecurityOpen(true)}
             id="btn-security"
-            className="sm:ml-auto px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-stone-100 text-stone-700 hover:bg-stone-200"
+            className="px-3.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 bg-stone-100 text-stone-700 hover:bg-stone-200"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>Sécurité</span>
@@ -614,6 +640,7 @@ export const CrmPipelineView: React.FC<Props> = ({
             <span>Exporter mes dossiers (Excel)</span>
           </a>
         </div>
+        {alertMsg && <p role="status" className={`mt-3 rounded-xl px-3 py-2 text-xs font-semibold ${alertMsg.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>{alertMsg.text}</p>}
       </div>
 
       {/* VIEW 1: LEADS TABLE & MOBILE CARDS WITH VISUAL LAST ACTIONS AND QUICK COPY */}

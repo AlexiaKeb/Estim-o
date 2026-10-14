@@ -30,6 +30,7 @@ import {
 } from "./server/auth";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
 import { toLead, pickCrm, leadsToCsv, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
+import { notifyAdvisor, alertChannels } from "./server/alerts";
 import { computeScore, sanitizeQualification, type Qualification } from "./server/scoring";
 import { estimateFromDvf, prewarm, type DvfEstimate } from "./server/dvf";
 import { createServer as createViteServer } from "vite";
@@ -824,6 +825,13 @@ async function startServer() {
     return { ok: true as const, id: result.id, recipient: to, from: cfg.fromEmail };
   }
 
+  app.get("/api/alerts/status", requireAgent, (_req: Request, res: Response) => res.json(alertChannels()));
+  app.post("/api/alerts/test", requireAgent, rateLimit("alert-test", 10, 10 * 60 * 1000), async (_req: Request, res: Response) => {
+    const ch = alertChannels();
+    if (!ch.email && !ch.telegram) return res.status(409).json({ success: false, error: "Aucun canal d'alerte configuré (voir ALERT_EMAIL et TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID sur Render)." });
+    const r = await notifyAdvisor({ title: "✅ Test d'alerte", lines: ["Si vous lisez ce message, les alertes fonctionnent : vous serez prévue à chaque nouveau lead et chaque rendez-vous."], link: BASE_URL ? `${BASE_URL}/agent` : undefined, linkLabel: "Ouvrir le tableau de bord" });
+    res.json({ success: r.email || r.telegram, ...r });
+  });
   app.get("/api/relances/status", requireAgent, async (_req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     const cfg = mailConfig();
@@ -1520,6 +1528,19 @@ async function startServer() {
       }
 
       await rescoreLead(client, inserted.id, { timeframe: leadData.timeframe, motive: leadData.motive });
+      const fromAds = Boolean(leadData.attribution?.gclid || /google/i.test(String(leadData.attribution?.utmSource || "")));
+      void notifyAdvisor({
+        title: `🔔 Nouveau lead : ${String(base.nom).toUpperCase()}`,
+        lines: [
+          `📞 ${base.telephone}${base.email ? `  •  ✉️ ${base.email}` : ""}`,
+          `🏠 ${[base.type_bien, base.surface ? `${base.surface} m²` : "", base.ville_bien ? `à ${base.ville_bien}` : ""].filter(Boolean).join(" ")}`,
+          ...(optional.valeur_estimee ? [`💰 Estimation : ${Math.round(optional.valeur_estimee).toLocaleString("fr-FR")} €`] : []),
+          ...(leadData.timeframe || leadData.motive ? [`🎯 Projet : ${[leadData.motive, leadData.timeframe].filter(Boolean).join(" • ")}`] : []),
+          `📍 Origine : ${fromAds ? "publicité Google" : "site (direct, blog…)"}`,
+        ],
+        link: BASE_URL ? `${BASE_URL}/agent` : undefined,
+        linkLabel: "Ouvrir le tableau de bord",
+      });
       return res.json({ success: true, lead_id: inserted.id, persisted: true });
     } catch (err) {
       console.error("Sync lead API error:", err);
@@ -2133,6 +2154,21 @@ async function startServer() {
 
           await client.from("leads").update({ statut: "rdv_pris", updated_at: new Date().toISOString() }).eq("id", actualLeadId);
           await rescoreLead(client, actualLeadId, { booked: true });
+          void (async () => {
+            const { data: l } = await client.from("leads").select("nom, telephone, email, adresse, ville_bien, type_bien, surface").eq("id", actualLeadId).maybeSingle();
+            const when = new Date(startIso).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+            await notifyAdvisor({
+              title: `📅 Rendez-vous pris : ${String(l?.nom || leadName || "Client").toUpperCase()}`,
+              lines: [
+                `🕒 ${when}`,
+                `📞 ${l?.telephone || leadPhone || ""}${l?.email || leadEmail ? `  •  ✉️ ${l?.email || leadEmail}` : ""}`,
+                `📍 ${l?.adresse || l?.ville_bien || ""}`,
+                `🏠 ${[l?.type_bien, l?.surface ? `${l.surface} m²` : ""].filter(Boolean).join(" ")}`,
+              ].filter((x) => x.trim().length > 3),
+              link: BASE_URL ? `${BASE_URL}/agent` : undefined,
+              linkLabel: "Ouvrir le dossier",
+            });
+          })().catch(() => {});
           if (isClaudeConfigured()) void generateBrief(client, actualLeadId).catch(() => {}); // ready before the visit
 
           // Update/record conversation entry
