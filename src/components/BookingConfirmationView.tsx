@@ -332,6 +332,14 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
         {/* Right Col: Discovery Phase & Simple Info */}
         <div className="lg:col-span-7 space-y-6">
+          {/* Optional robot-led complementary questions about the property */}
+          <QuickQualification
+            leadId={confirmedLead.id}
+            low={confirmedLead.valuation?.lowPrice}
+            high={confirmedLead.valuation?.highPrice}
+            onSubmitted={() => {}}
+          />
+
           {/* Discovery & Key Info Card */}
           <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3.5">
@@ -378,14 +386,6 @@ export const BookingConfirmationView: React.FC<Props> = ({
               </p>
             </div>
           </div>
-
-          {/* Optional: three quick questions so Céline can prepare the visit */}
-          <QuickQualification
-            leadId={confirmedLead.id}
-            low={confirmedLead.valuation?.lowPrice}
-            high={confirmedLead.valuation?.highPrice}
-            onSubmitted={() => {}}
-          />
 
           {/* Interactive FAQ Accordion */}
           <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-4">

@@ -11,6 +11,9 @@ export interface Qualification {
   occupancy?: Occupancy;
   expectedPrice?: number | null;
   profession?: string;
+  condition?: string;
+  purchase?: string;
+  extras?: string[];
   answeredAt?: string;
 }
 
@@ -87,6 +90,9 @@ export function computeScore(i: ScoreInput): ScoreResult {
 const OWNERSHIP: Ownership[] = ["seul", "plusieurs", "pas_encore"];
 const MANDATE: Mandate[] = ["aucun", "estimations", "simple", "exclusif"];
 const OCCUPANCY: Occupancy[] = ["occupe", "libre", "loue"];
+const CONDITION = ["refait", "bon", "rafraichir", "travaux"];
+const PURCHASE = ["aucun", "recherche", "trouve"];
+const EXTRAS = ["balcon", "jardin", "parking", "cave", "ascenseur"];
 
 /** Keeps only valid answers from an untrusted request body. */
 export function sanitizeQualification(body: any): Qualification {
@@ -98,5 +104,11 @@ export function sanitizeQualification(body: any): Qualification {
   if (isFinite(price) && price >= 20000 && price <= 20000000) q.expectedPrice = Math.round(price);
   const job = typeof body?.profession === "string" ? body.profession.replace(/\s+/g, " ").trim().slice(0, 80) : "";
   if (job) q.profession = job;
+  if (CONDITION.includes(body?.condition)) q.condition = body.condition;
+  if (PURCHASE.includes(body?.purchase)) q.purchase = body.purchase;
+  if (Array.isArray(body?.extras)) {
+    const ex = body.extras.filter((x: any) => EXTRAS.includes(x));
+    if (ex.length) q.extras = Array.from(new Set<string>(ex));
+  }
   return q;
 }

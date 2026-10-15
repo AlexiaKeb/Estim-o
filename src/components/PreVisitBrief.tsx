@@ -21,6 +21,9 @@ export const PreVisitBrief: React.FC<Props> = ({ lead, onBrief }) => {
     q?.mandate && MANDATE[q.mandate],
     q?.occupancy && OCCUPANCY[q.occupancy],
     q?.profession ? `Activité : ${q.profession}` : null,
+    q?.condition && ({ refait: 'Bien refait à neuf', bon: 'Bon état général', rafraichir: 'À rafraîchir', travaux: 'Travaux importants à prévoir' } as Record<string, string>)[q.condition],
+    q?.purchase && ({ aucun: 'Pas d\'achat lié à la vente', recherche: 'Cherche son prochain bien', trouve: 'A trouvé son prochain bien' } as Record<string, string>)[q.purchase],
+    q?.extras?.length ? `Atouts : ${q.extras.map((x) => ({ balcon: 'balcon / terrasse', jardin: 'jardin', parking: 'garage / parking', cave: 'cave', ascenseur: 'ascenseur' } as Record<string, string>)[x] || x).join(', ')}` : null,
     q?.expectedPrice ? `Prix espéré : ${q.expectedPrice.toLocaleString('fr-FR')} €` : null,
   ].filter(Boolean) as string[];
 

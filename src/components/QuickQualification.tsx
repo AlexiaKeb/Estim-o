@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, ClipboardList } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { Robot } from './Mascots';
 
 export interface QuickAnswers {
   ownership?: 'seul' | 'plusieurs' | 'pas_encore';
   mandate?: 'aucun' | 'estimations' | 'simple' | 'exclusif';
   occupancy?: 'occupe' | 'libre' | 'loue';
+  condition?: 'refait' | 'bon' | 'rafraichir' | 'travaux';
+  purchase?: 'aucun' | 'recherche' | 'trouve';
+  extras?: string[];
   expectedPrice?: number;
 }
 
@@ -17,7 +21,8 @@ interface Props {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const QUESTIONS: Array<{ key: 'ownership' | 'mandate' | 'occupancy'; label: string; options: Array<[string, string]> }> = [
+type SingleKey = 'ownership' | 'mandate' | 'occupancy' | 'condition' | 'purchase';
+const QUESTIONS: Array<{ key: SingleKey; label: string; options: Array<[string, string]> }> = [
   {
     key: 'ownership',
     label: 'Vous êtes…',
@@ -25,6 +30,25 @@ const QUESTIONS: Array<{ key: 'ownership' | 'mandate' | 'occupancy'; label: stri
       ['seul', 'Seul propriétaire'],
       ['plusieurs', 'Plusieurs propriétaires'],
       ['pas_encore', 'Pas encore propriétaire'],
+    ],
+  },
+  {
+    key: 'condition',
+    label: "Dans quel état est votre bien ?",
+    options: [
+      ['refait', 'Refait à neuf'],
+      ['bon', 'Bon état général'],
+      ['rafraichir', 'À rafraîchir'],
+      ['travaux', 'Travaux importants à prévoir'],
+    ],
+  },
+  {
+    key: 'occupancy',
+    label: 'Votre bien est…',
+    options: [
+      ['occupe', 'Occupé par moi'],
+      ['libre', 'Libre'],
+      ['loue', 'Loué'],
     ],
   },
   {
@@ -38,17 +62,25 @@ const QUESTIONS: Array<{ key: 'ownership' | 'mandate' | 'occupancy'; label: stri
     ],
   },
   {
-    key: 'occupancy',
-    label: 'Votre bien est…',
+    key: 'purchase',
+    label: 'Un achat est-il lié à votre vente ?',
     options: [
-      ['occupe', 'Occupé par moi'],
-      ['libre', 'Libre'],
-      ['loue', 'Loué'],
+      ['aucun', "Non, je ne rachète pas"],
+      ['recherche', 'Je cherche mon prochain bien'],
+      ['trouve', "J'ai déjà trouvé"],
     ],
   },
 ];
 
-/** Three taps and an optional price: what the advisor needs to prepare the visit. Fully optional. */
+const EXTRAS: Array<[string, string]> = [
+  ['balcon', 'Balcon / terrasse'],
+  ['jardin', 'Jardin'],
+  ['parking', 'Garage / parking'],
+  ['cave', 'Cave'],
+  ['ascenseur', 'Ascenseur'],
+];
+
+/** Robot-led complementary questions shown once the visit is confirmed: what the advisor needs to know about the property. Fully optional. */
 export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmitted }) => {
   const [answers, setAnswers] = useState<QuickAnswers>({});
   const [priceText, setPriceText] = useState('');
@@ -77,7 +109,9 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
     }
   }, [state, leadId]);
 
-  const answered = Object.keys(answers).length > 0 || priceText.trim() !== '';
+  const count = Object.values(answers).filter((v) => (Array.isArray(v) ? v.length > 0 : v !== undefined)).length + (priceText.trim() ? 1 : 0);
+  const total = QUESTIONS.length + 2;
+  const answered = count > 0;
 
   const submit = () => {
     const price = Number(priceText.replace(/[^\d]/g, ''));
@@ -97,12 +131,16 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
   }
 
   return (
-    <section aria-labelledby="quick-q-title" className="rounded-3xl border-[3px] border-[#0B0F1F] bg-white p-5 sm:p-6 space-y-4 shadow-[5px_5px_0_#0B0F1F]">
-      <div className="flex items-start gap-3">
-        <ClipboardList className="w-5 h-5 text-[#2B4BFF] mt-0.5 shrink-0" />
-        <div>
-          <h3 id="quick-q-title" className="font-black text-[#0B0F1F]">Préparons votre visite</h3>
-          <p className="text-xs text-[#0B0F1F]/70">Trois questions rapides, facultatives. Elles évitent à Céline de vous les poser sur place.</p>
+    <section aria-labelledby="quick-q-title" className="rounded-3xl border-[3px] border-[#0B0F1F] bg-white p-5 sm:p-6 space-y-5 shadow-[5px_5px_0_#0B0F1F]">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <Robot className="bob h-20 w-16 shrink-0" />
+        <div className="min-w-0 space-y-1.5">
+          <p className="bubble relative inline-block rounded-2xl border-[3px] border-[#0B0F1F] bg-[#2B4BFF] px-3 py-2 text-sm font-black text-white shadow-[3px_3px_0_#0B0F1F]">
+            Dites-m'en plus sur votre bien !
+            <span className="absolute -left-[9px] top-4 h-3.5 w-3.5 rotate-45 border-b-[3px] border-l-[3px] border-[#0B0F1F] bg-[#2B4BFF]" />
+          </p>
+          <h3 id="quick-q-title" className="text-base font-black text-[#0B0F1F]">Quelques questions complémentaires</h3>
+          <p className="text-xs text-[#0B0F1F]/70">Facultatif, à votre rythme : vos réponses sont transmises à Céline, qui connaîtra mieux votre projet. <span className="font-bold">{count}/{total}</span></p>
         </div>
       </div>
 
@@ -130,6 +168,32 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
           </div>
         </fieldset>
       ))}
+
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-bold text-[#0B0F1F]">Quels atouts a votre bien ? (plusieurs choix possibles)</legend>
+        <div role="group" aria-label="Atouts du bien" className="flex flex-wrap gap-2">
+          {EXTRAS.map(([value, label]) => {
+            const on = (answers.extras || []).includes(value);
+            return (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setAnswers((a) => {
+                  const cur = a.extras || [];
+                  const next = on ? cur.filter((x) => x !== value) : [...cur, value];
+                  return { ...a, extras: next.length ? next : undefined };
+                })}
+                className={`px-3 py-2 rounded-xl border-[3px] text-xs font-bold transition-colors ${
+                  on ? 'bg-[#FFD60A] border-[#0B0F1F] text-[#0B0F1F]' : 'bg-white border-[#0B0F1F] text-[#0B0F1F] hover:bg-[#FFF7E6]'
+                }`}
+              >
+                {on ? '✓ ' : ''}{label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <div className="space-y-1.5">
         <label htmlFor="quick-price" className="text-xs font-bold text-[#0B0F1F]">
