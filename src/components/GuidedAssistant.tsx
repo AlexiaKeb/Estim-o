@@ -117,7 +117,7 @@ const Chip: React.FC<{ onClick: () => void; children: React.ReactNode; strong?: 
     disabled={disabled}
     className={
       strong
-        ? 'rounded-full bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-bold px-4 py-2.5 text-sm shadow transition-colors disabled:opacity-50'
+        ? 'rounded-full bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-white font-black px-4 py-2.5 text-sm transition-colors disabled:opacity-50'
         : 'rounded-full border border-stone-300 bg-white hover:border-[#0f1f3d] hover:bg-stone-50 text-stone-800 font-medium px-4 py-2.5 text-sm transition-colors disabled:opacity-50'
     }
   >
@@ -690,7 +690,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     ) : null;
 
   const field =
-    'w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#2B4BFF] focus:border-[#0B0F1F]';
+    'w-full rounded-xl border-[3px] border-white bg-white px-4 py-3 text-base font-medium text-[#0B0F1F] placeholder:text-[#0B0F1F]/50 focus:outline-none focus:ring-4 focus:ring-[#FFD60A] focus:border-[#FFD60A]';
 
   const composer = (() => {
     switch (step) {
@@ -794,22 +794,22 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               <input id="input-prospect-phone" className={field} placeholder="Téléphone" type="tel" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} aria-label="Téléphone" />
               <input id="input-prospect-email" className={field} placeholder="E-mail" type="email" autoComplete="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} aria-label="E-mail" />
             </div>
-            <label className="flex items-start gap-2.5 text-xs text-stone-600 leading-relaxed cursor-pointer">
-              <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0" checked={contact.consent} onChange={(e) => setContact({ ...contact, consent: e.target.checked })} />
+            <label className="flex items-start gap-2.5 text-xs text-white/90 leading-relaxed cursor-pointer">
+              <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[#FFD60A]" checked={contact.consent} onChange={(e) => setContact({ ...contact, consent: e.target.checked })} />
               <span>
                 J'accepte que mes coordonnées servent à m'envoyer mon estimation et à être recontacté(e) à ce sujet par {AGENT.name}. Mes données ne sont jamais revendues et je peux me désinscrire à tout moment.{' '}
                 <a href="/confidentialite" target="_blank" rel="noreferrer" className="underline">Confidentialité</a>
               </span>
             </label>
-            {contactError && <p role="alert" className="text-sm text-rose-700">{contactError}</p>}
-            <button id="btn-submit-lead-gate" type="submit" className="w-full rounded-xl bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-bold py-3.5 text-base shadow transition-colors">
+            {contactError && <p role="alert" className="text-sm font-bold text-[#FFD60A]">{contactError}</p>}
+            <button id="btn-submit-lead-gate" type="submit" className="w-full rounded-xl bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-white font-black py-3.5 text-base shadow transition-colors">
               Voir mon estimation <ArrowRight className="inline w-4 h-4 ml-1" />
             </button>
           </form>
         );
       case 'computing':
         return (
-          <div className="flex items-center gap-2 text-sm text-stone-600" role="status">
+          <div className="flex items-center gap-2 text-sm text-white/90" role="status">
             <Loader2 className="w-4 h-4 animate-spin" />
             Je consulte les ventes réelles autour de chez vous…
           </div>
@@ -867,7 +867,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
           <div className="space-y-3">
             {pitchCard}
             {slots === null && !slotsFailed && (
-              <div className="flex items-center gap-2 text-sm text-stone-600" role="status">
+              <div className="flex items-center gap-2 text-sm text-white/90" role="status">
                 <Loader2 className="w-4 h-4 animate-spin" /> Je regarde les disponibilités de {AGENT.firstName}…
               </div>
             )}
@@ -987,7 +987,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         )}
       </div>
 
-      <div className={`border-t border-stone-200 bg-white px-4 sm:px-5 py-4 space-y-3 shrink-0 ${expanded ? '' : 'max-h-[52vh] overflow-y-auto'}`}>
+      <div className={`border-t-[3px] border-[#0B0F1F] bg-[#0B0F1F] text-white px-4 sm:px-5 py-4 space-y-3 shrink-0 ${expanded ? '' : 'max-h-[52vh] overflow-y-auto'}`}>
         {!typing || step === 'computing' ? composer : <div className="h-10" />}
         {contactDone && step !== 'computing' && (
           <form
@@ -998,18 +998,18 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             className="flex gap-2 pt-1"
           >
             <input
-              className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#2B4BFF]"
+              className="flex-1 rounded-xl border-[3px] border-white bg-white px-4 py-2.5 text-sm font-medium text-[#0B0F1F] placeholder:text-[#0B0F1F]/50 focus:outline-none focus:ring-4 focus:ring-[#FFD60A]"
               placeholder={`Une question ? Posez-la à l'assistant`}
               value={freeText}
               onChange={(e) => setFreeText(e.target.value)}
               aria-label="Poser une question à l'assistant"
             />
-            <button type="submit" disabled={!freeText.trim() || typing} className="rounded-xl bg-[#2B4BFF] text-white px-3.5 disabled:opacity-40" aria-label="Envoyer">
+            <button type="submit" disabled={!freeText.trim() || typing} className="rounded-xl border-[3px] border-white bg-[#FFD60A] text-[#0B0F1F] px-3.5 disabled:opacity-40" aria-label="Envoyer">
               <Send className="w-4 h-4" />
             </button>
           </form>
         )}
-        <p className="flex items-center gap-1.5 text-[11px] text-stone-400">
+        <p className="flex items-center gap-1.5 text-[11px] text-white/60">
           <ShieldCheck className="w-3.5 h-3.5" />
           Assistant automatisé (IA) · estimation basée sur les ventes enregistrées par l'État · données jamais revendues
         </p>
