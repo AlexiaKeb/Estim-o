@@ -35,7 +35,6 @@ const STEPS: Step[] = [
   { key: 'occupancy', kind: 'single', ask: 'Votre bien est…', options: [['occupe', 'Occupé par moi'], ['libre', 'Libre'], ['loue', 'Loué']] },
   { key: 'condition', kind: 'single', ask: 'Dans quel état est-il ?', options: [['refait', 'Refait à neuf'], ['bon', 'Bon état général'], ['rafraichir', 'À rafraîchir'], ['travaux', 'Travaux importants à prévoir']] },
   { key: 'purchase', kind: 'single', ask: 'Un achat est-il lié à votre vente ?', options: [['aucun', 'Non, je ne rachète pas'], ['recherche', 'Je cherche mon prochain bien'], ['trouve', "J'ai déjà trouvé"]] },
-  { key: 'extras', kind: 'multi', ask: 'Quels atouts a votre bien ? Plusieurs choix possibles.', options: [['balcon', 'Balcon / terrasse'], ['jardin', 'Jardin'], ['parking', 'Garage / parking'], ['cave', 'Cave'], ['ascenseur', 'Ascenseur']] },
   { key: 'expectedPrice', kind: 'price', ask: 'Dernière question : quel prix espérez-vous ? (facultatif)' },
 ];
 
