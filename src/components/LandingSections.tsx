@@ -245,7 +245,7 @@ export const WhyOnSite: React.FC = () => (
               <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#2B4BFF]" />Rendez-vous offert, sans aucun engagement</li>
             </ul>
           </div>
-          <Human className="bob hidden h-40 w-32 shrink-0 sm:block" />
+          <Human className="hidden w-40 shrink-0 sm:block lg:w-44" />
         </div>
         <Spark className="spark absolute left-1/2 top-1/2 hidden h-14 w-14 -translate-x-1/2 -translate-y-1/2 md:block" />
       </div>

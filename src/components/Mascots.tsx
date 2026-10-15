@@ -35,17 +35,20 @@ export const Robot: React.FC<{ className?: string; waving?: boolean }> = ({ clas
   </svg>
 );
 
-/** L'humaine (Céline) : sa photo dans un rond, sur des épaules en aplat. */
+/** L'humaine (Céline) : sa photo en grand, éclaircie, dans un cadre franc. */
 export const Human: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`relative ${className}`} style={{ aspectRatio: '200 / 250' }}>
-    <svg viewBox="0 0 200 250" className="absolute inset-0 h-full w-full" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <path d="M24 250 Q24 160 100 160 Q176 160 176 250 Z" fill={YELLOW} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-      <path d="M78 160 L100 196 L122 160" fill={CREAM} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-    </svg>
+  <div className={`relative ${className}`}>
     {AGENT.photoUrl ? (
-      <img src={AGENT.photoUrl} alt={`${AGENT.name}, conseillère immobilière`} width={132} height={132} className="absolute left-1/2 top-[3%] h-[56%] w-[66%] -translate-x-1/2 rounded-full border-[6px] border-[#0B0F1F] bg-[#FFD60A] object-cover object-[50%_20%]" />
+      <img
+        src={AGENT.photoUrl}
+        alt={`${AGENT.name}, conseillère immobilière`}
+        width={480}
+        height={480}
+        className="aspect-square w-full rounded-[2rem] border-[4px] border-[#0B0F1F] bg-[#FFD60A] object-cover object-[50%_18%] shadow-[7px_7px_0_#0B0F1F]"
+        style={{ filter: 'brightness(1.35) contrast(1.08)' }}
+      />
     ) : (
-      <div className="absolute left-1/2 top-[3%] flex h-[56%] w-[66%] -translate-x-1/2 items-center justify-center rounded-full border-[6px] border-[#0B0F1F] bg-[#FFD60A] text-5xl font-black text-[#0B0F1F]">{AGENT.firstName[0]}</div>
+      <div className="flex aspect-square w-full items-center justify-center rounded-[2rem] border-[4px] border-[#0B0F1F] bg-[#FFD60A] text-6xl font-black text-[#0B0F1F] shadow-[7px_7px_0_#0B0F1F]">{AGENT.firstName[0]}</div>
     )}
   </div>
 );
@@ -59,15 +62,15 @@ export const Spark: React.FC<{ className?: string }> = ({ className = '' }) => (
 
 /** Duo robot + humaine, avec leurs bulles. */
 export const Duo: React.FC<{ robotText?: string; humanText?: string; className?: string }> = ({ robotText, humanText, className = '' }) => (
-  <div className={`relative mx-auto grid w-full max-w-xl grid-cols-2 items-end gap-2 ${className}`}>
+  <div className={`relative mx-auto grid w-full max-w-2xl grid-cols-[0.8fr_1.2fr] items-end gap-3 ${className}`}>
     <div className="relative">
       {robotText && <p className="bubble absolute -top-2 left-0 right-6 z-10 -translate-y-full rounded-2xl border-[3px] border-[#0B0F1F] bg-white px-3 py-2 text-xs font-extrabold leading-tight text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] sm:text-sm">{robotText}<span className="absolute -bottom-[11px] left-8 h-4 w-4 rotate-45 border-b-[3px] border-r-[3px] border-[#0B0F1F] bg-white" /></p>}
-      <Robot className="bob mx-auto w-full max-w-[13rem]" />
+      <Robot className="bob mx-auto w-full max-w-[11rem]" />
     </div>
     <div className="relative">
       {humanText && <p className="bubble absolute -top-2 left-6 right-0 z-10 -translate-y-full rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-3 py-2 text-xs font-extrabold leading-tight text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] sm:text-sm" style={{ animationDelay: '.5s' }}>{humanText}<span className="absolute -bottom-[11px] right-8 h-4 w-4 rotate-45 border-b-[3px] border-r-[3px] border-[#0B0F1F] bg-[#FFD60A]" /></p>}
-      <Human className="bob mx-auto w-full max-w-[13rem]" />
+      <Human className="mx-auto w-full max-w-[18rem]" />
     </div>
-    <Spark className="spark absolute left-1/2 top-[34%] h-9 w-9 -translate-x-1/2 sm:h-12 sm:w-12" />
+    <Spark className="spark absolute left-[40%] top-[30%] h-9 w-9 -translate-x-1/2 sm:h-12 sm:w-12" />
   </div>
 );
