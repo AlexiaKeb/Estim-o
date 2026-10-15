@@ -353,6 +353,32 @@ export default function App() {
     return true;
   };
 
+  // Bulk deletion: returns the ids that were really deleted
+  const handleDeleteLeads = async (toDelete: Lead[]): Promise<string[]> => {
+    const isDb = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const dbIds = toDelete.filter((l) => isDb(l.id)).map((l) => l.id);
+    const deleted = new Set<string>(toDelete.filter((l) => !isDb(l.id)).map((l) => l.id));
+    for (let i = 0; i < dbIds.length; i += 200) {
+      try {
+        const res = await fetch('/api/crm/leads/delete-bulk', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: dbIds.slice(i, i + 200) }),
+        });
+        const d = await res.json().catch(() => ({}));
+        (d.deleted || []).forEach((id: string) => deleted.add(id));
+      } catch {
+        /* the toast below reports what could not be deleted */
+      }
+    }
+    setLeads((prev) => prev.filter((l) => !deleted.has(l.id)));
+    if (activeLead && deleted.has(activeLead.id)) setActiveLead(null);
+    const failed = toDelete.length - deleted.size;
+    showToast(failed === 0 ? `${deleted.size} dossier${deleted.size > 1 ? 's' : ''} supprimé${deleted.size > 1 ? 's' : ''}.` : `${deleted.size} supprimé(s), ${failed} impossible(s) à supprimer.`);
+    return Array.from(deleted);
+  };
+
   const handleNavigateToNurture = (leadId: string) => {
     setSelectedLeadForNurtureId(leadId);
     handleNavigate('nurture');
@@ -844,6 +870,7 @@ export default function App() {
             onUpdateLeadStatus={handleUpdateLeadStatus}
             onUpdateLead={handleUpdateLead}
             onDeleteLead={handleDeleteLead}
+            onDeleteLeads={handleDeleteLeads}
             onNavigateToNurture={handleNavigateToNurture}
           />
         )}

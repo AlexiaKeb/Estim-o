@@ -1638,39 +1638,68 @@ async function startServer() {
 
   // Deletes a contact AND everything attached to it (messages, e-mails, conversation, appointments).
   // The Cal.com booking is cancelled too, so the slot becomes free again. The opt-out list is kept on purpose.
+  // Deletes one contact and everything attached to it (Cal.com booking cancelled, e-mails, conversation, appointments)
+  const deleteLeadCascade = async (client: any, id: string): Promise<{ cancelled: number; error?: string }> => {
+    const { data: rdvs } = await client.from("rendez_vous").select("cal_booking_id, statut").eq("lead_id", id);
+    let cancelled = 0;
+    const calApiKey = process.env.CAL_API_KEY;
+    if (calApiKey) {
+      for (const r of rdvs || []) {
+        if (!r.cal_booking_id || r.statut === "annule") continue;
+        try {
+          const c = await fetch(`${CAL_BASE}/v2/bookings/${encodeURIComponent(r.cal_booking_id)}/cancel`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${calApiKey}`, "cal-api-version": "2024-08-13", "Content-Type": "application/json" },
+            body: JSON.stringify({ cancellationReason: "Dossier supprimé" }),
+            signal: AbortSignal.timeout(8000),
+          });
+          if (c.ok) cancelled++;
+        } catch {
+          /* best effort: the booking can be cancelled by hand in Cal.com */
+        }
+      }
+    }
+    // Explicit deletes first (works even if a foreign key without CASCADE exists), then the contact itself
+    for (const table of ["relances", "conversations", "rendez_vous"]) await client.from(table).delete().eq("lead_id", id);
+    const { error } = await client.from("leads").delete().eq("id", id);
+    return error ? { cancelled, error: error.message } : { cancelled };
+  };
+
   app.delete("/api/crm/leads/:id", requireAgent, rateLimit("lead-delete", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client) return res.status(503).json({ error: "Supabase non configuré" });
     if (!isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
-    const id = req.params.id;
     try {
-      const { data: rdvs } = await client.from("rendez_vous").select("cal_booking_id, statut").eq("lead_id", id);
-      let cancelled = 0;
-      const calApiKey = process.env.CAL_API_KEY;
-      if (calApiKey) {
-        for (const r of rdvs || []) {
-          if (!r.cal_booking_id || r.statut === "annule") continue;
-          try {
-            const c = await fetch(`${CAL_BASE}/v2/bookings/${encodeURIComponent(r.cal_booking_id)}/cancel`, {
-              method: "POST",
-              headers: { Authorization: `Bearer ${calApiKey}`, "cal-api-version": "2024-08-13", "Content-Type": "application/json" },
-              body: JSON.stringify({ cancellationReason: "Dossier supprimé" }),
-              signal: AbortSignal.timeout(8000),
-            });
-            if (c.ok) cancelled++;
-          } catch {
-            /* best effort: the booking can be cancelled by hand in Cal.com */
-          }
-        }
-      }
-      // Explicit deletes first (works even if a foreign key without CASCADE exists), then the contact itself
-      for (const table of ["relances", "conversations", "rendez_vous"]) await client.from(table).delete().eq("lead_id", id);
-      const { error } = await client.from("leads").delete().eq("id", id);
-      if (error) return res.status(500).json({ error: error.message });
-      res.json({ success: true, calCancelled: cancelled });
+      const r = await deleteLeadCascade(client, req.params.id);
+      if (r.error) return res.status(500).json({ error: r.error });
+      res.json({ success: true, calCancelled: r.cancelled });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
+  });
+
+  // Bulk deletion from the contact list (up to 200 at a time)
+  app.post("/api/crm/leads/delete-bulk", requireAgent, rateLimit("lead-delete-bulk", 20, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const ids: string[] = Array.isArray(req.body?.ids) ? Array.from(new Set<string>(req.body.ids.filter((x: any) => typeof x === "string" && isUuidStr(x)))).slice(0, 200) : [];
+    if (!ids.length) return res.status(400).json({ error: "Aucun dossier à supprimer" });
+    const deleted: string[] = [];
+    const failed: string[] = [];
+    let cancelled = 0;
+    for (const id of ids) {
+      try {
+        const r = await deleteLeadCascade(client, id);
+        if (r.error) failed.push(id);
+        else {
+          deleted.push(id);
+          cancelled += r.cancelled;
+        }
+      } catch {
+        failed.push(id);
+      }
+    }
+    res.json({ success: failed.length === 0, deleted, failed, calCancelled: cancelled });
   });
 
   // Export complet des dossiers au format CSV (sauvegarde : l'offre gratuite de Supabase n'en fait pas)

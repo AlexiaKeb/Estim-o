@@ -144,6 +144,7 @@ interface Props {
   onUpdateLead?: (updatedLead: Lead) => void;
   onNavigateToNurture?: (leadId: string) => void;
   onDeleteLead?: (lead: Lead) => Promise<boolean>;
+  onDeleteLeads?: (leads: Lead[]) => Promise<string[]>;
 }
 
 export const CrmPipelineView: React.FC<Props> = ({
@@ -154,6 +155,7 @@ export const CrmPipelineView: React.FC<Props> = ({
   onUpdateLead,
   onNavigateToNurture,
   onDeleteLead,
+  onDeleteLeads,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
@@ -224,6 +226,8 @@ export const CrmPipelineView: React.FC<Props> = ({
     handleCopyValue(`full-${lead.id}`, text);
   };
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const filteredLeads = leads.filter((l) => {
     const matchesSearch =
       l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -702,6 +706,44 @@ export const CrmPipelineView: React.FC<Props> = ({
 
           {/* Liste des dossiers : une carte par dossier (ordinateur et mobile) */}
           <div className="space-y-3">
+            {onDeleteLeads && filteredLeads.length > 0 && (() => {
+              const selected = filteredLeads.filter((l) => selectedIds.has(l.id));
+              const allOn = selected.length === filteredLeads.length;
+              return (
+                <div className="sticky top-[4.5rem] z-20 flex flex-wrap items-center gap-3 rounded-2xl bg-white border border-stone-200 px-4 py-2.5 shadow-sm">
+                  <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-bold text-stone-800">
+                    <input
+                      id="chk-select-all"
+                      type="checkbox"
+                      className="h-5 w-5 accent-[#2B4BFF]"
+                      checked={allOn}
+                      onChange={() => setSelectedIds(allOn ? new Set() : new Set(filteredLeads.map((l) => l.id)))}
+                    />
+                    {allOn ? 'Tout désélectionner' : `Tout sélectionner (${filteredLeads.length})`}
+                  </label>
+                  {selected.length > 0 && (
+                    <>
+                      <span className="text-sm font-semibold text-stone-600">{selected.length} sélectionné{selected.length > 1 ? 's' : ''}</span>
+                      <button
+                        type="button"
+                        id="btn-bulk-delete"
+                        disabled={bulkBusy}
+                        onClick={async () => {
+                          if (!window.confirm(`Supprimer définitivement ${selected.length} dossier${selected.length > 1 ? 's' : ''} ?\n\nSont supprimés avec eux : leurs e-mails et messages, leurs conversations avec l'assistant et leurs rendez-vous (les créneaux Cal.com sont annulés). Cette action est irréversible.`)) return;
+                          setBulkBusy(true);
+                          const done = await onDeleteLeads(selected);
+                          setSelectedIds((prev) => { const n = new Set(prev); done.forEach((id) => n.delete(id)); return n; });
+                          setBulkBusy(false);
+                        }}
+                        className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] disabled:opacity-60 px-4 py-2 text-sm font-bold text-white"
+                      >
+                        <Trash2 className="w-4 h-4" /> {bulkBusy ? 'Suppression…' : `Supprimer (${selected.length})`}
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
             {filteredLeads.length === 0 && (
               <p className="rounded-3xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-400">Aucun dossier ne correspond à ces filtres.</p>
             )}
@@ -724,6 +766,16 @@ export const CrmPipelineView: React.FC<Props> = ({
                   className="group cursor-pointer rounded-3xl bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-stone-300 transition-all p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center gap-4"
                 >
                   <div className="flex items-center gap-3.5 lg:w-72 shrink-0 min-w-0">
+                    {onDeleteLeads && (
+                      <input
+                        type="checkbox"
+                        aria-label={`Sélectionner ${lead.name}`}
+                        className="h-5 w-5 shrink-0 cursor-pointer accent-[#2B4BFF]"
+                        checked={selectedIds.has(lead.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={() => setSelectedIds((prev) => { const n = new Set(prev); if (n.has(lead.id)) n.delete(lead.id); else n.add(lead.id); return n; })}
+                      />
+                    )}
                     <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${stGrad} text-white font-extrabold`}>{initials}</span>
                     <div className="min-w-0">
                       <p className="truncate font-extrabold text-stone-900 uppercase">{lead.name}</p>
