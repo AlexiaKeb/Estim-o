@@ -208,6 +208,12 @@ export const HowItWorks: React.FC = () => (
           </li>
         ))}
       </ol>
+      <div className="mt-12 text-center">
+        <button type="button" id="btn-how-start" onClick={scrollToSimulator} className="group inline-flex items-center justify-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#2B4BFF] px-8 py-4 text-base font-black text-white shadow-[5px_5px_0_#0B0F1F] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#0B0F1F] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_#0B0F1F]">
+          Estimer mon bien
+          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+        </button>
+      </div>
     </section>
   </Band>
 );
