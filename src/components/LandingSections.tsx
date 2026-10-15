@@ -10,6 +10,7 @@ import {
   Phone,
   Quote,
   ShieldCheck,
+  XCircle,
 } from 'lucide-react';
 import { AddressSearch, AddressSuggestion } from './AddressSearch';
 import { AGENT, FAQ, KEY_FIGURES, TESTIMONIALS } from '../data/siteContent';
@@ -236,7 +237,7 @@ export const WhyOnSite: React.FC = () => (
             <ul className="mt-4 space-y-2.5 font-semibold">
               <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FFD60A]" />Base de données DVF des ventes réelles</li>
               <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FFD60A]" />Fixe une première fourchette de prix</li>
-              <li className="flex gap-2 text-white/80"><span className="w-5 shrink-0 text-center">–</span>Ne prend pas en compte l'état du bien</li>
+              <li className="flex gap-2"><XCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#FFD60A]" />Ne prend pas en compte l'état du bien</li>
             </ul>
           </div>
           <Robot className="bob hidden h-40 w-32 shrink-0 sm:block" />
