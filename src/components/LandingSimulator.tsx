@@ -29,16 +29,18 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
   };
 
   return (
-    <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto flex flex-col gap-10">
+    <div id="landing-simulator-container" className="w-full flex flex-col">
       <LandingHero onStart={handleHeroStart} />
 
-      <section id="simulateur" aria-label="Votre estimation avec l'assistant" className="scroll-mt-20 space-y-4">
-        <div className="text-center space-y-1">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
-          <p className="text-stone-600 text-sm sm:text-base">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
-        </div>
-        <GuidedAssistant seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={onOpenBooking} onLeadReady={setLeadInfo} />
-      </section>
+      <div className="relative left-1/2 w-screen -translate-x-1/2 bg-[#FFF7E6]">
+        <section id="simulateur" aria-label="Votre estimation avec l'assistant" className="mx-auto max-w-6xl scroll-mt-16 space-y-6 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="space-y-2 text-center">
+            <h2 className="mx-auto max-w-4xl text-3xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance] sm:text-5xl">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
+            <p className="text-base font-medium text-[#0B0F1F]/80 sm:text-lg">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
+          </div>
+          <GuidedAssistant seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={onOpenBooking} onLeadReady={setLeadInfo} />
+        </section>
+      </div>
 
       <div className="pt-2 pb-0">
         <HowItWorks />

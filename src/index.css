@@ -8,3 +8,29 @@
 }
 
 html, body { overflow-x: clip; }
+
+/* --- Univers « robot × humain » : animations franches (désactivées si « moins de mouvement ») --- */
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-28deg); } 75% { transform: rotate(14deg); } }
+@keyframes antenna { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
+@keyframes pulse-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.22); } }
+@keyframes twinkle { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.35) rotate(25deg); } }
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes bubble-pop { 0% { opacity: 0; transform: scale(.7); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes marquee2 { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.bob { animation: bob 3.6s ease-in-out infinite; }
+.robot-eyes { animation: blink 4.5s infinite; }
+.robot-wave { animation: wave 2.2s ease-in-out infinite; }
+.robot-antenna { animation: antenna 2.4s ease-in-out infinite; }
+.robot-pulse { animation: pulse-pop 1.6s ease-in-out infinite; }
+.spark { animation: twinkle 1.8s ease-in-out infinite; }
+.spin-slow { animation: spin-slow 28s linear infinite; }
+.bubble { animation: bubble-pop .5s ease-out both; }
+.marquee2 { animation: marquee2 30s linear infinite; }
+.pop-card { transition: transform .18s ease, box-shadow .18s ease; }
+.pop-card:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 #0B0F1F; }
+@media (prefers-reduced-motion: reduce) {
+  .bob, .robot-eyes, .robot-wave, .robot-antenna, .robot-pulse, .spark, .spin-slow, .bubble, .marquee2 { animation: none; }
+  .pop-card, .pop-card:hover { transition: none; transform: none; }
+}

@@ -15,7 +15,7 @@ export const ConsentBanner: React.FC = () => {
       aria-label="Préférences de confidentialité"
       className="fixed bottom-0 inset-x-0 z-[45] p-3 sm:p-4"
     >
-      <div className="max-w-3xl mx-auto bg-white border border-stone-200 shadow-xl rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+      <div className="max-w-3xl mx-auto bg-[#FFF7E6] border-[3px] border-[#0B0F1F] shadow-[6px_6px_0_#0B0F1F] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <p className="text-sm text-stone-600 leading-relaxed flex-1">
           Avec votre accord, nous mesurons la fréquentation du site et l'efficacité de nos annonces Google (Google Analytics, cookies publicitaires). Aucun cookie
           n'est déposé sans votre choix.{' '}
@@ -25,14 +25,14 @@ export const ConsentBanner: React.FC = () => {
           <button
             type="button"
             onClick={() => choose('denied')}
-            className="px-4 py-2.5 rounded-xl border border-stone-300 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            className="px-4 py-2.5 rounded-xl border-[3px] border-[#0B0F1F] bg-white text-sm font-black text-[#0B0F1F] hover:bg-[#FFD60A]"
           >
             Refuser
           </button>
           <button
             type="button"
             onClick={() => choose('granted')}
-            className="px-4 py-2.5 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800"
+            className="px-4 py-2.5 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-[#0B0F1F]"
           >
             Accepter
           </button>

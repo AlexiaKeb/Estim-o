@@ -669,7 +669,7 @@ export default function App() {
       ) : (
         /* =================== PUBLIC CLIENT HEADER (Warm SaaS Editorial) =================== */
         <>
-          <header className="sticky top-0 z-40 bg-[#fbfbfa]/95 backdrop-blur-md border-b border-stone-200/80 shadow-2xs">
+          <header className="sticky top-0 z-40 bg-[#FFF7E6] border-b-[3px] border-[#0B0F1F]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               {/* Public Brand Logo with subtle triple-click detection */}
               <div className="flex items-center gap-3">
@@ -682,7 +682,7 @@ export default function App() {
                   className="flex items-center gap-2.5 text-left focus:outline-none group select-none"
                   title={privacySettings.publicBrandName}
                 >
-                  <div className="w-8.5 h-8.5 rounded-xl bg-stone-900 text-stone-100 flex items-center justify-center font-bold text-sm group-hover:bg-stone-800 transition-all shadow-xs">
+                  <div className="w-8.5 h-8.5 rounded-xl bg-[#2B4BFF] border-[3px] border-[#0B0F1F] text-white flex items-center justify-center font-bold text-sm group-hover:bg-[#0B0F1F] transition-all shadow-xs">
                     <Building2 className="w-4.5 h-4.5" />
                   </div>
                   <div>
@@ -713,12 +713,12 @@ export default function App() {
                       disabled={!st.active && !st.done}
                       onClick={() => setCurrentView(st.n === 1 ? 'landing' : st.n === 2 ? 'chat' : 'confirmation')}
                       className={`flex items-center gap-2 transition-colors ${
-                        st.active ? 'text-stone-900' : st.done ? 'text-emerald-700 hover:text-emerald-800' : 'text-stone-400 cursor-default'
+                        st.active ? 'text-[#0B0F1F] font-black' : st.done ? 'text-[#0B0F1F] hover:text-[#2B4BFF]' : 'text-stone-400 cursor-default'
                       }`}
                     >
                       <span
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                          st.active ? 'bg-stone-900 text-white' : st.done ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-500'
+                          st.active ? 'bg-[#2B4BFF] text-white' : st.done ? 'bg-[#0B0F1F] text-white' : 'bg-white border-2 border-[#0B0F1F]/30 text-stone-500'
                         }`}
                       >
                         {st.done && !st.active ? '✓' : st.n}
@@ -731,8 +731,8 @@ export default function App() {
 
               {/* Public Right Area: Discreet Reassurance & Optional Pro Login */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-stone-100 text-[11px] font-medium text-stone-600 border border-stone-200">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white text-[11px] font-bold text-[#0B0F1F] border-2 border-[#0B0F1F]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#2B4BFF]" />
                   <span>Confidentialité garantie</span>
                 </div>
 
@@ -748,7 +748,7 @@ export default function App() {
                         setIsAuthModalOpen(true);
                       }
                     }}
-                    className="py-1.5 px-3 rounded-lg border border-stone-200/80 bg-white hover:bg-stone-50 text-stone-700 text-xs font-medium transition-all flex items-center gap-1.5 shadow-2xs"
+                    className="py-1.5 px-3 rounded-lg border-2 border-[#0B0F1F] bg-white hover:bg-[#FFD60A] text-[#0B0F1F] text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
                     title="Accès réservé au conseiller immobilier référent"
                   >
                     <Lock className="w-3.5 h-3.5 text-stone-400" />
@@ -762,7 +762,7 @@ export default function App() {
       )}
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 ${currentView === 'landing' ? 'pb-0' : 'pb-8'}`}>
+      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 ${currentView === 'landing' ? 'pt-0 pb-0' : 'pt-8 pb-8'}`}>
         <Suspense fallback={<div role="status" className="py-24 text-center text-sm text-stone-500">Chargement…</div>}>
         {currentView === 'landing' && (
           <LandingSimulator
@@ -871,24 +871,24 @@ export default function App() {
       </Suspense>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-stone-200/80 pt-6 pb-24 sm:pb-6 mt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+      <footer className="bg-[#0B0F1F] pt-8 pb-24 sm:pb-8 mt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/70">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-stone-800">
+            <span className="font-black text-white">
               {BRAND.name} – Céline LEVRAT – Expertise Immobilière
             </span>
             <span>•</span>
             <span>Estimation gratuite et sans engagement</span>
             <span>•</span>
-            <a href="/blog" className="hover:text-stone-800 underline-offset-2 hover:underline">Conseils</a>
-            <a href="/mentions-legales" className="hover:text-stone-800 underline-offset-2 hover:underline">Mentions légales</a>
-            <a href="/confidentialite" className="hover:text-stone-800 underline-offset-2 hover:underline">Politique de confidentialité</a>
-            <a href="tel:+33603580316" className="hover:text-stone-800 underline-offset-2 hover:underline">Contact</a>
+            <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
+            <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
+            <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
+            <a href="tel:+33603580316" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
           </div>
 
-          <div className="flex items-center gap-4 text-stone-500">
+          <div className="flex items-center gap-4 text-white/70">
             {isAgentMode ? (
-              <span className="text-emerald-700 font-medium flex items-center gap-1.5">
+              <span className="text-[#FFD60A] font-medium flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                 Session Conseiller Active
               </span>

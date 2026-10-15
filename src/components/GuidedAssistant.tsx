@@ -117,7 +117,7 @@ const Chip: React.FC<{ onClick: () => void; children: React.ReactNode; strong?: 
     disabled={disabled}
     className={
       strong
-        ? 'rounded-full bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold px-4 py-2.5 text-sm shadow transition-colors disabled:opacity-50'
+        ? 'rounded-full bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-bold px-4 py-2.5 text-sm shadow transition-colors disabled:opacity-50'
         : 'rounded-full border border-stone-300 bg-white hover:border-[#0f1f3d] hover:bg-stone-50 text-stone-800 font-medium px-4 py-2.5 text-sm transition-colors disabled:opacity-50'
     }
   >
@@ -596,15 +596,15 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
   };
 
   const pitchCard = (
-    <div className="rounded-2xl bg-[#0f1f3d] text-white p-4 sm:p-5 shadow-lg border-l-4 border-amber-400 w-full">
-      <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1.5">Pourquoi prendre rendez-vous ?</p>
+    <div className="rounded-2xl bg-[#2B4BFF] text-white p-4 sm:p-5 shadow-lg border-l-4 border-[#0B0F1F] w-full">
+      <p className="text-[#FFD60A] text-[11px] font-bold uppercase tracking-wider mb-1.5">Pourquoi prendre rendez-vous ?</p>
       <p className="text-[15px] sm:text-base leading-relaxed">
-        <strong className="text-white">Ce montant est un premier indicateur.</strong> Seule une visite physique sur place permet de fixer le prix juste, la clé d'une vente réussie. {AGENT.firstName} étudie votre bien et vous remet un <strong className="text-amber-300">avis de valeur complet sous 48h</strong>.
+        <strong className="text-white">Ce montant est un premier indicateur.</strong> Seule une visite physique sur place permet de fixer le prix juste, la clé d'une vente réussie. {AGENT.firstName} étudie votre bien et vous remet un <strong className="text-[#FFD60A]">avis de valeur complet sous 48h</strong>.
       </p>
       <p className="mt-2 text-[15px] sm:text-base leading-relaxed">
         <strong className="text-white">{AGENT.firstName} vous contactera personnellement</strong> pour tout organiser et répondre à vos questions.
       </p>
-      <p className="mt-1.5 text-sm font-semibold text-amber-200">Réservez votre visite offerte et sans engagement ↓</p>
+      <p className="mt-1.5 text-sm font-semibold text-[#FFD60A]">Réservez votre visite offerte et sans engagement ↓</p>
     </div>
   );
 
@@ -613,11 +613,11 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     result && lead ? (
       <div className="rounded-2xl bg-white border border-stone-200 shadow-md p-4 sm:p-6 space-y-5 w-full">
         <div className="text-center space-y-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFD60A] text-[#0B0F1F] border border-[#0B0F1F] text-[11px] font-bold uppercase tracking-wider">
             <TrendingUp className="w-3.5 h-3.5" />
             Estimation indicative (IA)
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0f1f3d] tracking-tight">
+          <div className="text-2xl sm:text-3xl font-extrabold text-[#0B0F1F] tracking-tight">
             {fmt(result.lowPrice)} € – {fmt(result.highPrice)} €
           </div>
           <p className="text-sm text-stone-600 leading-snug">
@@ -636,11 +636,13 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               <div className="text-[11px] text-stone-500">Lumière, vue, état irréprochable</div>
             </div>
           </div>
-          <div className="relative h-3 rounded-full bg-gradient-to-r from-rose-300 via-amber-200 to-emerald-300">
+          <div className="relative flex h-4 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFF7E6]">
+            <span aria-hidden className="h-full w-1/3 rounded-l-full bg-[#FFD60A]" />
+            <span aria-hidden className="ml-auto h-full w-1/3 rounded-r-full bg-[#2B4BFF]" />
             <button
               type="button"
               onClick={() => onOpenBooking?.(bookingInfo())}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-full bg-[#0f1f3d] text-white text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-2 shadow-lg whitespace-nowrap"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-full bg-[#2B4BFF] text-white text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-2 shadow-lg whitespace-nowrap"
             >
               <Lock className="w-3.5 h-3.5" /> <span className="sm:hidden">Valeur réelle sur place</span><span className="hidden sm:inline">Valeur réelle à déterminer sur place</span>
             </button>
@@ -650,20 +652,20 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-stone-100 border border-stone-200 p-4 space-y-2">
-            <div className="font-bold text-sm text-[#0f1f3d]">🤖 Ce que voit l'algorithme (IA)</div>
+          <div className="rounded-2xl bg-white border-[3px] border-[#0B0F1F] p-4 space-y-2">
+            <div className="font-bold text-sm text-[#0B0F1F]">🤖 Ce que voit l'algorithme (IA)</div>
             <ul className="text-sm text-stone-700 space-y-1">
               {['Surface en m²', 'Code postal / quartier', 'Historique des ventes DVF'].map((t) => (
-                <li key={t} className="flex gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />{t}</li>
+                <li key={t} className="flex gap-2"><Check className="w-4 h-4 text-[#2B4BFF] shrink-0 mt-0.5" />{t}</li>
               ))}
             </ul>
             <p className="text-xs italic text-stone-500">Une vision théorique, sans visite.</p>
           </div>
-          <div className="rounded-2xl bg-sky-50 border border-sky-200 p-4 space-y-2">
-            <div className="font-bold text-sm text-[#0f1f3d]">🏠 Ce que valide {AGENT.firstName} sur place</div>
+          <div className="rounded-2xl bg-[#FFF7E6] border-[3px] border-[#0B0F1F] p-4 space-y-2">
+            <div className="font-bold text-sm text-[#0B0F1F]">🏠 Ce que valide {AGENT.firstName} sur place</div>
             <ul className="text-sm text-stone-700 space-y-1">
               {['Luminosité, exposition & vue', 'Agencement & potentiel du bien', 'Qualité des prestations & matériaux', 'Demande réelle des acheteurs du secteur'].map((t) => (
-                <li key={t} className="flex gap-2"><Lock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-1" />{t}</li>
+                <li key={t} className="flex gap-2"><Lock className="w-3.5 h-3.5 text-[#2B4BFF] shrink-0 mt-1" />{t}</li>
               ))}
             </ul>
           </div>
@@ -673,7 +675,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
           <button
             type="button"
             onClick={() => onOpenBooking?.(bookingInfo())}
-            className="w-full rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold text-base sm:text-lg py-4 px-4 shadow-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full rounded-xl bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-bold text-base sm:text-lg py-4 px-4 shadow-lg transition-colors flex items-center justify-center gap-2"
           >
             <Lock className="w-5 h-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
           </button>
@@ -688,7 +690,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     ) : null;
 
   const field =
-    'w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400';
+    'w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#2B4BFF] focus:border-[#0B0F1F]';
 
   const composer = (() => {
     switch (step) {
@@ -800,7 +802,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               </span>
             </label>
             {contactError && <p role="alert" className="text-sm text-rose-700">{contactError}</p>}
-            <button id="btn-submit-lead-gate" type="submit" className="w-full rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold py-3.5 text-base shadow transition-colors">
+            <button id="btn-submit-lead-gate" type="submit" className="w-full rounded-xl bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-bold py-3.5 text-base shadow transition-colors">
               Voir mon estimation <ArrowRight className="inline w-4 h-4 ml-1" />
             </button>
           </form>
@@ -870,9 +872,9 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               </div>
             )}
             {days.length > 0 && (
-              <div className="rounded-2xl border border-amber-300 bg-amber-50/60 p-3 sm:p-4 space-y-3">
-                <p className="text-sm font-semibold text-[#0f1f3d] flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-amber-600" />
+              <div className="rounded-2xl border border-[#0B0F1F] bg-[#FFF7E6] p-3 sm:p-4 space-y-3">
+                <p className="text-sm font-semibold text-[#0B0F1F] flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-[#2B4BFF]" />
                   Disponibilités de {AGENT.firstName} pour votre visite sur place
                 </p>
                 {days.map((d) => (
@@ -884,7 +886,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
                           key={t}
                           type="button"
                           onClick={() => pickSlot(d.date, t)}
-                          className="rounded-lg bg-[#0f1f3d] hover:bg-[#1a3060] text-white font-semibold text-sm px-4 py-2.5 transition-colors"
+                          className="rounded-lg bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white font-semibold text-sm px-4 py-2.5 transition-colors"
                         >
                           {t}
                         </button>
@@ -914,20 +916,20 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
   return (
     <div
       id="assistant-panel"
-      className="rounded-3xl border border-stone-200 bg-white shadow-xl overflow-hidden flex flex-col max-w-3xl mx-auto w-full"
+      className="rounded-3xl border-[3px] border-[#0B0F1F] bg-white shadow-[8px_8px_0_#0B0F1F] overflow-hidden flex flex-col max-w-3xl mx-auto w-full"
       style={expanded ? undefined : { maxHeight: 'min(90vh, 880px)' }}
     >
-      <header className="bg-[#0f1f3d] text-white px-4 sm:px-5 py-3.5 flex items-center gap-3">
+      <header className="bg-[#2B4BFF] text-white px-4 sm:px-5 py-3.5 flex items-center gap-3">
         <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-amber-400 text-[#0f1f3d] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-[#FFD60A] text-[#0B0F1F] flex items-center justify-center">
             <Bot className="w-5 h-5" />
           </div>
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0f1f3d]" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#FFF7E6] border-2 border-[#0B0F1F]" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-sm flex items-center gap-2">
             Assistant Estimation de {AGENT.firstName}
-            <span className="text-[10px] font-bold bg-white/15 border border-white/20 rounded-full px-2 py-0.5 text-amber-200">IA</span>
+            <span className="text-[10px] font-bold bg-white/15 border border-white/20 rounded-full px-2 py-0.5 text-[#FFD60A]">IA</span>
           </div>
           <div className="text-xs text-slate-300">100 % gratuit · Données DVF officielles · Réponse en 2 min</div>
         </div>
@@ -937,9 +939,9 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       </header>
 
       {result && lead && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-5 py-2 flex items-baseline justify-between gap-3" aria-label="Rappel de votre estimation">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800">Estimation indicative (IA)</span>
-          <span className="text-base sm:text-lg font-bold text-[#0f1f3d] whitespace-nowrap">
+        <div className="bg-[#FFF7E6] border-b border-[#0B0F1F] px-4 sm:px-5 py-2 flex items-baseline justify-between gap-3" aria-label="Rappel de votre estimation">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0B0F1F]">Estimation indicative (IA)</span>
+          <span className="text-base sm:text-lg font-bold text-[#0B0F1F] whitespace-nowrap">
             {fmt(result.lowPrice)} – {fmt(result.highPrice)} €
           </span>
         </div>
@@ -954,7 +956,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               <div
                 className={
                   m.role === 'user'
-                    ? 'max-w-[85%] rounded-2xl rounded-br-md bg-[#0f1f3d] text-white px-4 py-2.5 text-sm leading-relaxed'
+                    ? 'max-w-[85%] rounded-2xl rounded-br-md bg-[#2B4BFF] text-white px-4 py-2.5 text-sm leading-relaxed'
                     : 'max-w-[92%] rounded-2xl rounded-bl-md bg-white border border-stone-200 text-stone-800 px-4 py-2.5 text-[15px] leading-relaxed shadow-xs'
                 }
               >
@@ -996,13 +998,13 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             className="flex gap-2 pt-1"
           >
             <input
-              className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#2B4BFF]"
               placeholder={`Une question ? Posez-la à l'assistant`}
               value={freeText}
               onChange={(e) => setFreeText(e.target.value)}
               aria-label="Poser une question à l'assistant"
             />
-            <button type="submit" disabled={!freeText.trim() || typing} className="rounded-xl bg-[#0f1f3d] text-white px-3.5 disabled:opacity-40" aria-label="Envoyer">
+            <button type="submit" disabled={!freeText.trim() || typing} className="rounded-xl bg-[#2B4BFF] text-white px-3.5 disabled:opacity-40" aria-label="Envoyer">
               <Send className="w-4 h-4" />
             </button>
           </form>

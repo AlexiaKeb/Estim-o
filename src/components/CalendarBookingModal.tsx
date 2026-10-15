@@ -426,12 +426,12 @@ export const CalendarBookingModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-[#0B0F1F]/70 animate-in fade-in">
       <div className="bg-white sm:rounded-3xl sm:border border-slate-200 shadow-2xl w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[94vh] overflow-y-auto relative">
         {/* Header */}
-        <div className="bg-stone-900 text-white p-5 md:p-7 flex items-start justify-between sticky top-0 z-10">
+        <div className="bg-[#2B4BFF] text-white p-5 md:p-7 flex items-start justify-between sticky top-0 z-10 border-b-[3px] border-[#0B0F1F]">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-semibold uppercase tracking-wider mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFD60A] text-[#0B0F1F] border-[3px] border-[#0B0F1F] text-xs font-black uppercase tracking-wider mb-2">
               <HeartHandshake className="w-3.5 h-3.5" />
               Visite sur place & avis de valeur
             </div>
@@ -453,9 +453,9 @@ export const CalendarBookingModal: React.FC<Props> = ({
         </div>
 
         {/* Advisor direct contact ribbon */}
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200/80 px-6 py-3 flex items-center justify-between gap-3 text-xs">
+        <div className="bg-gradient-to-r from-[#FFF7E6] to-[#FFF7E6] border-b border-[#0B0F1F] px-6 py-3 flex items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-stone-800">
-            <div className="w-7 h-7 rounded-full bg-stone-900 text-white flex items-center justify-center font-bold text-[11px] shadow-xs">
+            <div className="w-7 h-7 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center font-bold text-[11px] shadow-xs">
               C
             </div>
             <div>
@@ -467,7 +467,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
             href="tel:0603580316"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-stone-300 text-stone-900 font-bold hover:bg-stone-900 hover:text-white transition-all shadow-xs"
           >
-            <PhoneCall className="w-3.5 h-3.5 text-emerald-500" />
+            <PhoneCall className="w-3.5 h-3.5 text-[#2B4BFF]" />
             <span>06 03 58 03 16</span>
           </a>
         </div>
@@ -475,7 +475,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
         {/* Content Body */}
         {isBooked ? (
           <div className="p-8 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+            <div className="w-16 h-16 rounded-full bg-[#FFD60A] text-[#2B4BFF] flex items-center justify-center mx-auto shadow-inner">
               <CheckCircle2 className="w-10 h-10" />
             </div>
             <div className="space-y-2">
@@ -492,20 +492,20 @@ export const CalendarBookingModal: React.FC<Props> = ({
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs space-y-2 max-w-md mx-auto">
               <div className="font-semibold text-slate-900">Ce qu'il se passe maintenant :</div>
               <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#2B4BFF] flex-shrink-0" />
                 <span>E-mail de confirmation envoyé à {formData.email}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#2B4BFF] flex-shrink-0" />
                 <span>Rappel ou SMS de confirmation de Céline (06 03 58 03 16)</span>
               </div>
               <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#2B4BFF] flex-shrink-0" />
                 <span>Analyse du marché et remise de votre avis de valeur sous 48h</span>
               </div>
             </div>
             {pendingLead && (
-              <button type="button" onClick={() => proceed(pendingLead)} className="mx-auto inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-sm font-bold px-5 py-3">
+              <button type="button" onClick={() => proceed(pendingLead)} className="mx-auto inline-flex items-center gap-2 rounded-xl bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white text-sm font-bold px-5 py-3">
                 Voir ma confirmation
               </button>
             )}
@@ -513,7 +513,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
         ) : isLoadingSlots ? (
           /* Real-time slot verification in progress */
           <div className="p-12 text-center space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+            <div className="w-12 h-12 rounded-2xl bg-[#FFF7E6] text-[#2B4BFF] flex items-center justify-center mx-auto border border-[#0B0F1F]">
               <Loader2 className="w-6 h-6 animate-spin" />
             </div>
             <div className="space-y-1">
@@ -524,14 +524,14 @@ export const CalendarBookingModal: React.FC<Props> = ({
         ) : slotsError ? (
           /* Cal.com Unavailable / Error State - NO FAKE SLOTS EVER DISPLAYED */
           <div className="p-6 md:p-8 space-y-6">
-            <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm space-y-3 shadow-xs">
+            <div className="p-5 rounded-2xl bg-[#FFF7E6] border border-[#0B0F1F] text-[#0B0F1F] text-xs sm:text-sm space-y-3 shadow-xs">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-[#2B4BFF] flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-amber-950 text-sm">
+                  <div className="font-bold text-[#0B0F1F] text-sm">
                     Prise de rendez-vous en ligne temporairement indisponible
                   </div>
-                  <p className="mt-1 text-amber-900 leading-relaxed font-medium">
+                  <p className="mt-1 text-[#0B0F1F] leading-relaxed font-medium">
                     La prise de rendez-vous est momentanément indisponible, un conseiller vous recontactera sous peu.
                   </p>
                 </div>
@@ -553,7 +553,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Nom & Prénom"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#FFD60A]/20 focus:border-[#FFD60A]"
                     />
                   </div>
                 </div>
@@ -567,7 +567,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Numéro de téléphone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#FFD60A]/20 focus:border-[#FFD60A]"
                     />
                   </div>
                 </div>
@@ -583,7 +583,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Adresse email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#FFD60A]/20 focus:border-[#FFD60A]"
                     />
                   </div>
                 </div>
@@ -596,7 +596,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Adresse du bien à estimer"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#FFD60A]/20 focus:border-[#FFD60A]"
                     />
                   </div>
                 </div>
@@ -605,16 +605,16 @@ export const CalendarBookingModal: React.FC<Props> = ({
               <div className="pt-2 flex items-center justify-between gap-4">
                 <a
                   href="tel:0603580316"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-800 hover:text-amber-600"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-800 hover:text-[#2B4BFF]"
                 >
-                  <PhoneCall className="w-3.5 h-3.5 text-amber-600" />
+                  <PhoneCall className="w-3.5 h-3.5 text-[#2B4BFF]" />
                   Appeler directement : 06 03 58 03 16
                 </a>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="py-3 px-6 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2"
+                  className="py-3 px-6 rounded-xl bg-[#FFD60A] hover:brightness-95 text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] disabled:opacity-50 text-xs font-black transition-all flex items-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -642,8 +642,8 @@ export const CalendarBookingModal: React.FC<Props> = ({
             )}
 
             {/* Single format: the event type in Cal.com is the on-site visit */}
-            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-sm text-stone-800">
-              <Home className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 rounded-xl border border-[#0B0F1F] bg-[#FFF7E6] p-3.5 text-sm text-stone-800">
+              <Home className="w-4 h-4 text-[#2B4BFF] mt-0.5 shrink-0" />
               <div>
                 <div className="font-semibold">Visite sur place 100 % offerte</div>
                 <div className="text-xs text-stone-600">Céline se déplace à l'adresse indiquée pour affiner l'estimation.</div>
@@ -692,9 +692,9 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       onClick={() => setSelectedDate(d.value)}
                       className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
                         isSelected
-                          ? 'border-stone-900 bg-stone-900 text-white shadow-xs'
+                          ? 'border-[#0B0F1F] bg-[#2B4BFF] text-white shadow-xs'
                           : slotsCount > 0
-                          ? 'border-slate-200 bg-white text-slate-800 hover:border-amber-300 hover:bg-amber-50/50'
+                          ? 'border-slate-200 bg-white text-slate-800 hover:border-[#0B0F1F] hover:bg-[#FFF7E6]/50'
                           : 'border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100 opacity-75'
                       }`}
                     >
@@ -713,7 +713,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                             isSelected
                               ? 'bg-stone-800 text-white'
                               : slotsCount > 0
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
+                              ? 'bg-[#FFF7E6] text-[#2B4BFF] border border-[#0B0F1F]/80'
                               : 'bg-slate-100 text-slate-400'
                           }`}
                         >
@@ -733,7 +733,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                   Choisissez un horaire de passage (heure de Paris)
                 </label>
                 {isLoadingSlots ? (
-                  <span className="text-[11px] text-amber-700 flex items-center gap-1">
+                  <span className="text-[11px] text-[#2B4BFF] flex items-center gap-1">
                     <Loader2 className="w-3 h-3 animate-spin" />
                     Mise à jour des disponibilités...
                   </span>
@@ -745,7 +745,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
               </div>
 
               {dayAvailableSlots.length === 0 ? (
-                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                <div className="p-4 rounded-xl bg-[#FFF7E6] border border-[#0B0F1F] text-[#0B0F1F] text-xs">
                   Aucun créneau disponible à cette date dans l'agenda. Veuillez sélectionner un autre jour ci-dessus.
                 </div>
               ) : (
@@ -760,7 +760,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       }}
                       className={`py-2 px-4 rounded-xl border text-xs font-semibold transition-all ${
                         selectedTime === time
-                          ? 'border-stone-900 bg-amber-50 text-amber-800 font-bold ring-2 ring-amber-500/30'
+                          ? 'border-stone-900 bg-[#FFF7E6] text-[#0B0F1F] font-bold ring-2 ring-[#2B4BFF]/30'
                           : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
@@ -788,7 +788,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Nom & Prénom"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-stone-900"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4BFF]/30 focus:border-stone-900"
                     />
                   </div>
                 </div>
@@ -802,7 +802,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Numéro de téléphone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-stone-900"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4BFF]/30 focus:border-stone-900"
                     />
                   </div>
                 </div>
@@ -818,7 +818,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Adresse email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-stone-900"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4BFF]/30 focus:border-stone-900"
                     />
                   </div>
                 </div>
@@ -831,7 +831,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                       placeholder="Adresse du bien (rue, code postal, ville)"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-stone-900"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4BFF]/30 focus:border-stone-900"
                     />
                   </div>
                 </div>
@@ -841,7 +841,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
             {/* Submit Action */}
             <div className="pt-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <ShieldCheck className="w-4 h-4 text-[#2B4BFF]" />
                 🔒 Rendez-vous gratuit, confidentiel et sans engagement
               </div>
 
@@ -849,7 +849,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
                 type="submit"
                 id="btn-confirm-calendar-booking"
                 disabled={isSubmitting || !selectedTime}
-                className="py-3.5 px-6 rounded-xl bg-stone-900 hover:bg-stone-800 disabled:bg-stone-500 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2"
+                className="py-3.5 px-6 rounded-xl bg-[#2B4BFF] hover:bg-[#0B0F1F] disabled:bg-stone-500 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2"
               >
                 {isSubmitting ? (
                   <>

@@ -11,37 +11,37 @@ export function renderInline(text: string): React.ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g).filter(Boolean).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) return <strong key={i} className="font-semibold text-stone-900">{part.slice(2, -2)}</strong>;
     const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (m) return <a key={i} href={m[2]} className="text-[#0f1f3d] underline underline-offset-2 hover:text-amber-700">{m[1]}</a>;
+    if (m) return <a key={i} href={m[2]} className="text-[#0B0F1F] underline underline-offset-2 hover:text-[#2B4BFF]">{m[1]}</a>;
     return <React.Fragment key={i}>{part}</React.Fragment>;
   });
 }
 
 export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="min-h-screen bg-stone-50 text-stone-800">
-    <header className="bg-white border-b border-stone-200">
+  <div className="min-h-screen bg-[#FFF7E6] text-[#0B0F1F]">
+    <header className="sticky top-0 z-30 bg-[#FFF7E6] border-b-[3px] border-[#0B0F1F]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
         <BrandLogo />
         <nav aria-label="Navigation principale" className="flex items-center gap-4 text-sm">
-          <a href="/blog" className="text-stone-600 hover:text-stone-900">Conseils</a>
-          <a href="/#simulateur" className="rounded-lg bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-semibold px-3.5 py-2">Estimer mon bien</a>
+          <a href="/blog" className="font-black text-[#0B0F1F] hover:text-[#2B4BFF]">Conseils</a>
+          <a href="/#simulateur" className="rounded-lg bg-[#FFD60A] hover:brightness-95 text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-black px-3.5 py-2">Estimer mon bien</a>
         </nav>
       </div>
     </header>
     {children}
     <a
       href="/#simulateur"
-      className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-amber-400 text-[#0f1f3d] font-bold text-center py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.12)]"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-[#FFD60A] text-[#0B0F1F] border-t-[3px] border-[#0B0F1F] font-black text-center py-4"
       style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
     >
       Estimer mon bien gratuitement →
     </a>
-    <footer className="border-t border-stone-200 bg-white mt-16 pb-16 sm:pb-0">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 text-xs text-stone-500 flex flex-wrap gap-x-5 gap-y-2 justify-between">
+    <footer className="bg-[#0B0F1F] mt-16 pb-16 sm:pb-0">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-xs text-white/70 flex flex-wrap gap-x-5 gap-y-2 justify-between">
         <span>{BRAND.name} · Estimation immobilière à Lyon</span>
         <span className="flex gap-4">
-          <a href="/" className="hover:text-stone-800">Accueil</a>
-          <a href="/mentions-legales" className="hover:text-stone-800">Mentions légales</a>
-          <a href="/confidentialite" className="hover:text-stone-800">Confidentialité</a>
+          <a href="/" className="hover:text-[#FFD60A]">Accueil</a>
+          <a href="/mentions-legales" className="hover:text-[#FFD60A]">Mentions légales</a>
+          <a href="/confidentialite" className="hover:text-[#FFD60A]">Confidentialité</a>
           <CreditLine />
         </span>
       </div>
@@ -50,22 +50,22 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 );
 
 export const BlogCta: React.FC<{ compact?: boolean }> = ({ compact }) => (
-  <aside aria-label="Estimer son bien" className="rounded-2xl bg-[#0f1f3d] text-white p-5 sm:p-7 border-l-4 border-amber-400 my-8">
-    <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1">Estimation gratuite</p>
+  <aside aria-label="Estimer son bien" className="rounded-2xl bg-[#2B4BFF] text-white p-5 sm:p-7 border-l-4 border-[#FFD60A] my-8">
+    <p className="text-[#FFD60A] text-[11px] font-bold uppercase tracking-wider mb-1">Estimation gratuite</p>
     <p className={`font-semibold leading-snug ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}>Combien vaut votre bien à Lyon et autour ?</p>
     <p className="text-sm sm:text-base text-slate-300 mt-2">
       Obtenez une fourchette en 2 minutes, fondée sur les ventes réelles autour de votre adresse. {AGENT.firstName} vous propose ensuite une visite gratuite et sans engagement.
     </p>
-    <a href="/#simulateur" className="mt-4 inline-block rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold px-5 py-3">
+    <a href="/#simulateur" className="mt-4 inline-block rounded-xl bg-[#FFD60A] hover:brightness-95 text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-black px-5 py-3">
       Estimer mon bien
     </a>
   </aside>
 );
 
 const PostCard: React.FC<{ post: BlogPost }> = ({ post }) => (
-  <article className="rounded-2xl bg-white border border-stone-200 p-5 hover:shadow-md transition-shadow flex flex-col">
-    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700">{post.category}</p>
-    <h2 className="mt-1 text-lg font-semibold text-stone-900 leading-snug">
+  <article className="pop-card rounded-3xl bg-white border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] p-5 flex flex-col">
+    <p className="text-[11px] font-bold uppercase tracking-wider text-[#2B4BFF]">{post.category}</p>
+    <h2 className="mt-1 text-lg font-black text-[#0B0F1F] leading-snug">
       <a href={`/blog/${post.slug}`} className="hover:underline">{post.title}</a>
     </h2>
     <p className="mt-2 text-sm text-stone-600 flex-1">{post.description}</p>
@@ -76,7 +76,7 @@ const PostCard: React.FC<{ post: BlogPost }> = ({ post }) => (
 export const BlogIndex: React.FC<{ posts: BlogPost[] }> = ({ posts }) => (
   <Shell>
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 [text-wrap:balance]">
+      <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance]">
         Conseils pour estimer et vendre son bien à Lyon
       </h1>
       <p className="mt-3 text-stone-600 max-w-2xl">
@@ -118,7 +118,7 @@ const Block: React.FC<{ b: ArticleBlock }> = ({ b }) => {
     case 'img':
       return safeImg(b.url) ? (
         <figure className="mt-6">
-          <img src={safeImg(b.url)} alt={b.alt} loading="lazy" decoding="async" className="w-full rounded-2xl border border-stone-200 object-cover" />
+          <img src={safeImg(b.url)} alt={b.alt} loading="lazy" decoding="async" className="w-full rounded-2xl border-[3px] border-[#0B0F1F] object-cover" />
           {b.caption && <figcaption className="mt-2 text-center text-xs text-stone-500">{b.caption}</figcaption>}
         </figure>
       ) : null;
@@ -136,18 +136,18 @@ export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ po
           <a href="/" className="hover:underline">Accueil</a> › <a href="/blog" className="hover:underline">Conseils</a> › <span>{post.category}</span>
         </nav>
         <article>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-stone-900 leading-tight [text-wrap:balance]">{post.title}</h1>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#0B0F1F] leading-tight [text-wrap:balance]">{post.title}</h1>
           <p className="mt-3 text-sm text-stone-500">
             Par {AGENT.name} · <time dateTime={post.date}>{formatPostDate(post.date)}</time>
             {post.updated ? <> · mis à jour le <time dateTime={post.updated}>{formatPostDate(post.updated)}</time></> : null} · {post.readingMinutes} min de lecture
           </p>
           <p className="mt-6 text-lg text-stone-700 leading-relaxed">{renderInline(post.intro)}</p>
-          <a href="/#simulateur" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold px-5 py-3">
+          <a href="/#simulateur" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#FFD60A] hover:brightness-95 text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-black px-5 py-3">
             Estimer mon bien en 2 minutes →
           </a>
 
           {post.coverUrl && safeImg(post.coverUrl) && (
-            <img src={safeImg(post.coverUrl)} alt={post.title} width={1200} height={630} decoding="async" className="mt-6 w-full rounded-2xl border border-stone-200 object-cover aspect-[16/9]" />
+            <img src={safeImg(post.coverUrl)} alt={post.title} width={1200} height={630} decoding="async" className="mt-6 w-full rounded-2xl border-[3px] border-[#0B0F1F] object-cover aspect-[16/9]" />
           )}
 
           {blocks.map((b, i) => {

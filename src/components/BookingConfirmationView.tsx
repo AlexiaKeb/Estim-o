@@ -160,23 +160,21 @@ export const BookingConfirmationView: React.FC<Props> = ({
         <ol className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-stone-500">
           <li>1. Estimation IA</li>
           <li>2. Choix du créneau</li>
-          <li className="font-bold text-emerald-700">3. Visite confirmée</li>
+          <li className="font-bold text-[#2B4BFF]">3. Visite confirmée</li>
         </ol>
       </div>
       {/* 1. TOP CONFIRMATION BANNER */}
-      <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-stone-800 shadow-xl relative overflow-hidden">
-        <div className="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-16 -top-16 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-[#2B4BFF] text-white rounded-3xl p-6 sm:p-8 md:p-10 border-[3px] border-[#0B0F1F] shadow-[8px_8px_0_#0B0F1F] relative overflow-hidden">
 
         <div className="relative z-10 space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFD60A] text-[#0B0F1F] border-[3px] border-[#0B0F1F] text-xs font-black">
+              <CheckCircle2 className="w-4 h-4 text-[#FFD60A]" />
               ✓ Rendez-vous confirmé
             </span>
 
             <div className="flex items-center gap-2 text-stone-400 text-xs">
-              <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+              <Smartphone className="w-3.5 h-3.5 text-[#FFD60A]" />
               <span>Confirmation envoyée par e-mail à <strong className="text-stone-200">{confirmedLead.email}</strong></span>
             </div>
           </div>
@@ -186,29 +184,29 @@ export const BookingConfirmationView: React.FC<Props> = ({
               {firstName}, votre visite sur place est bien confirmée !
             </h1>
             <p className="text-sm sm:text-base text-stone-300 max-w-2xl leading-relaxed">
-              Céline se rendra à l'adresse indiquée <strong className="text-amber-300 font-semibold">{confirmedLead.address || confirmedLead.city}</strong> pour réaliser l'analyse complète de votre bien et préparer votre avis de valeur.
+              Céline se rendra à l'adresse indiquée <strong className="text-[#FFD60A] font-semibold">{confirmedLead.address || confirmedLead.city}</strong> pour réaliser l'analyse complète de votre bien et préparer votre avis de valeur.
             </p>
           </div>
 
           {/* Core Appointment Summary Card */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-            <div className="bg-stone-950/90 border border-stone-800 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-inner">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Calendar className="w-5 h-5 text-amber-400" />
+            <div className="bg-[#0B0F1F] border-[3px] border-[#0B0F1F] rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-inner">
+              <div className="w-10 h-10 rounded-xl bg-[#FFD60A] text-[#0B0F1F] border-[3px] border-[#0B0F1F] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Calendar className="w-5 h-5 text-[#0B0F1F]" />
               </div>
               <div>
                 <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Date du rendez-vous</div>
                 <div className="text-sm sm:text-base font-bold text-white mt-0.5">{cleanFormattedDate}</div>
-                <div className="text-xs text-amber-300 font-medium mt-0.5 flex items-center gap-1">
+                <div className="text-xs text-[#FFD60A] font-medium mt-0.5 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{confirmedLead.meetingTime || '14:30'}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-stone-950/90 border border-stone-800 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-inner">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <MapPin className="w-5 h-5 text-emerald-400" />
+            <div className="bg-[#0B0F1F] border-[3px] border-[#0B0F1F] rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-inner">
+              <div className="w-10 h-10 rounded-xl bg-[#FFD60A] text-[#0B0F1F] border-[3px] border-[#0B0F1F] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <MapPin className="w-5 h-5 text-[#0B0F1F]" />
               </div>
               <div className="min-w-0">
                 <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Adresse de la visite</div>
@@ -219,14 +217,14 @@ export const BookingConfirmationView: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="bg-stone-950/90 border border-stone-800 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-inner">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <ShieldCheck className="w-5 h-5 text-blue-400" />
+            <div className="bg-[#0B0F1F] border-[3px] border-[#0B0F1F] rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-inner">
+              <div className="w-10 h-10 rounded-xl bg-[#0B0F1F] text-[#FFD60A] border-[3px] border-[#FFD60A] flex items-center justify-center flex-shrink-0 mt-0.5">
+                <ShieldCheck className="w-5 h-5 text-[#FFD60A]" />
               </div>
               <div>
                 <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Votre visite</div>
                 <div className="text-sm font-bold text-white mt-0.5">Expertise sur place par Céline</div>
-                <div className="text-xs text-emerald-400 font-semibold mt-0.5">
+                <div className="text-xs text-[#FFD60A] font-semibold mt-0.5">
                   100 % offerte & sans engagement
                 </div>
               </div>
@@ -240,14 +238,14 @@ export const BookingConfirmationView: React.FC<Props> = ({
               onClick={handleAddToGoogleCalendar}
               className="py-2.5 px-4 rounded-xl bg-white hover:bg-stone-100 text-stone-900 font-bold text-xs flex items-center gap-2 transition-all shadow-sm"
             >
-              <CalendarPlus className="w-4 h-4 text-emerald-600" />
+              <CalendarPlus className="w-4 h-4 text-[#2B4BFF]" />
               <span>Ajouter à Google Calendar</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownloadiCal}
-              className="py-2.5 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-xs border border-stone-700 flex items-center gap-2 transition-all"
+              className="py-2.5 px-4 rounded-xl bg-[#0B0F1F] hover:bg-white hover:text-[#0B0F1F] text-white font-black text-xs border-[3px] border-[#0B0F1F] flex items-center gap-2 transition-all"
             >
               <Download className="w-4 h-4 text-stone-400" />
               <span>{copiedCalendar ? 'Téléchargé !' : 'Télécharger (.ics / Apple & Outlook)'}</span>
@@ -257,7 +255,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onModifyBooking}
-                className="py-2.5 px-4 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-300 text-xs font-medium border border-stone-700/80 transition-all ml-auto"
+                className="py-2.5 px-4 rounded-xl bg-[#0B0F1F] hover:bg-white hover:text-[#0B0F1F] text-white text-xs font-black border-[3px] border-[#0B0F1F] transition-all ml-auto"
               >
                 Modifier ou annuler le rendez-vous
               </button>
@@ -275,22 +273,22 @@ export const BookingConfirmationView: React.FC<Props> = ({
               <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                 Votre conseillère dédiée
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-[#FFF7E6] text-[#2B4BFF] border border-[#0B0F1F] text-[10px] font-bold">
                 Dossier attribué
               </span>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#FFD60A] via-[#FFD60A] to-[#FFD60A] flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
                   C
                 </div>
-                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" title="En ligne" />
+                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#FFF7E6]0 border-2 border-white" title="En ligne" />
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-stone-900">Céline LEVRAT</h3>
-                <p className="text-xs font-medium text-amber-700">Experte immobilière locale</p>
+                <p className="text-xs font-medium text-[#2B4BFF]">Experte immobilière locale</p>
               </div>
             </div>
 
@@ -301,9 +299,9 @@ export const BookingConfirmationView: React.FC<Props> = ({
             <div className="space-y-2 pt-1">
               <a
                 href="tel:0603580316"
-                className="w-full py-3 px-4 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
+                className="w-full py-3 px-4 rounded-2xl bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
               >
-                <PhoneCall className="w-4 h-4 text-emerald-400" />
+                <PhoneCall className="w-4 h-4 text-[#FFD60A]" />
                 <span className="flex flex-col items-center leading-tight"><span>Appeler Céline</span><span>06 03 58 03 16</span></span>
               </a>
 
@@ -316,8 +314,8 @@ export const BookingConfirmationView: React.FC<Props> = ({
           </div>
 
           {/* Secteur & Engagement Spécifique */}
-          <div className="bg-stone-900 text-white rounded-3xl p-5 sm:p-6 border border-stone-800 shadow-sm space-y-3">
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+          <div className="bg-[#0B0F1F] text-white rounded-3xl p-5 sm:p-6 border-[3px] border-[#0B0F1F] shadow-[6px_6px_0_#FFD60A] space-y-3">
+            <div className="flex items-center gap-2 text-[#FFD60A] text-xs font-bold uppercase tracking-wider">
               <Compass className="w-4 h-4" />
               <span>Secteur d'expertise</span>
             </div>
@@ -338,7 +336,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
             <div className="flex items-center justify-between border-b border-stone-100 pb-3.5">
               <div>
                 <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <Sparkles className="w-4 h-4 text-[#2B4BFF]" />
                   Préparer votre visite : les éléments utiles
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
@@ -355,11 +353,11 @@ export const BookingConfirmationView: React.FC<Props> = ({
                   onClick={() => toggleCheck(key)}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
                     checklist[key]
-                      ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950'
+                      ? 'bg-[#FFF7E6]/60 border-[#0B0F1F] text-emerald-950'
                       : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
                   }`}
                 >
-                  <input type="checkbox" checked={!!checklist[key]} onChange={() => {}} className="w-4 h-4 text-emerald-600 rounded border-stone-300 mt-0.5 cursor-pointer" />
+                  <input type="checkbox" checked={!!checklist[key]} onChange={() => {}} className="w-4 h-4 text-[#2B4BFF] rounded border-stone-300 mt-0.5 cursor-pointer" />
                   <div className="text-xs">
                     <div className="font-semibold">{title}</div>
                     <div className="text-stone-500 text-[11px] mt-0.5">{hint}</div>
@@ -369,9 +367,9 @@ export const BookingConfirmationView: React.FC<Props> = ({
             </div>
 
             {/* Team Evaluation Highlight */}
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-stone-800 space-y-1.5 mt-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                <Award className="w-4 h-4 text-amber-600" />
+            <div className="p-4 rounded-2xl bg-[#FFF7E6] text-[#0B0F1F] border-[3px] border-[#0B0F1F] space-y-1.5 mt-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#0B0F1F]">
+                <Award className="w-4 h-4 text-[#2B4BFF]" />
                 <span>Votre avis de valeur sous 48h</span>
               </div>
               <p className="text-xs text-stone-600 leading-relaxed">
