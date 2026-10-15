@@ -304,7 +304,7 @@ export const FaqSection: React.FC = () => {
             <Phone className="h-4 w-4 text-[#FFD60A]" />
             {AGENT.phone}
           </a>
-          <Robot className="bob mt-8 hidden h-44 w-36 lg:block" />
+          <Human className="bob mt-8 w-36 sm:w-44" />
         </div>
         <div className="space-y-4">
           {FAQ.map((item, i) => {
