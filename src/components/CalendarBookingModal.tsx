@@ -453,7 +453,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
         </div>
 
         {/* Advisor direct contact ribbon */}
-        <div className="bg-gradient-to-r from-[#FFF7E6] to-[#FFF7E6] border-b border-[#0B0F1F] px-6 py-3 flex items-center justify-between gap-3 text-xs">
+        <div className="bg-[#FFF7E6] border-b-[3px] border-[#0B0F1F] px-6 py-3 flex items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-stone-800">
             <div className="w-7 h-7 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center font-bold text-[11px] shadow-xs">
               C

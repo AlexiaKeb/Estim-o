@@ -509,7 +509,7 @@ export const CrmPipelineView: React.FC<Props> = ({
       {securityOpen && <SecurityPanel onClose={() => setSecurityOpen(false)} onLoggedOut={() => window.location.assign('/')} />}
       <div className={selectedLeadDrawer ? 'hidden' : 'space-y-6'}>
       {/* Bandeau d'accueil */}
-      <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
+      <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
         <div className="absolute right-24 -bottom-16 h-40 w-40 rounded-full bg-sky-400/10" aria-hidden="true" />
         <div className="relative">
@@ -526,15 +526,15 @@ export const CrmPipelineView: React.FC<Props> = ({
       {/* Indicateurs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {([
-          ['Leads', leads.length, 'demandes reçues via le site', <Users className="w-5 h-5" />, 'from-sky-500 to-sky-600', 'bg-sky-50'],
-          ['Rendez-vous', pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length, `${leads.length ? Math.round(((pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % des leads`, <Calendar className="w-5 h-5" />, 'from-amber-500 to-orange-500', 'bg-amber-50'],
-          ['Mandats', pipeMandates.length, `${(pipeMandates.reduce((n, l) => n + (l.mandate?.sellingPrice || 0), 0) / 1e6).toFixed(2).replace('.', ',')} M€ sous mandat`, <ScrollText className="w-5 h-5" />, 'from-violet-500 to-purple-600', 'bg-violet-50'],
-          ['Ventes', pipeSold.length, `${pipeSold.reduce((n, l) => n + (l.mandate?.saleFee || 0), 0).toLocaleString('fr-FR')} € de commission`, <Award className="w-5 h-5" />, 'from-emerald-500 to-teal-600', 'bg-emerald-50'],
+          ['Leads', leads.length, 'demandes reçues via le site', <Users className="w-5 h-5" />, 'bg-sky-500', 'bg-sky-50'],
+          ['Rendez-vous', pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length, `${leads.length ? Math.round(((pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % des leads`, <Calendar className="w-5 h-5" />, 'bg-amber-500', 'bg-amber-50'],
+          ['Mandats', pipeMandates.length, `${(pipeMandates.reduce((n, l) => n + (l.mandate?.sellingPrice || 0), 0) / 1e6).toFixed(2).replace('.', ',')} M€ sous mandat`, <ScrollText className="w-5 h-5" />, 'bg-violet-500', 'bg-violet-50'],
+          ['Ventes', pipeSold.length, `${pipeSold.reduce((n, l) => n + (l.mandate?.saleFee || 0), 0).toLocaleString('fr-FR')} € de commission`, <Award className="w-5 h-5" />, 'bg-emerald-500', 'bg-emerald-50'],
         ] as Array<[string, number, string, React.ReactNode, string, string]>).map(([label, value, sub, icon, grad, tint]) => (
           <div key={label} className={`rounded-2xl border border-stone-200 ${tint} p-4 sm:p-5 shadow-sm`}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-stone-600">{label}</span>
-              <span className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${grad} text-white shadow`}>{icon}</span>
+              <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${grad} text-white shadow`}>{icon}</span>
             </div>
             <p className="mt-2 text-4xl font-extrabold text-stone-900 leading-none">{value}</p>
             <p className="mt-1.5 text-xs text-stone-600">{sub}</p>
@@ -553,11 +553,11 @@ export const CrmPipelineView: React.FC<Props> = ({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {([
-            ['LEADS', 'from-sky-500 to-sky-600', 'bg-sky-50/60', pipeLeads],
-            ['R1', 'from-amber-500 to-amber-600', 'bg-amber-50/60', pipeVisits],
-            ['R2', 'from-orange-500 to-orange-600', 'bg-orange-50/60', pipeR2],
-            ['MANDAT', 'from-violet-500 to-violet-600', 'bg-violet-50/60', pipeMandates],
-            ['VENTE', 'from-emerald-500 to-emerald-600', 'bg-emerald-50/60', pipeSold],
+            ['LEADS', 'bg-sky-500', 'bg-sky-50/60', pipeLeads],
+            ['R1', 'bg-amber-500', 'bg-amber-50/60', pipeVisits],
+            ['R2', 'bg-orange-500', 'bg-orange-50/60', pipeR2],
+            ['MANDAT', 'bg-violet-500', 'bg-violet-50/60', pipeMandates],
+            ['VENTE', 'bg-emerald-500', 'bg-emerald-50/60', pipeSold],
           ] as Array<[string, string, string, Lead[]]>).map(([title, grad, tint, list]) => (
             <div key={title} className={`rounded-2xl ${tint} border border-stone-200 overflow-hidden ${openCol === title ? 'sm:col-span-2 lg:col-span-5' : openCol ? 'hidden' : ''}`}>
               <button
@@ -565,7 +565,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                 onClick={() => setOpenCol(openCol === title ? null : title)}
                 aria-expanded={openCol === title}
                 title={openCol === title ? 'Réduire' : 'Voir tous les dossiers de cette étape'}
-                className={`w-full flex items-center justify-between bg-gradient-to-r ${grad} text-white px-3.5 py-2.5 text-left`}
+                className={`w-full flex items-center justify-between ${grad} text-white px-3.5 py-2.5 text-left`}
               >
                 <span className="text-sm font-extrabold tracking-wide">{title}</span>
                 <span className="flex items-center gap-2">
@@ -578,7 +578,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                 {list.map((l) => (
                   <button key={l.id} type="button" onClick={() => setSelectedLeadDrawer(l)} className="w-full text-left rounded-xl bg-white border border-stone-200 hover:border-stone-400 hover:shadow-md p-3 shadow-2xs transition-all">
                     <div className="flex items-center gap-2.5">
-                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${grad} text-white text-xs font-extrabold`}>{l.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}</span>
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${grad} text-white text-xs font-extrabold`}>{l.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}</span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-stone-900 uppercase">{l.name}</p>
                         <p className="truncate text-[11px] text-stone-500">📍 {l.city} • {l.propertyType} {l.surface} m²</p>
@@ -679,19 +679,19 @@ export const CrmPipelineView: React.FC<Props> = ({
 
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-0.5">
               {([
-                ['ALL', 'Tous', activeLeads.length, 'from-stone-700 to-stone-800'],
-                ['lead', 'Leads', pipeLeads.length, 'from-sky-500 to-sky-600'],
-                ['r1', 'R1', pipeVisits.length, 'from-amber-500 to-amber-600'],
-                ['r2', 'R2', pipeR2.length, 'from-orange-500 to-orange-600'],
-                ['mandat', 'Mandat', pipeMandates.length, 'from-violet-500 to-violet-600'],
-                ['vente', 'Vente', pipeSold.length, 'from-emerald-500 to-emerald-600'],
-                ['archive', 'Archivés', archivedLeads.length, 'from-stone-400 to-stone-500'],
+                ['ALL', 'Tous', activeLeads.length, 'bg-stone-700'],
+                ['lead', 'Leads', pipeLeads.length, 'bg-sky-500'],
+                ['r1', 'R1', pipeVisits.length, 'bg-amber-500'],
+                ['r2', 'R2', pipeR2.length, 'bg-orange-500'],
+                ['mandat', 'Mandat', pipeMandates.length, 'bg-violet-500'],
+                ['vente', 'Vente', pipeSold.length, 'bg-emerald-500'],
+                ['archive', 'Archivés', archivedLeads.length, 'bg-stone-400'],
               ] as const).map(([k, label, n, grad]) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setMandateFilter(k)}
-                  className={`rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${mandateFilter === k ? `bg-gradient-to-r ${grad} text-white shadow-md` : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}
+                  className={`rounded-full px-4 py-2 text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${mandateFilter === k ? `${grad} text-white shadow-md` : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}
                 >
                   {label}
                   <span className={`rounded-full px-2 py-0.5 text-xs ${mandateFilter === k ? 'bg-white/25' : 'bg-white'}`}>{n}</span>
@@ -708,13 +708,13 @@ export const CrmPipelineView: React.FC<Props> = ({
             {filteredLeads.map((lead) => {
               const stg = stageOf(lead);
               const stageInfo: Record<string, [string, string]> = {
-                lead: ['Lead', 'from-sky-500 to-sky-600'],
-                r1: ['R1', 'from-amber-500 to-amber-600'],
-                r2: ['R2', 'from-orange-500 to-orange-600'],
-                mandat: ['Mandat', 'from-violet-500 to-violet-600'],
-                vente: ['Vente', 'from-emerald-500 to-emerald-600'],
+                lead: ['Lead', 'bg-sky-500'],
+                r1: ['R1', 'bg-amber-500'],
+                r2: ['R2', 'bg-orange-500'],
+                mandat: ['Mandat', 'bg-violet-500'],
+                vente: ['Vente', 'bg-emerald-500'],
               };
-              const [stLabel, stGrad] = lead.archive ? ['Archivé', 'from-stone-400 to-stone-500'] : stageInfo[stg];
+              const [stLabel, stGrad] = lead.archive ? ['Archivé', 'bg-stone-400'] : stageInfo[stg];
               const rdv = stg === 'r2' && lead.visit2?.date ? { l: 'R2', d: lead.visit2.date, t: lead.visit2.time } : lead.meetingDate ? { l: 'R1', d: lead.meetingDate, t: lead.meetingTime } : null;
               const initials = lead.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('');
               return (
@@ -724,7 +724,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   className="group cursor-pointer rounded-3xl bg-white border border-stone-200 shadow-sm hover:shadow-md hover:border-stone-300 transition-all p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center gap-4"
                 >
                   <div className="flex items-center gap-3.5 lg:w-72 shrink-0 min-w-0">
-                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${stGrad} text-white font-extrabold`}>{initials}</span>
+                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${stGrad} text-white font-extrabold`}>{initials}</span>
                     <div className="min-w-0">
                       <p className="truncate font-extrabold text-stone-900 uppercase">{lead.name}</p>
                       <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-stone-500" onClick={(e) => e.stopPropagation()}>
@@ -747,7 +747,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase text-stone-400">Étape</p>
-                      <span className={`mt-0.5 inline-block rounded-full bg-gradient-to-r ${stGrad} px-3 py-1 text-xs font-extrabold text-white`}>{stLabel}</span>
+                      <span className={`mt-0.5 inline-block rounded-full ${stGrad} px-3 py-1 text-xs font-extrabold text-white`}>{stLabel}</span>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase text-stone-400">Rendez-vous</p>

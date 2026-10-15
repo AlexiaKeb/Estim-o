@@ -32,7 +32,7 @@ const AgentAvatar: React.FC<{ size?: number }> = ({ size = 56 }) =>
     />
   ) : (
     <div
-      className="rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-stone-950 font-bold flex items-center justify-center border-2 border-white shadow-sm"
+      className="rounded-full bg-[#FFD60A] text-[#0B0F1F] font-bold flex items-center justify-center border-2 border-white shadow-sm"
       style={{ width: size, height: size, fontSize: size * 0.38 }}
       aria-hidden
     >

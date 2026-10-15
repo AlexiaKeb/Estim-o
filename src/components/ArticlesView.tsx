@@ -241,7 +241,7 @@ export const ArticlesView: React.FC = () => {
     const filtering = Boolean(needle || fCat || fStatus || fTag);
     return (
       <div className="max-w-5xl mx-auto space-y-6">
-        <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-7 shadow-md relative overflow-hidden flex flex-wrap items-center justify-between gap-4">
+        <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-7 shadow-md relative overflow-hidden flex flex-wrap items-center justify-between gap-4">
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
           <div className="relative">
             <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2.5"><Pencil className="w-7 h-7 text-amber-300" /> Mon blog</h1>
@@ -321,7 +321,7 @@ export const ArticlesView: React.FC = () => {
               {shown.map((r) => (
                 <li key={r.id} className="group flex flex-col overflow-hidden rounded-3xl bg-white border border-stone-200 shadow-sm hover:shadow-md transition-all">
                   <button type="button" onClick={() => open(r.id)} className="text-left">
-                    {r.cover_url ? <img src={r.cover_url} alt="" className="h-40 w-full object-cover" /> : <div className="h-40 w-full bg-gradient-to-br from-sky-100 via-stone-100 to-amber-100 flex items-center justify-center text-4xl">📰</div>}
+                    {r.cover_url ? <img src={r.cover_url} alt="" className="h-40 w-full object-cover" /> : <div className="h-40 w-full bg-sky-100 flex items-center justify-center text-4xl">📰</div>}
                     <div className="p-4">
                       <div className="flex items-center gap-2 text-[11px]">
                         <span className={`rounded-full px-2.5 py-0.5 font-extrabold ${r.status === 'publie' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{r.status === 'publie' ? 'Publié' : 'Brouillon'}</span>
@@ -361,7 +361,7 @@ export const ArticlesView: React.FC = () => {
   const addBtn = 'inline-flex items-center gap-2 rounded-full border-2 border-dashed border-stone-300 bg-white hover:border-sky-400 hover:bg-sky-50 px-4 py-2.5 text-sm font-bold text-stone-700 transition-colors';
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-28">
-      <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-4 sm:p-5 shadow-md flex flex-wrap items-center justify-between gap-3">
+      <div className="rounded-3xl bg-[#0f1f3d] text-white p-4 sm:p-5 shadow-md flex flex-wrap items-center justify-between gap-3">
         <button type="button" onClick={() => { if (!dirty || window.confirm('Quitter sans enregistrer vos modifications ?')) { setDraft(null); void load(); } }} className="rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-bold">← Tous mes articles</button>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded-full bg-white/10 px-3 py-1.5 font-semibold">{words} mots • ~{Math.max(1, Math.round(words / 200))} min de lecture</span>

@@ -141,7 +141,7 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
       </div>
 
       {/* En un coup d'œil */}
-      <section aria-label="Résumé" className="rounded-2xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-6 shadow-md">
+      <section aria-label="Résumé" className="rounded-2xl bg-[#0f1f3d] text-white p-5 sm:p-6 shadow-md">
         <p className="text-xs uppercase tracking-wider text-amber-300 font-bold">En un coup d'œil • {periodLabel}</p>
         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div><p className="text-3xl font-extrabold">{L}</p><p className="text-xs text-slate-300">leads reçus</p></div>

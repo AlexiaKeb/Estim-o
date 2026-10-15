@@ -363,11 +363,11 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
       .replace(/\{PrixEstime\}/g, first?.estimatedValue ? `${first.estimatedValue.toLocaleString('fr-FR')} €` : 'votre estimation')
       .replace(/\{Motif\}/g, first?.motive || 'votre projet');
   const stageStyle: Record<Stage, string> = {
-    lead: 'from-sky-500 to-sky-600',
-    r1: 'from-amber-500 to-amber-600',
-    r2: 'from-orange-500 to-orange-600',
-    mandat: 'from-violet-500 to-violet-600',
-    vente: 'from-emerald-500 to-emerald-600',
+    lead: 'bg-sky-500',
+    r1: 'bg-amber-500',
+    r2: 'bg-orange-500',
+    mandat: 'bg-violet-500',
+    vente: 'bg-emerald-500',
   };
   const stepNo = (n: number, t: string, sub?: string) => (
     <div className="flex items-center gap-3 mb-4">
@@ -383,7 +383,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
-      <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-6 shadow-md flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-6 shadow-md flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold flex items-center gap-2"><Mail className="w-6 h-6 text-amber-300" /> Vos e-mails</h1>
           <p className="text-sm text-slate-300 mt-0.5">Choisissez vos contacts, écrivez, envoyez. Un seul endroit.</p>
@@ -438,7 +438,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
         <div className="flex flex-wrap gap-2 mb-4" role="tablist" aria-label="Étape du pipeline">
           {STAGES.map((st) => (
             <button key={st.key} type="button" role="tab" aria-selected={stage === st.key} onClick={() => pickStage(st.key)}
-              className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${stage === st.key ? `bg-gradient-to-r ${stageStyle[st.key]} text-white shadow-md` : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
+              className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${stage === st.key ? `${stageStyle[st.key]} text-white shadow-md` : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
               {st.label} <span className={`ml-1 rounded-full px-2 py-0.5 text-xs ${stage === st.key ? 'bg-white/25' : 'bg-white'}`}>{byStage[st.key].length}</span>
             </button>
           ))}
@@ -480,7 +480,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
                   return (
                     <li key={l.id} onClick={() => toggle(l.id)} className={`flex cursor-pointer items-center gap-3 px-3 py-2 text-sm transition-colors ${on ? 'bg-sky-50' : 'hover:bg-stone-50'}`}>
                       <input type="checkbox" aria-label={`Sélectionner ${l.name}`} checked={on} onChange={() => toggle(l.id)} onClick={(e) => e.stopPropagation()} className="h-4 w-4 shrink-0" />
-                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${stageStyle[stage]} text-[11px] font-extrabold text-white`}>{initials(l.name)}</span>
+                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${stageStyle[stage]} text-[11px] font-extrabold text-white`}>{initials(l.name)}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-bold uppercase text-stone-900">{l.name}</span>
                         <span className="block truncate text-[11px] text-stone-500">{l.city} • {l.propertyType} {l.surface} m²{l.estimatedValue ? ` • ${l.estimatedValue.toLocaleString('fr-FR')} €` : ''}</span>
@@ -570,7 +570,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Aperçu{first ? ` pour ${first.name}` : ''}</p>
-            <div className="rounded-2xl border border-stone-200 bg-gradient-to-b from-stone-50 to-white p-4 shadow-inner min-h-[16rem]">
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 shadow-inner min-h-[16rem]">
               <p className="text-sm font-bold text-stone-900 border-b border-stone-200 pb-2 mb-3">{fill(curSubject) || <span className="text-stone-300">Objet de l'e-mail</span>}</p>
               <p className="whitespace-pre-line text-sm leading-relaxed text-stone-700">{fill(curBody)}</p>
               <p className="mt-4 text-[11px] text-stone-400">Votre signature, votre téléphone et le lien de désinscription sont ajoutés automatiquement.</p>

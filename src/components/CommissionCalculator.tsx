@@ -67,10 +67,10 @@ export const CommissionFields: React.FC<{ initial?: { price?: number; rate?: num
   const isCalc = (k: Key) => !isSource(k) && k !== lastEdited && Boolean(result);
 
   const TONE: Record<Key, { icon: string; ring: string; tint: string; badge: string }> = {
-    price: { icon: '🏠', ring: 'focus:ring-sky-300 focus:border-sky-400', tint: 'bg-sky-50 border-sky-200', badge: 'from-sky-500 to-sky-600' },
-    rate: { icon: '％', ring: 'focus:ring-amber-300 focus:border-amber-400', tint: 'bg-amber-50 border-amber-200', badge: 'from-amber-500 to-amber-600' },
-    fee: { icon: '💼', ring: 'focus:ring-orange-300 focus:border-orange-400', tint: 'bg-orange-50 border-orange-200', badge: 'from-orange-500 to-orange-600' },
-    net: { icon: '🤝', ring: 'focus:ring-emerald-300 focus:border-emerald-400', tint: 'bg-emerald-50 border-emerald-200', badge: 'from-emerald-500 to-emerald-600' },
+    price: { icon: '🏠', ring: 'focus:ring-sky-300 focus:border-sky-400', tint: 'bg-sky-50 border-sky-200', badge: 'bg-sky-500' },
+    rate: { icon: '％', ring: 'focus:ring-amber-300 focus:border-amber-400', tint: 'bg-amber-50 border-amber-200', badge: 'bg-amber-500' },
+    fee: { icon: '💼', ring: 'focus:ring-orange-300 focus:border-orange-400', tint: 'bg-orange-50 border-orange-200', badge: 'bg-orange-500' },
+    net: { icon: '🤝', ring: 'focus:ring-emerald-300 focus:border-emerald-400', tint: 'bg-emerald-50 border-emerald-200', badge: 'bg-emerald-500' },
   };
 
   return (
@@ -80,7 +80,7 @@ export const CommissionFields: React.FC<{ initial?: { price?: number; rate?: num
           <div key={k} className={`rounded-3xl border-2 p-4 sm:p-5 transition-all ${isCalc(k) ? `${TONE[k].tint} shadow-inner` : 'bg-white border-stone-200 shadow-sm'}`}>
             <label htmlFor={`calc-${k}`} className="flex items-center justify-between gap-2 mb-2">
               <span className="flex items-center gap-2.5">
-                <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${TONE[k].badge} text-white text-base font-extrabold shadow`}>{TONE[k].icon}</span>
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${TONE[k].badge} text-white text-base font-extrabold shadow`}>{TONE[k].icon}</span>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-stone-700">{LABELS[k].label}</span>
               </span>
               {isCalc(k) && <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">✨ calculé</span>}
@@ -127,7 +127,7 @@ export const CommissionCalculator: React.FC = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      <div className="rounded-3xl bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
+      <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
         <div className="relative">
           <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2.5"><Calculator className="w-7 h-7 text-amber-300" /> Calculatrice de commission</h1>
@@ -145,8 +145,8 @@ export const CommissionCalculator: React.FC = () => {
               <span className="text-xs text-stone-500">{showNum(result.price, 'price')} €</span>
             </div>
             <div className="flex h-10 w-full overflow-hidden rounded-2xl bg-stone-100 text-xs font-extrabold text-white" role="img" aria-label={`Net vendeur ${showNum(100 - feePct, 'rate')} %, commission ${showNum(feePct, 'rate')} %`}>
-              <div className="flex items-center justify-center bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all" style={{ width: `${100 - feePct}%` }}>{feePct < 92 ? `Net vendeur ${showNum(100 - feePct, 'rate')} %` : ''}</div>
-              <div className="flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 transition-all" style={{ width: `${feePct}%` }}>{feePct >= 12 ? `${showNum(feePct, 'rate')} %` : ''}</div>
+              <div className="flex items-center justify-center bg-emerald-500 transition-all" style={{ width: `${100 - feePct}%` }}>{feePct < 92 ? `Net vendeur ${showNum(100 - feePct, 'rate')} %` : ''}</div>
+              <div className="flex items-center justify-center bg-amber-500 transition-all" style={{ width: `${feePct}%` }}>{feePct >= 12 ? `${showNum(feePct, 'rate')} %` : ''}</div>
             </div>
             <div className="mt-2 flex justify-between text-[11px] font-semibold">
               <span className="text-emerald-700">● Net vendeur</span>

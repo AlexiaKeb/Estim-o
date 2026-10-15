@@ -280,7 +280,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
             <div className="flex items-start gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#FFD60A] via-[#FFD60A] to-[#FFD60A] flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
+                <div className="w-16 h-16 rounded-2xl bg-[#FFD60A] border-[3px] border-[#0B0F1F] flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
                   C
                 </div>
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#FFF7E6]0 border-2 border-white" title="En ligne" />
