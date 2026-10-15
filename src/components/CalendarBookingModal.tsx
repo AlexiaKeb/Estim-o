@@ -269,10 +269,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
 
     setIsSubmitting(false);
     setIsBooked(true);
-    setTimeout(() => {
-      trackConversion('booking');
-      onConfirmBooking(finalLead);
-    }, 1200);
+    setPendingLead(finalLead);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -421,8 +418,8 @@ export const CalendarBookingModal: React.FC<Props> = ({
 
     setIsSubmitting(false);
     setIsBooked(true);
+    // The confirmation stays on screen until the visitor chooses to continue (button or close)
     setPendingLead(finalLead);
-    setTimeout(() => proceed(finalLead), 4500);
   };
 
   return (
@@ -445,7 +442,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => (pendingLead ? proceed(pendingLead) : onClose())}
             className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
