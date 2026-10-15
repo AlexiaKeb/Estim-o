@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lead } from '../types';
+import { QuickQualification } from './QuickQualification';
 import { 
   Calendar, 
   Clock, 
@@ -377,6 +378,14 @@ export const BookingConfirmationView: React.FC<Props> = ({
               </p>
             </div>
           </div>
+
+          {/* Optional: three quick questions so Céline can prepare the visit */}
+          <QuickQualification
+            leadId={confirmedLead.id}
+            low={confirmedLead.valuation?.lowPrice}
+            high={confirmedLead.valuation?.highPrice}
+            onSubmitted={() => {}}
+          />
 
           {/* Interactive FAQ Accordion */}
           <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-4">

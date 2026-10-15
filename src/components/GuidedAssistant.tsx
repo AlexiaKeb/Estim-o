@@ -924,7 +924,6 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               <Chip strong disabled={slots === null && !slotsFailed} onClick={() => onOpenBooking?.(bookingInfo())}>
                 {days.length > 0 ? 'Voir tous les créneaux disponibles' : 'Réserver ma visite offerte'}
               </Chip>
-              {!qAnswers.ownership && <Chip onClick={startQuestions}>Préparer le rendez-vous (3 questions)</Chip>}
             </div>
             {slotsFailed && (
               <p className="text-sm text-stone-600">

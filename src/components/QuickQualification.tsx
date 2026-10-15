@@ -89,26 +89,26 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
 
   if (state !== 'idle') {
     return (
-      <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 flex items-start gap-3 text-sm text-emerald-900">
-        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+      <div role="status" className="rounded-2xl border-[3px] border-[#0B0F1F] bg-[#E4E9FF] p-4 flex items-start gap-3 text-sm font-semibold text-[#0B0F1F]">
+        <CheckCircle2 className="w-5 h-5 text-[#2B4BFF] shrink-0 mt-0.5" />
         <span>Merci, vos réponses sont transmises à Céline. Elles lui permettent de préparer votre visite.</span>
       </div>
     );
   }
 
   return (
-    <section aria-labelledby="quick-q-title" className="rounded-2xl border border-stone-200 bg-white p-5 space-y-4 shadow-xs">
+    <section aria-labelledby="quick-q-title" className="rounded-3xl border-[3px] border-[#0B0F1F] bg-white p-5 sm:p-6 space-y-4 shadow-[5px_5px_0_#0B0F1F]">
       <div className="flex items-start gap-3">
-        <ClipboardList className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
+        <ClipboardList className="w-5 h-5 text-[#2B4BFF] mt-0.5 shrink-0" />
         <div>
-          <h3 id="quick-q-title" className="font-semibold text-stone-900">Préparons votre visite</h3>
-          <p className="text-xs text-stone-500">Trois questions rapides, facultatives. Elles évitent à Céline de vous les poser sur place.</p>
+          <h3 id="quick-q-title" className="font-black text-[#0B0F1F]">Préparons votre visite</h3>
+          <p className="text-xs text-[#0B0F1F]/70">Trois questions rapides, facultatives. Elles évitent à Céline de vous les poser sur place.</p>
         </div>
       </div>
 
       {QUESTIONS.map((q) => (
         <fieldset key={q.key} className="space-y-2">
-          <legend className="text-xs font-semibold text-stone-700">{q.label}</legend>
+          <legend className="text-xs font-bold text-[#0B0F1F]">{q.label}</legend>
           <div role="radiogroup" aria-label={q.label} className="flex flex-wrap gap-2">
             {q.options.map(([value, label]) => {
               const on = answers[q.key] === value;
@@ -119,8 +119,8 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
                   role="radio"
                   aria-checked={on}
                   onClick={() => setAnswers((a) => ({ ...a, [q.key]: on ? undefined : value } as QuickAnswers))}
-                  className={`px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
-                    on ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-300 text-stone-700 hover:bg-stone-50'
+                  className={`px-3 py-2 rounded-xl border-[3px] text-xs font-bold transition-colors ${
+                    on ? 'bg-[#2B4BFF] border-[#0B0F1F] text-white' : 'bg-white border-[#0B0F1F] text-[#0B0F1F] hover:bg-[#FFF7E6]'
                   }`}
                 >
                   {label}
@@ -132,7 +132,7 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
       ))}
 
       <div className="space-y-1.5">
-        <label htmlFor="quick-price" className="text-xs font-semibold text-stone-700">
+        <label htmlFor="quick-price" className="text-xs font-bold text-[#0B0F1F]">
           Prix que vous espérez (facultatif)
         </label>
         <div className="flex items-center gap-2">
@@ -142,9 +142,9 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
             value={priceText}
             onChange={(e) => setPriceText(e.target.value.replace(/[^\d\s]/g, ''))}
             placeholder={low && high ? `Ex : ${Math.round(((low + high) / 2) / 1000) * 1000}` : 'Ex : 350000'}
-            className="w-44 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/60"
+            className="w-44 rounded-xl border-[3px] border-[#0B0F1F] px-3 py-2 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-[#FFD60A]"
           />
-          <span className="text-sm text-stone-500">€</span>
+          <span className="text-sm font-bold text-[#0B0F1F]">€</span>
         </div>
       </div>
 
@@ -154,11 +154,11 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
           id="btn-quick-submit"
           disabled={!answered}
           onClick={submit}
-          className="rounded-xl bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white text-sm font-semibold px-4 py-2.5 transition-colors"
+          className="rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] hover:brightness-95 disabled:bg-stone-200 disabled:text-[#0B0F1F]/50 text-[#0B0F1F] text-sm font-black px-4 py-2.5 shadow-[3px_3px_0_#0B0F1F] transition-colors"
         >
           Envoyer mes réponses
         </button>
-        <button type="button" onClick={() => setState('done')} className="text-xs text-stone-500 underline underline-offset-2 hover:text-stone-800">
+        <button type="button" onClick={() => setState('done')} className="text-xs font-semibold text-[#0B0F1F]/70 underline underline-offset-2 hover:text-[#0B0F1F]">
           Passer
         </button>
       </div>
