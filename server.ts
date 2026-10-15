@@ -1660,9 +1660,20 @@ async function startServer() {
       }
     }
     // Explicit deletes first (works even if a foreign key without CASCADE exists), then the contact itself
-    for (const table of ["relances", "conversations", "rendez_vous"]) await client.from(table).delete().eq("lead_id", id);
+    for (const table of ["relances", "conversations", "rendez_vous"]) {
+      const { error: childError } = await client.from(table).delete().eq("lead_id", id);
+      if (childError) return { cancelled, error: `${table} : ${childError.message}` };
+    }
     const { error } = await client.from("leads").delete().eq("id", id);
-    return error ? { cancelled, error: error.message } : { cancelled };
+    if (error) return { cancelled, error: error.message };
+    // Proof, not hope: read back that nothing about this contact is left in the database
+    const left: string[] = [];
+    for (const [table, col] of [["leads", "id"], ["relances", "lead_id"], ["conversations", "lead_id"], ["rendez_vous", "lead_id"]] as const) {
+      const { count, error: readError } = await client.from(table).select("id", { count: "exact", head: true }).eq(col, id);
+      if (readError || (count ?? 0) > 0) left.push(table);
+    }
+    if (left.length) return { cancelled, error: `Données encore présentes dans : ${left.join(", ")}` };
+    return { cancelled };
   };
 
   app.delete("/api/crm/leads/:id", requireAgent, rateLimit("lead-delete", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
