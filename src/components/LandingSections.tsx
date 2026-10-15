@@ -562,17 +562,29 @@ export const BlogTeaser: React.FC = () => {
   }, []);
   return (
     <Band tone="sky" full={false}>
-      <section aria-labelledby="blog-teaser-title">
+      <section aria-labelledby="blog-teaser-title" className="relative">
+        <Spark aria-hidden="true" className="spark pointer-events-none absolute right-[8%] -top-2 hidden h-10 w-10 sm:block" />
+        <span aria-hidden="true" className="bob pointer-events-none absolute right-[2%] top-10 hidden h-6 w-6 rounded-full border-[3px] border-[#0B0F1F] bg-[#2B4BFF] sm:block" />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <Eyebrow>L'avis de l'expert</Eyebrow>
-            <H2 id="blog-teaser-title">Comment valoriser et vendre votre logement à sa vraie valeur</H2>
+            <H2 id="blog-teaser-title">
+              Comment{' '}
+              <span className="relative inline-block">
+                valoriser
+                <svg aria-hidden="true" viewBox="0 0 200 14" preserveAspectRatio="none" className="absolute -bottom-2 left-0 h-3 w-full" fill="none" stroke="#2B4BFF" strokeWidth="5" strokeLinecap="round">
+                  <path d="M3 8 Q 15 0 27 8 T 51 8 T 75 8 T 99 8 T 123 8 T 147 8 T 171 8 T 197 8" />
+                </svg>
+              </span>{' '}
+              et vendre votre logement à sa{' '}
+              <span className="inline-block -rotate-2 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-3 shadow-[4px_4px_0_#0B0F1F]">vraie valeur</span>
+            </H2>
           </div>
-          <a href="/blog" className="inline-flex items-center gap-1.5 text-base font-black text-[#0B0F1F] underline decoration-[3px] underline-offset-4">Tous les conseils d'experts <ArrowRight className="w-4 h-4" /></a>
+          <a href="/blog" className="group inline-flex items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-white px-5 py-2.5 text-base font-black text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-all hover:-translate-y-0.5 hover:bg-[#FFD60A]">Tous les conseils d'experts <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></a>
         </div>
-        <ul className="mt-8 grid md:grid-cols-3 gap-5">
+        <ul className="mt-10 grid gap-6 md:grid-cols-3">
           {posts.map((p, idx) => (
-            <li key={p.slug}>
+            <li key={p.slug} className={`transition-[rotate] duration-200 hover:rotate-0 ${['md:-rotate-2', 'md:rotate-1', 'md:-rotate-1'][idx % 3]} ${idx === 1 ? 'md:mt-4' : ''}`}>
               <a href={`/blog/${p.slug}`} className={`group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] bg-white`}>
                 {p.coverUrl && /^https:\/\//i.test(p.coverUrl) ? (
                   <img src={p.coverUrl as string} alt={p.title} loading="lazy" decoding="async" width={600} height={600} className="aspect-square w-full border-b-[3px] border-[#0B0F1F] object-cover" />
