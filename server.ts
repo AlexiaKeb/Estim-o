@@ -29,7 +29,7 @@ import {
   setRevokedBefore,
   getRevokedBefore,
 } from "./server/auth";
-import { emailTextLength } from "./src/utils/emailHtml";
+import { emailTextLength, isHtmlBody, plainToHtml, sanitizeEmailHtml } from "./src/utils/emailHtml";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
 import { toLead, pickCrm, leadsToCsv, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
 import { notifyAdvisor, alertChannels } from "./server/alerts";
@@ -983,6 +983,19 @@ async function startServer() {
     res.json({ relances: data || [] });
   });
 
+  // What was actually sent: subject and message with the contact's data filled in
+  app.get("/api/relances/:id/content", requireAgent, async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const { data: row } = await client.from("relances").select("id, lead_id, subject, message, status, sent_at, recipient, error, created_at").eq("id", req.params.id).maybeSingle();
+    if (!row) return res.status(404).json({ error: "Message introuvable" });
+    const { data: lead } = await client.from("leads").select("*").eq("id", row.lead_id).maybeSingle();
+    const filled = lead ? fillVariables(row.message || "", lead) : row.message || "";
+    const subject = lead ? fillVariables(row.subject || "Votre estimation", lead) : row.subject || "";
+    const html = isHtmlBody(filled) ? sanitizeEmailHtml(filled) : plainToHtml(filled);
+    res.json({ id: row.id, subject, html, recipient: row.recipient || lead?.email || "", status: row.status, sentAt: row.sent_at || row.created_at, error: row.error || null });
+  });
+
   app.get("/api/relances/history", requireAgent, async (_req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client) return res.json({ logs: [] });
@@ -995,8 +1008,9 @@ async function startServer() {
     const rows: any[] = data || [];
     // Messages whose contact no longer exists (deleted by hand in the database) are removed for good
     const leadIds = [...new Set(rows.map((r) => r.lead_id).filter(Boolean))];
-    const { data: leads } = leadIds.length ? await client.from("leads").select("id, nom").in("id", leadIds) : { data: [] as any[] };
+    const { data: leads } = leadIds.length ? await client.from("leads").select("*").in("id", leadIds) : { data: [] as any[] };
     const names = new Map<string, string>((leads || []).map((l: any) => [l.id, l.nom]));
+    const leadBy = new Map<string, any>((leads || []).map((l: any) => [l.id, l]));
     const orphans = rows.filter((r) => !names.has(r.lead_id)).map((r) => r.id);
     if (orphans.length && leads) await client.from("relances").delete().in("id", orphans);
     res.json({
@@ -1007,7 +1021,7 @@ async function startServer() {
           leadName: names.get(r.lead_id) || "Contact",
           recipient: r.recipient || "",
           channel: r.channel,
-          subject: r.subject || "",
+          subject: leadBy.get(r.lead_id) ? fillVariables(r.subject || "", leadBy.get(r.lead_id)) : r.subject || "",
           message: r.message,
           status: r.status,
           sentAt: r.sent_at || r.created_at,
@@ -1616,7 +1630,7 @@ async function startServer() {
     const client = getSupabaseAdmin();
     if (!client) return res.json({ templates: [] });
     const { sq } = await readSpend(client);
-    res.json({ templates: Array.isArray(sq.email_templates) ? sq.email_templates : [] });
+    res.json({ templates: Array.isArray(sq.email_templates) ? sq.email_templates : [], hidden: Array.isArray(sq.email_templates_hidden) ? sq.email_templates_hidden : [] });
   });
   app.put("/api/email-templates", requireAgent, rateLimit("email-templates", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();
@@ -1636,9 +1650,13 @@ async function startServer() {
       .filter((t: any) => t.label && t.body.trim());
     const { id, sq } = await readSpend(client);
     if (!id) return res.status(409).json({ error: "Aucune fiche conseillère en base : créez d'abord un prospect." });
-    const { error } = await client.from("agents").update({ script_qualification: { ...sq, email_templates: templates } }).eq("id", id);
+    // Ready-made messages the advisor removed from her lists (kept so they stay hidden; she can restore them)
+    const hidden: string[] = Array.isArray(req.body?.hidden)
+      ? Array.from(new Set<string>(req.body.hidden.filter((x: any) => typeof x === "string" && x.length <= 120))).slice(0, 80)
+      : Array.isArray(sq.email_templates_hidden) ? sq.email_templates_hidden : [];
+    const { error } = await client.from("agents").update({ script_qualification: { ...sq, email_templates: templates, email_templates_hidden: hidden } }).eq("id", id);
     if (error) return res.status(500).json({ error: error.message });
-    res.json({ templates });
+    res.json({ templates, hidden });
   });
 
   // Deletes a contact AND everything attached to it (messages, e-mails, conversation, appointments).

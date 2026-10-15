@@ -58,6 +58,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [tplIdx, setTplIdx] = useState(0);
   const [customs, setCustoms] = useState<CustomTpl[]>([]);
+  // Ready-made messages the advisor removed from her lists (kept so she can restore them)
+  const [hidden, setHidden] = useState<string[]>([]);
   // Modèle sélectionné : intégré (index), personnalisé (id) ou nouveau message (null)
   const [current, setCurrent] = useState<{ kind: 'builtin'; i: number } | { kind: 'custom'; id: string } | null>({ kind: 'builtin', i: 0 });
   // Quand envoyer : tout de suite, à une date, ou en séquence (plusieurs messages espacés de quelques jours)
@@ -67,6 +69,9 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [view, setView] = useState<'compose' | 'follow'>('compose');
   const [upcoming, setUpcoming] = useState<Array<{ id: string; leadName: string; subject: string; sendAt: string }> | null>(null);
   const [sentLogs, setSentLogs] = useState<Array<{ id: string; leadName: string; subject: string; status: string; sentAt: string }> | null>(null);
+  // The message the advisor opened in the "Envoyés" list (what was really sent)
+  const [openSent, setOpenSent] = useState<string | null>(null);
+  const [sentDetail, setSentDetail] = useState<Record<string, { subject: string; html: string; recipient: string; error: string | null } | 'loading' | 'error'>>({});
   // Recherche et filtres de la liste des contacts (utile avec des centaines de dossiers)
   const [q, setQ] = useState('');
   const [cityF, setCityF] = useState('');
@@ -86,7 +91,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   useEffect(() => {
     fetch('/api/relances/status', { credentials: 'same-origin' }).then((r) => r.json()).then(setStatus).catch(() => setStatus(null));
-    fetch('/api/email-templates', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setCustoms(Array.isArray(d.templates) ? d.templates : [])).catch(() => {});
+    fetch('/api/email-templates', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => { setCustoms(Array.isArray(d.templates) ? d.templates : []); setHidden(Array.isArray(d.hidden) ? d.hidden : []); }).catch(() => {});
   }, []);
 
   const byStage = useMemo(() => {
@@ -135,12 +140,16 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     }
   };
   const recommended = () => {
-    const list = TEMPLATES[stage];
+    const list = visibleTpls(stage).map(({ t }) => t);
     const delays = [0, 3, 7, 14, 21];
     setSteps(list.map((t, i) => ({ delay: delays[i] ?? delays[delays.length - 1] + (i - delays.length + 1) * 7, subject: t.subject, body: t.body })));
     setActive(0);
     setWhen('seq');
   };
+
+  const tplKey = (st: Stage, label: string) => `${st}:${label}`;
+  // Ready-made messages still shown for a stage (index kept: it points into TEMPLATES)
+  const visibleTpls = (st: Stage) => TEMPLATES[st].map((t, i) => ({ t, i })).filter(({ t }) => !hidden.includes(tplKey(st, t.label)));
 
   const pickStage = (s: Stage) => {
     setStage(s);
@@ -154,8 +163,17 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     setCurrent({ kind: 'builtin', i: 0 });
     setTplName('');
     setTplMsg(null);
-    setSubject(TEMPLATES[s][0].subject);
-    setBody(TEMPLATES[s][0].body);
+    const firstTpl = TEMPLATES[s].map((t, i) => ({ t, i })).find(({ t }) => !hidden.includes(tplKey(s, t.label)));
+    if (firstTpl) {
+      setTplIdx(firstTpl.i);
+      setCurrent({ kind: 'builtin', i: firstTpl.i });
+      setSubject(firstTpl.t.subject);
+      setBody(firstTpl.t.body);
+    } else {
+      setCurrent(null);
+      setSubject('');
+      setBody('Bonjour {Prénom},\n\n');
+    }
     setSteps([]);
     setActive(0);
     if (when === 'seq') setWhen('now');
@@ -216,6 +234,29 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     if (await persistCustoms(customs.filter((c) => c.id !== t.id))) {
       if (current?.kind === 'custom' && current.id === t.id) pickTemplate(0);
     }
+  };
+  const persistHidden = async (next: string[]) => {
+    try {
+      const r = await fetch('/api/email-templates', { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ templates: customs, hidden: next }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { setTplMsg(d.error || "L'enregistrement a échoué."); return false; }
+      setHidden(Array.isArray(d.hidden) ? d.hidden : next);
+      return true;
+    } catch {
+      setTplMsg('Serveur injoignable.');
+      return false;
+    }
+  };
+  const removeBuiltin = async (i: number) => {
+    const t = TEMPLATES[stage][i];
+    if (!window.confirm(`Retirer le message « ${t.label} » de votre liste ? Vous pourrez le rétablir à tout moment.`)) return;
+    const wasCurrent = current?.kind === 'builtin' && current.i === i;
+    if (await persistHidden([...hidden, tplKey(stage, t.label)]) && wasCurrent && !seq) newMessage();
+  };
+  const restoreBuiltins = async () => {
+    const mine = hidden.filter((h) => h.startsWith(`${stage}:`));
+    if (!mine.length) return;
+    await persistHidden(hidden.filter((h) => !h.startsWith(`${stage}:`)));
   };
   const toggle = (id: string) => setSelected((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const allOn = filtered.length > 0 && filtered.every((l) => selected.has(l.id));
@@ -299,6 +340,16 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     fetch('/api/relances/history', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setSentLogs((d.logs || []).map((l: any) => ({ id: l.id, leadName: l.leadName, subject: l.subject, status: l.status, sentAt: l.sentAt })))).catch(() => setSentLogs([]));
   };
   useEffect(() => { if (view === 'follow') loadFollow(); }, [view]);
+  const toggleSent = (id: string) => {
+    if (openSent === id) { setOpenSent(null); return; }
+    setOpenSent(id);
+    if (sentDetail[id] && sentDetail[id] !== 'error') return;
+    setSentDetail((d) => ({ ...d, [id]: 'loading' }));
+    fetch(`/api/relances/${id}/content`, { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setSentDetail((x) => ({ ...x, [id]: { subject: d.subject, html: d.html, recipient: d.recipient, error: d.error } })))
+      .catch(() => setSentDetail((x) => ({ ...x, [id]: 'error' })));
+  };
   const cancelScheduled = async (id: string) => {
     await fetch(`/api/relances/scheduled/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
     setUpcoming((u) => (u || []).filter((x) => x.id !== id));
@@ -422,12 +473,30 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
             <p className="text-xs text-stone-500 mb-3">Les 100 derniers messages.</p>
             {sentLogs === null ? <Loader2 className="w-4 h-4 animate-spin" /> : sentLogs.length === 0 ? <p className="text-sm text-stone-400">Aucun message envoyé.</p> : (
               <ul className="divide-y divide-stone-100 max-h-[32rem] overflow-y-auto">
-                {sentLogs.map((l) => (
+                {sentLogs.map((l) => {
+                  const det = sentDetail[l.id];
+                  const isOpen = openSent === l.id;
+                  return (
                   <li key={l.id} className="py-2 text-sm">
-                    <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
-                    <p className="text-xs text-stone-500 truncate">{l.subject || 'Sans objet'} • {new Date(l.sentAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p>
+                    <button type="button" onClick={() => toggleSent(l.id)} aria-expanded={isOpen} className="w-full text-left rounded-lg hover:bg-stone-50 -mx-1 px-1">
+                      <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
+                      <p className="text-xs text-stone-500 truncate">{l.subject || 'Sans objet'} • {new Date(l.sentAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} • <span className="font-bold text-sky-700">{isOpen ? 'Masquer' : 'Voir le message'}</span></p>
+                    </button>
+                    {isOpen && (
+                      <div className="mt-2 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFF7E6] p-3 text-sm">
+                        {det === 'loading' || !det ? <Loader2 className="w-4 h-4 animate-spin" /> : det === 'error' ? <p className="text-rose-700">Impossible d'afficher ce message.</p> : (
+                          <>
+                            <p className="text-[11px] text-stone-600">À : <strong>{det.recipient || 'adresse inconnue'}</strong></p>
+                            <p className="mt-1 font-bold text-stone-900 border-b border-stone-300 pb-2 mb-2">{det.subject}</p>
+                            <div className="rich-email text-stone-800" dangerouslySetInnerHTML={{ __html: det.html }} />
+                            {det.error && <p className="mt-2 text-xs text-rose-700">Erreur d'envoi : {det.error}</p>}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </section>
@@ -509,8 +578,11 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
       <section className="rounded-3xl bg-white border border-stone-200 shadow-sm p-5 sm:p-6">
         {stepNo(2, 'Quel message ?', seq ? 'Cliquez un message pour l\'ajouter à la séquence, ou écrivez le vôtre.' : 'Choisissez un message prêt à l\'emploi ou écrivez le vôtre.')}
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          {TEMPLATES[stage].map((t, i) => (
-            <button key={t.label} type="button" onClick={() => pickTemplate(i)} className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-all ${!seq && current?.kind === 'builtin' && current.i === i ? 'border-sky-500 bg-sky-50 text-sky-800' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}>{t.label}</button>
+          {visibleTpls(stage).map(({ t, i }) => (
+            <span key={t.label} className={`inline-flex items-center rounded-full border pl-3.5 pr-1.5 py-1 text-sm font-semibold transition-all ${!seq && current?.kind === 'builtin' && current.i === i ? 'border-sky-500 bg-sky-50 text-sky-800' : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'}`}>
+              <button type="button" onClick={() => pickTemplate(i)}>{t.label}</button>
+              <button type="button" onClick={() => void removeBuiltin(i)} aria-label={`Retirer ${t.label}`} title="Retirer ce message de ma liste" className="ml-1 rounded-full p-1 text-stone-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
+            </span>
           ))}
           {customs.filter((c) => c.stage === stage).map((c) => (
             <span key={c.id} className={`inline-flex items-center rounded-full border pl-3.5 pr-1.5 py-1 text-sm font-semibold ${!seq && current?.kind === 'custom' && current.id === c.id ? 'border-sky-500 bg-sky-50 text-sky-800' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>
@@ -519,6 +591,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
             </span>
           ))}
           <button type="button" id="btn-new-mail" onClick={newMessage} className="inline-flex items-center gap-1 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] text-white text-sm font-bold px-3.5 py-1.5"><Plus className="w-4 h-4" /> Nouveau</button>
+          {hidden.some((h) => h.startsWith(`${stage}:`)) && <button type="button" onClick={() => void restoreBuiltins()} className="text-xs font-semibold text-stone-500 underline underline-offset-2 hover:text-stone-800">Rétablir les messages d'origine</button>}
         </div>
 
         {seq && (
