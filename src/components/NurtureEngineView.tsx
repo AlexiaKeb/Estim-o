@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { insertAtCursor } from '../utils/insertAtCursor';
 import { Lead, ScheduledMessage } from '../types';
 import { generateDefaultSequenceForLead } from '../utils/sequenceHelper';
 import { 
@@ -361,8 +362,9 @@ export const NurtureEngineView: React.FC<Props> = ({
   };
 
   // Insert dynamic variable tag into message
+  const messageRef = useRef<HTMLTextAreaElement>(null);
   const handleInsertTag = (tag: string) => {
-    setEditMessage((prev) => prev + tag);
+    insertAtCursor(messageRef.current, tag, editMessage, setEditMessage);
   };
 
   // Preset date quick selector (+1j, +3j, +7j, +15j, +30j)
@@ -937,6 +939,7 @@ export const NurtureEngineView: React.FC<Props> = ({
                     </div>
 
                     <textarea
+                      ref={messageRef}
                       rows={6}
                       value={editMessage}
                       onChange={(e) => setEditMessage(e.target.value)}
@@ -959,6 +962,7 @@ export const NurtureEngineView: React.FC<Props> = ({
                         <button
                           key={t.tag}
                           type="button"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleInsertTag(t.tag)}
                           className="px-2 py-0.5 rounded bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[10px] font-bold text-blue-700 transition-colors"
                         >

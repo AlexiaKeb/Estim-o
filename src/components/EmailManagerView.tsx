@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { insertAtCursor } from '../utils/insertAtCursor';
 import { CalendarClock, Loader2, Mail, Plus, Save, Send, Trash2 } from 'lucide-react';
 import { Lead } from '../types';
 import { AGENT } from '../data/siteContent';
@@ -70,6 +71,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [heatF, setHeatF] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
   const [onlyEmail, setOnlyEmail] = useState(false);
   const [limit, setLimit] = useState(50);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [tplName, setTplName] = useState('');
   const [tplMsg, setTplMsg] = useState<string | null>(null);
   const [subject, setSubject] = useState(TEMPLATES.lead[0].subject);
@@ -552,10 +554,10 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
             </div>
             <div>
               <label htmlFor="bulk-body" className="text-xs font-bold uppercase tracking-wider text-stone-500">Message</label>
-              <textarea id="bulk-body" rows={10} className={field} value={curBody} onChange={(e) => setCurBody(e.target.value)} />
+              <textarea id="bulk-body" ref={bodyRef} rows={10} className={field} value={curBody} onChange={(e) => setCurBody(e.target.value)} />
               <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px]">
                 <span className="text-stone-500">Insérer :</span>
-                {VARS.map((v) => <button key={v} type="button" onClick={() => setCurBody((b) => `${b}${v}`)} className="rounded-full border border-sky-200 bg-sky-50 text-sky-800 px-2.5 py-1 font-semibold hover:bg-sky-100">{v}</button>)}
+                {VARS.map((v) => <button key={v} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => insertAtCursor(bodyRef.current, v, curBody, setCurBody)} className="rounded-full border border-sky-200 bg-sky-50 text-sky-800 px-2.5 py-1 font-semibold hover:bg-sky-100">{v}</button>)}
               </div>
             </div>
             <div className="flex flex-wrap items-end gap-2 rounded-2xl bg-stone-50 border border-stone-200 p-3">
