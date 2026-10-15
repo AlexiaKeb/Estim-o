@@ -1,9 +1,7 @@
 @import "tailwindcss";
-@import "@fontsource-variable/inter";
 
 /* Palette de marque : les gris foncés deviennent un bleu nuit, l'ambre reste l'accent doré */
 @theme {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --color-stone-950: #0a1530;
   --color-stone-900: #0f1f3d;
   --color-stone-800: #1a3060;
@@ -26,9 +24,3 @@ html, body { overflow-x: clip; }
   .float-slow, .drift, .pop-in, .text-shimmer { animation: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
-
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@keyframes grad-move { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-.marquee { animation: marquee 28s linear infinite; }
-.grad-text { background-size: 200% auto; animation: grad-move 8s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .marquee, .grad-text { animation: none; } }
