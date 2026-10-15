@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Bot, CalendarDays, Check, CheckCircle2, Loader2, Lock, Send, ShieldCheck, TrendingUp } from 'lucide-react';
+import { ArrowDown, ArrowRight, Bot, CalendarDays, Check, CheckCircle2, Loader2, Lock, Send, ShieldCheck, TrendingUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Lead, ValuationInputs, ValuationResult } from '../types';
 import { AGENT } from '../data/siteContent';
@@ -706,9 +706,6 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             </div>
           </div>
 
-          <div className="text-center text-xs font-medium text-[#0B0F1F]/60">
-            ~{fmt(result.avgM2)} €/m² · {result.propertyType} de {result.surface} m² à {result.city}
-          </div>
         </div>
       </div>
     ) : null;
@@ -889,6 +886,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       case 'offer':
         return (
           <div className="space-y-3">
+            <div className="flex flex-col items-center gap-1 pt-1 text-center">
+              <p className="text-lg font-black leading-tight text-[#FFD60A] sm:text-xl">Prenez rendez-vous avec {AGENT.firstName}</p>
+              <ArrowDown className="h-7 w-7 text-[#FFD60A] motion-safe:animate-bounce" aria-hidden="true" />
+            </div>
             {slots === null && !slotsFailed && (
               <div className="flex items-center gap-2 text-sm text-white/90" role="status">
                 <Loader2 className="w-4 h-4 animate-spin" /> Je regarde les disponibilités de {AGENT.firstName}…
