@@ -130,7 +130,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
     },
     {
       q: "Comment est établie mon estimation après le passage de Céline ?",
-      a: "Après la visite, Céline confronte les éléments relevés sur place (état, luminosité, étage, vue, prestations) avec les transactions récentes de votre secteur pour établir un avis de valeur argumenté, qu'elle vous remet sous 48h.",
+      a: "Après la visite, Céline confronte les éléments relevés sur place (état, luminosité, étage, vue, prestations) avec les transactions récentes de votre secteur pour établir un avis de valeur, qu'elle vous remet sous 48h.",
     },
     {
       q: "Dois-je ranger ou nettoyer mon logement avant la visite ?",
@@ -423,7 +423,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 <span>Votre avis de valeur sous 48h</span>
               </div>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez sous 48h un avis de valeur argumenté, au plus juste du marché local.
+                Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez sous 48h un avis de valeur au plus juste du marché local.
               </p>
             </div>
           </div>
