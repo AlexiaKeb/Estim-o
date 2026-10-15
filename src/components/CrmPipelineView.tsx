@@ -1,3 +1,4 @@
+import { PreVisitBrief } from './PreVisitBrief';
 import { stageOf, frDate } from '../utils/stage';
 import { CommissionFields, type CommissionResult } from './CommissionCalculator';
 import { SecurityPanel } from './SecurityPanel';
@@ -1061,8 +1062,17 @@ export const CrmPipelineView: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* 2. R1 / R2 */}
+              {/* 2. PRÉ-VISITE + R1 */}
               <div className="space-y-3">
+              <PreVisitBrief
+                lead={selectedLeadDrawer}
+                onBrief={(brief) => {
+                  const updated = { ...selectedLeadDrawer, brief };
+                  onUpdateLead?.(updated);
+                  setSelectedLeadDrawer(updated);
+                }}
+              />
+
                 <VisitBox
                   key={`r1-${selectedLeadDrawer.id}-${selectedLeadDrawer.meetingDate || ''}`}
                   title="R1 • Visite d'estimation"
