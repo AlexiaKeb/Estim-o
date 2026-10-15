@@ -146,10 +146,11 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
   );
 };
 
-type Tone = 'cream' | 'blue' | 'yellow' | 'ink' | 'white';
+type Tone = 'cream' | 'blue' | 'yellow' | 'ink' | 'white' | 'sky';
 const TONES: Record<Tone, string> = {
   cream: 'bg-[#FFF7E6] text-[#0B0F1F]',
   white: 'bg-white text-[#0B0F1F]',
+  sky: 'bg-[#E4E9FF] text-[#0B0F1F]',
   blue: 'bg-[#2B4BFF] text-white',
   yellow: 'bg-[#FFD60A] text-[#0B0F1F]',
   ink: 'bg-[#0B0F1F] text-white',
@@ -554,7 +555,7 @@ export const BlogTeaser: React.FC = () => {
     return () => { off = true; };
   }, []);
   return (
-    <Band tone="white" full={false}>
+    <Band tone="sky" full={false}>
       <section aria-labelledby="blog-teaser-title">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -566,12 +567,12 @@ export const BlogTeaser: React.FC = () => {
         <ul className="mt-8 grid md:grid-cols-3 gap-5">
           {posts.map((p, idx) => (
             <li key={p.slug}>
-              <a href={`/blog/${p.slug}`} className={`group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] ${['bg-[#E4E9FF]', 'bg-[#FFF3B8]', 'bg-[#FFF7E6]'][idx % 3]}`}>
+              <a href={`/blog/${p.slug}`} className={`group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] bg-white`}>
                 {p.coverUrl && /^https:\/\//i.test(p.coverUrl) ? (
                   <img src={p.coverUrl as string} alt={p.title} loading="lazy" decoding="async" width={600} height={600} className="aspect-square w-full border-b-[3px] border-[#0B0F1F] object-cover" />
                 ) : null}
                 <span className="flex flex-1 flex-col p-6">
-                  <span className="self-start rounded-full border-2 border-[#0B0F1F] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#2B4BFF]">{p.category}</span>
+                  <span className={`self-start rounded-full border-2 border-[#0B0F1F] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F] ${['bg-[#FFF3B8]', 'bg-[#E4E9FF]', 'bg-[#FFF7E6]'][idx % 3]}`}>{p.category}</span>
                   <span className="mt-4 flex-1 text-xl font-black leading-snug text-[#0B0F1F]">{p.title}</span>
                   <span className="mt-5 flex items-center gap-1.5 text-sm font-black text-[#2B4BFF]">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
                 </span>
