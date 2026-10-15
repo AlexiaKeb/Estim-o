@@ -323,9 +323,6 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     setMotive(v);
     userSays(label, 'motive');
     setStep('contact');
-    await say(
-      `Votre estimation est prête à être calculée à partir des ventes réelles autour de chez vous. Où puis-je vous l'envoyer, et à qui ${AGENT.firstName} peut-elle s'adresser ?`,
-    );
   };
 
   // Lead + valuation ------------------------------------------------------------------------------
@@ -810,6 +807,9 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       case 'contact':
         return (
           <form onSubmit={submitContact} className="space-y-2.5" noValidate>
+            <p className="text-sm font-bold leading-snug text-white sm:text-base">
+              Votre estimation est prête à être calculée à partir des ventes réelles autour de chez vous. Où puis-je vous l'envoyer, et à qui {AGENT.firstName} peut-elle s'adresser ?
+            </p>
             <input id="input-prospect-name" className={field} placeholder="Prénom et nom" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} aria-label="Prénom et nom" />
             <div className="grid sm:grid-cols-2 gap-2.5">
               <input id="input-prospect-phone" className={field} placeholder="Téléphone" type="tel" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} aria-label="Téléphone" />

@@ -30,17 +30,35 @@ import { ValuationInputs, ValuationResult, Lead, AgentPrivacySettings } from './
 import { INITIAL_LEADS } from './data/mockLeads';
 import { fetchCrmLeads, saveCrmLead } from './lib/supabaseService';
 import { LandingSimulator } from './components/LandingSimulator';
-const QualificationChatbot = lazy(() => import('./components/QualificationChatbot').then((m) => ({ default: m.QualificationChatbot })));
-const CrmPipelineView = lazy(() => import('./components/CrmPipelineView').then((m) => ({ default: m.CrmPipelineView })));
-const EmailManagerView = lazy(() => import('./components/EmailManagerView').then((m) => ({ default: m.EmailManagerView })));
-const CommissionCalculator = lazy(() => import('./components/CommissionCalculator').then((m) => ({ default: m.CommissionCalculator })));
-const CalendarBookingModal = lazy(() => import('./components/CalendarBookingModal').then((m) => ({ default: m.CalendarBookingModal })));
-const BookingConfirmationView = lazy(() => import('./components/BookingConfirmationView').then((m) => ({ default: m.BookingConfirmationView })));
-const PrivacyShieldModal = lazy(() => import('./components/PrivacyShieldModal').then((m) => ({ default: m.PrivacyShieldModal })));
-const AgentAuthModal = lazy(() => import('./components/AgentAuthModal').then((m) => ({ default: m.AgentAuthModal })));
-const StatsView = lazy(() => import('./components/StatsView').then((m) => ({ default: m.StatsView })));
-const ArticlesView = lazy(() => import('./components/ArticlesView').then((m) => ({ default: m.ArticlesView })));
-const CalendarHealth = lazy(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
+import { CalendarBookingModal } from './components/CalendarBookingModal';
+
+// After a redeploy an open tab can ask for a file that no longer exists: reload once to fetch the new version
+const lazyRetry = <T extends React.ComponentType<any>>(load: () => Promise<{ default: T }>) =>
+  lazy(() =>
+    load().then(
+      (m) => {
+        try { sessionStorage.removeItem('chunk-reload'); } catch { /* ignoré */ }
+        return m;
+      },
+      (err) => {
+        let done = false;
+        try { done = sessionStorage.getItem('chunk-reload') === '1'; sessionStorage.setItem('chunk-reload', '1'); } catch { /* ignoré */ }
+        if (!done) { window.location.reload(); return new Promise<never>(() => {}); }
+        throw err;
+      },
+    ),
+  );
+
+const QualificationChatbot = lazyRetry(() => import('./components/QualificationChatbot').then((m) => ({ default: m.QualificationChatbot })));
+const CrmPipelineView = lazyRetry(() => import('./components/CrmPipelineView').then((m) => ({ default: m.CrmPipelineView })));
+const EmailManagerView = lazyRetry(() => import('./components/EmailManagerView').then((m) => ({ default: m.EmailManagerView })));
+const CommissionCalculator = lazyRetry(() => import('./components/CommissionCalculator').then((m) => ({ default: m.CommissionCalculator })));
+const BookingConfirmationView = lazyRetry(() => import('./components/BookingConfirmationView').then((m) => ({ default: m.BookingConfirmationView })));
+const PrivacyShieldModal = lazyRetry(() => import('./components/PrivacyShieldModal').then((m) => ({ default: m.PrivacyShieldModal })));
+const AgentAuthModal = lazyRetry(() => import('./components/AgentAuthModal').then((m) => ({ default: m.AgentAuthModal })));
+const StatsView = lazyRetry(() => import('./components/StatsView').then((m) => ({ default: m.StatsView })));
+const ArticlesView = lazyRetry(() => import('./components/ArticlesView').then((m) => ({ default: m.ArticlesView })));
+const CalendarHealth = lazyRetry(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
 import { BRAND } from './data/siteContent';
 import { CreditLine } from './components/CreditLine';
 
