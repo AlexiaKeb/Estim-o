@@ -40,7 +40,7 @@ const Step: React.FC<{ icon: React.ReactNode; label: string; value: number; sub:
 const Rate: React.FC<{ value: string; label: string }> = ({ value, label }) => (
   <div className="flex flex-col items-center justify-center px-1 text-center shrink-0">
     <ArrowRight className="w-4 h-4 text-stone-400 hidden md:block" />
-    <span className="text-sm font-extrabold text-[#0f1f3d]">{value}</span>
+    <span className="text-sm font-extrabold text-[#0B0F1F]">{value}</span>
     <span className="text-[10px] text-stone-500 leading-tight">{label}</span>
   </div>
 );
@@ -141,7 +141,7 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
       </div>
 
       {/* En un coup d'œil */}
-      <section aria-label="Résumé" className="rounded-2xl bg-[#0f1f3d] text-white p-5 sm:p-6 shadow-md">
+      <section aria-label="Résumé" className="rounded-2xl bg-[#0B0F1F] text-white p-5 sm:p-6 shadow-md">
         <p className="text-xs uppercase tracking-wider text-amber-300 font-bold">En un coup d'œil • {periodLabel}</p>
         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div><p className="text-3xl font-extrabold">{L}</p><p className="text-xs text-slate-300">leads reçus</p></div>

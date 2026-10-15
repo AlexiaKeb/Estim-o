@@ -2,9 +2,9 @@
 
 /* Palette de marque : les gris foncés deviennent un bleu nuit, l'ambre reste l'accent doré */
 @theme {
-  --color-stone-950: #0a1530;
-  --color-stone-900: #0f1f3d;
-  --color-stone-800: #1a3060;
+  --color-stone-950: #0B0F1F;
+  --color-stone-900: #0B0F1F;
+  --color-stone-800: #1A2140;
 }
 
 html, body { overflow-x: clip; }
@@ -34,3 +34,179 @@ html, body { overflow-x: clip; }
   .bob, .robot-eyes, .robot-wave, .robot-antenna, .robot-pulse, .spark, .spin-slow, .bubble, .marquee2 { animation: none; }
   .pop-card, .pop-card:hover { transition: none; transform: none; }
 }
+
+/* ===== Espace conseiller : même direction artistique que le site (couleurs franches, bordures encre, ombres dures) ===== */
+.admin-da .bg-amber-100{background-color:#FFF3B8!important}
+.admin-da .bg-amber-300{background-color:#FFE97A!important}
+.admin-da .bg-amber-400{background-color:#FFD60A!important}
+.admin-da .bg-amber-400\/10{background-color:#FFD60A!important}
+.admin-da .bg-amber-50{background-color:#FFF3B8!important}
+.admin-da .bg-amber-50\/60{background-color:#FFF3B8!important}
+.admin-da .bg-amber-50\/80{background-color:#FFF3B8!important}
+.admin-da .bg-amber-500{background-color:#FFD60A!important}
+.admin-da .bg-amber-700{background-color:#FFD60A!important}
+.admin-da .bg-blue-100{background-color:#E4E9FF!important}
+.admin-da .bg-blue-50{background-color:#E4E9FF!important}
+.admin-da .bg-blue-50\/70{background-color:#E4E9FF!important}
+.admin-da .bg-blue-50\/80{background-color:#E4E9FF!important}
+.admin-da .bg-blue-500\/20{background-color:#2B4BFF!important}
+.admin-da .bg-blue-600{background-color:#2B4BFF!important}
+.admin-da .bg-blue-600\/30{background-color:#2B4BFF!important}
+.admin-da .bg-emerald-100{background-color:#DDF7E8!important}
+.admin-da .bg-emerald-100\/70{background-color:#DDF7E8!important}
+.admin-da .bg-emerald-400{background-color:#12B76A!important}
+.admin-da .bg-emerald-50{background-color:#DDF7E8!important}
+.admin-da .bg-emerald-50\/40{background-color:#DDF7E8!important}
+.admin-da .bg-emerald-50\/60{background-color:#DDF7E8!important}
+.admin-da .bg-emerald-500{background-color:#12B76A!important}
+.admin-da .bg-emerald-600{background-color:#12B76A!important}
+.admin-da .bg-emerald-700{background-color:#12B76A!important}
+.admin-da .bg-orange-100{background-color:#FFF3B8!important}
+.admin-da .bg-orange-50{background-color:#FFF3B8!important}
+.admin-da .bg-orange-50\/60{background-color:#FFF3B8!important}
+.admin-da .bg-orange-500{background-color:#FFD60A!important}
+.admin-da .bg-orange-600{background-color:#FFD60A!important}
+.admin-da .bg-purple-50{background-color:#E4E9FF!important}
+.admin-da .bg-rose-100{background-color:#FFE1E1!important}
+.admin-da .bg-rose-100\/70{background-color:#FFE1E1!important}
+.admin-da .bg-rose-50{background-color:#FFE1E1!important}
+.admin-da .bg-rose-50\/60{background-color:#FFE1E1!important}
+.admin-da .bg-rose-500{background-color:#FF4D4F!important}
+.admin-da .bg-sky-100{background-color:#E4E9FF!important}
+.admin-da .bg-sky-400\/10{background-color:#2B4BFF!important}
+.admin-da .bg-sky-50{background-color:#E4E9FF!important}
+.admin-da .bg-sky-50\/60{background-color:#E4E9FF!important}
+.admin-da .bg-sky-500{background-color:#2B4BFF!important}
+.admin-da .bg-sky-600{background-color:#2B4BFF!important}
+.admin-da .bg-slate-100{background-color:#FFF7E6!important}
+.admin-da .bg-slate-100\/50{background-color:#FFF7E6!important}
+.admin-da .bg-slate-200{background-color:#F5E8C6!important}
+.admin-da .bg-slate-400{background-color:#E8D9AE!important}
+.admin-da .bg-slate-50{background-color:#FFFBF0!important}
+.admin-da .bg-slate-50\/50{background-color:#FFFBF0!important}
+.admin-da .bg-slate-50\/70{background-color:#FFFBF0!important}
+.admin-da .bg-slate-700{background-color:#0B0F1F!important}
+.admin-da .bg-slate-800{background-color:#0B0F1F!important}
+.admin-da .bg-slate-900{background-color:#0B0F1F!important}
+.admin-da .bg-slate-950{background-color:#0B0F1F!important}
+.admin-da .bg-stone-100{background-color:#FFF7E6!important}
+.admin-da .bg-stone-100\/70{background-color:#FFF7E6!important}
+.admin-da .bg-stone-200{background-color:#F5E8C6!important}
+.admin-da .bg-stone-300{background-color:#E8D9AE!important}
+.admin-da .bg-stone-400{background-color:#E8D9AE!important}
+.admin-da .bg-stone-50{background-color:#FFFBF0!important}
+.admin-da .bg-stone-50\/50{background-color:#FFFBF0!important}
+.admin-da .bg-stone-50\/70{background-color:#FFFBF0!important}
+.admin-da .bg-stone-700{background-color:#0B0F1F!important}
+.admin-da .bg-stone-800{background-color:#0B0F1F!important}
+.admin-da .bg-stone-900{background-color:#0B0F1F!important}
+.admin-da .bg-stone-900\/60{background-color:#0B0F1F!important}
+.admin-da .bg-stone-950\/70{background-color:#0B0F1F!important}
+.admin-da .bg-teal-100{background-color:#DDF7E8!important}
+.admin-da .bg-violet-100{background-color:#E4E9FF!important}
+.admin-da .bg-violet-50{background-color:#E4E9FF!important}
+.admin-da .bg-violet-50\/60{background-color:#E4E9FF!important}
+.admin-da .bg-violet-500{background-color:#0B0F1F!important}
+.admin-da .border-amber-200{border-color:#FFE97A!important}
+.admin-da .border-amber-200\/80{border-color:#FFE97A!important}
+.admin-da .border-amber-300{border-color:#FFD60A!important}
+.admin-da .border-blue-100{border-color:#E4E9FF!important}
+.admin-da .border-blue-200{border-color:#B8C4FF!important}
+.admin-da .border-blue-300{border-color:#2B4BFF!important}
+.admin-da .border-blue-400\/30{border-color:#2B4BFF!important}
+.admin-da .border-blue-400\/40{border-color:#2B4BFF!important}
+.admin-da .border-blue-500\/30{border-color:#2B4BFF!important}
+.admin-da .border-blue-600{border-color:#2B4BFF!important}
+.admin-da .border-emerald-100{border-color:#DDF7E8!important}
+.admin-da .border-emerald-200{border-color:#A8EBC8!important}
+.admin-da .border-emerald-300{border-color:#12B76A!important}
+.admin-da .border-emerald-500\/30{border-color:#12B76A!important}
+.admin-da .border-orange-200{border-color:#FFE97A!important}
+.admin-da .border-purple-200{border-color:#B8C4FF!important}
+.admin-da .border-rose-100{border-color:#FFE1E1!important}
+.admin-da .border-rose-200{border-color:#FFB3B3!important}
+.admin-da .border-rose-300{border-color:#FF4D4F!important}
+.admin-da .border-sky-200{border-color:#B8C4FF!important}
+.admin-da .border-sky-500{border-color:#2B4BFF!important}
+.admin-da .border-slate-100{border-color:rgba(11,15,31,.14)!important}
+.admin-da .border-slate-200{border-color:rgba(11,15,31,.35)!important}
+.admin-da .border-slate-200\/80{border-color:rgba(11,15,31,.35)!important}
+.admin-da .border-slate-300{border-color:rgba(11,15,31,.35)!important}
+.admin-da .border-slate-700{border-color:#0B0F1F!important}
+.admin-da .border-slate-800{border-color:#0B0F1F!important}
+.admin-da .border-stone-100{border-color:rgba(11,15,31,.14)!important}
+.admin-da .border-stone-200{border-color:rgba(11,15,31,.35)!important}
+.admin-da .border-stone-200\/80{border-color:rgba(11,15,31,.35)!important}
+.admin-da .border-stone-200\/90{border-color:rgba(11,15,31,.35)!important}
+.admin-da .border-stone-300{border-color:rgba(11,15,31,.35)!important}
+.admin-da .border-stone-700{border-color:#0B0F1F!important}
+.admin-da .border-stone-800{border-color:#0B0F1F!important}
+.admin-da .border-teal-200{border-color:#A8EBC8!important}
+.admin-da .text-amber-300{color:#FFD60A!important}
+.admin-da .text-amber-400{color:#FFD60A!important}
+.admin-da .text-amber-600{color:#8A6A00!important}
+.admin-da .text-amber-700{color:#8A6A00!important}
+.admin-da .text-amber-800{color:#8A6A00!important}
+.admin-da .text-amber-900{color:#8A6A00!important}
+.admin-da .text-amber-950{color:#8A6A00!important}
+.admin-da .text-blue-200{color:#B8C4FF!important}
+.admin-da .text-blue-300{color:#B8C4FF!important}
+.admin-da .text-blue-400{color:#2B4BFF!important}
+.admin-da .text-blue-600{color:#2B4BFF!important}
+.admin-da .text-blue-700{color:#2B4BFF!important}
+.admin-da .text-blue-800{color:#2B4BFF!important}
+.admin-da .text-blue-900{color:#2B4BFF!important}
+.admin-da .text-cyan-400{color:#2B4BFF!important}
+.admin-da .text-emerald-300{color:#12B76A!important}
+.admin-da .text-emerald-400{color:#12B76A!important}
+.admin-da .text-emerald-600{color:#0B7A4B!important}
+.admin-da .text-emerald-700{color:#0B7A4B!important}
+.admin-da .text-emerald-800{color:#0B7A4B!important}
+.admin-da .text-emerald-900{color:#0B7A4B!important}
+.admin-da .text-emerald-950{color:#0B7A4B!important}
+.admin-da .text-orange-600{color:#8A6A00!important}
+.admin-da .text-orange-800{color:#8A6A00!important}
+.admin-da .text-purple-600{color:#2B4BFF!important}
+.admin-da .text-purple-700{color:#2B4BFF!important}
+.admin-da .text-rose-300{color:#FF8A8A!important}
+.admin-da .text-rose-600{color:#C0262B!important}
+.admin-da .text-rose-700{color:#C0262B!important}
+.admin-da .text-rose-800{color:#C0262B!important}
+.admin-da .text-rose-900{color:#C0262B!important}
+.admin-da .text-sky-500{color:#2B4BFF!important}
+.admin-da .text-sky-600{color:#2B4BFF!important}
+.admin-da .text-sky-700{color:#2B4BFF!important}
+.admin-da .text-sky-800{color:#2B4BFF!important}
+.admin-da .text-sky-950{color:#2B4BFF!important}
+.admin-da .text-slate-200{color:#FFF7E6!important}
+.admin-da .text-slate-300{color:#FFF7E6!important}
+.admin-da .text-slate-400{color:rgba(11,15,31,.62)!important}
+.admin-da .text-slate-500{color:rgba(11,15,31,.62)!important}
+.admin-da .text-slate-600{color:rgba(11,15,31,.8)!important}
+.admin-da .text-slate-700{color:#0B0F1F!important}
+.admin-da .text-slate-800{color:#0B0F1F!important}
+.admin-da .text-slate-900{color:#0B0F1F!important}
+.admin-da .text-slate-950{color:#0B0F1F!important}
+.admin-da .text-stone-100{color:#FFF7E6!important}
+.admin-da .text-stone-200{color:#FFF7E6!important}
+.admin-da .text-stone-300{color:#FFF7E6!important}
+.admin-da .text-stone-400{color:rgba(11,15,31,.62)!important}
+.admin-da .text-stone-500{color:rgba(11,15,31,.62)!important}
+.admin-da .text-stone-600{color:rgba(11,15,31,.8)!important}
+.admin-da .text-stone-700{color:#0B0F1F!important}
+.admin-da .text-stone-800{color:#0B0F1F!important}
+.admin-da .text-stone-900{color:#0B0F1F!important}
+.admin-da .text-teal-800{color:#0B7A4B!important}
+.admin-da .text-violet-600{color:#2B4BFF!important}
+.admin-da .text-violet-800{color:#2B4BFF!important}
+.admin-da :is(div,section,article,aside,li,table)[class~="border"]:is([class*="rounded-xl"],[class*="rounded-2xl"],[class*="rounded-3xl"]){border-width:3px!important;border-color:#0B0F1F!important;box-shadow:5px 5px 0 #0B0F1F!important}
+.admin-da :is(div,section,article,aside,li)[class~="border"][class*="rounded-lg"]{border-width:2px!important;border-color:#0B0F1F!important}
+.admin-da :is(div,section,article)[class~="border"]:is([class*="rounded-xl"],[class*="rounded-lg"]) :is(div,li)[class~="border"]:is([class*="rounded-xl"],[class*="rounded-lg"]){box-shadow:none!important}
+.admin-da :is(input,select,textarea){border-width:2px!important;border-color:#0B0F1F!important;border-radius:.75rem}
+.admin-da :is(input,select,textarea):focus{outline:3px solid #FFD60A;outline-offset:1px}
+.admin-da button[class*="bg-stone-900"],.admin-da button[class*="bg-slate-900"]{box-shadow:3px 3px 0 #0B0F1F}
+.admin-da h1,.admin-da h2{font-weight:900;letter-spacing:-.02em}
+.admin-da :is(button,a){transition:transform .12s ease,box-shadow .12s ease}
+@media (prefers-reduced-motion:reduce){.admin-da :is(button,a){transition:none}}
+.admin-da :is(div,section,article,aside,li)[class~="border"] :is(div,section,article,aside,li)[class~="border"]{box-shadow:none!important;border-width:2px!important}
+.admin-da :is(div,section)[class~="bg-[#0B0F1F]"][class*="rounded-"]{box-shadow:6px 6px 0 #2B4BFF!important}

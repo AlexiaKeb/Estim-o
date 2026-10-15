@@ -509,7 +509,7 @@ export const CrmPipelineView: React.FC<Props> = ({
       {securityOpen && <SecurityPanel onClose={() => setSecurityOpen(false)} onLoggedOut={() => window.location.assign('/')} />}
       <div className={selectedLeadDrawer ? 'hidden' : 'space-y-6'}>
       {/* Bandeau d'accueil */}
-      <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
+      <div className="rounded-3xl bg-[#0B0F1F] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
         <div className="absolute right-24 -bottom-16 h-40 w-40 rounded-full bg-sky-400/10" aria-hidden="true" />
         <div className="relative">
@@ -668,7 +668,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                       key={st}
                       type="button"
                       onClick={() => setStatusFilter(st)}
-                      className={`rounded-full px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${statusFilter === st ? 'bg-[#0f1f3d] text-white shadow' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                      className={`rounded-full px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${statusFilter === st ? 'bg-[#0B0F1F] text-white shadow' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
                     >
                       {labels[st]}
                     </button>
@@ -770,7 +770,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                         <Mail className="w-3.5 h-3.5" /> E-mail
                       </button>
                     )}
-                    <button type="button" onClick={() => setSelectedLeadDrawer(lead)} className="inline-flex items-center gap-1 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] px-4 py-2 text-xs font-bold text-white" title="Ouvrir le dossier">
+                    <button type="button" onClick={() => setSelectedLeadDrawer(lead)} className="inline-flex items-center gap-1 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] px-4 py-2 text-xs font-bold text-white" title="Ouvrir le dossier">
                       Dossier <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>

@@ -241,13 +241,13 @@ export const ArticlesView: React.FC = () => {
     const filtering = Boolean(needle || fCat || fStatus || fTag);
     return (
       <div className="max-w-5xl mx-auto space-y-6">
-        <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-7 shadow-md relative overflow-hidden flex flex-wrap items-center justify-between gap-4">
+        <div className="rounded-3xl bg-[#0B0F1F] text-white p-5 sm:p-7 shadow-md relative overflow-hidden flex flex-wrap items-center justify-between gap-4">
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
           <div className="relative">
             <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2.5"><Pencil className="w-7 h-7 text-amber-300" /> Mon blog</h1>
             <p className="mt-1.5 text-sm text-slate-300 max-w-xl">Écrivez, ajoutez vos photos, publiez : l'article apparaît sur le site et dans Google.</p>
           </div>
-          <button type="button" id="btn-new-article" onClick={() => { setDraft({ ...EMPTY }); setDirty(false); }} className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] text-sm font-extrabold px-5 py-3 shadow-lg">
+          <button type="button" id="btn-new-article" onClick={() => { setDraft({ ...EMPTY }); setDirty(false); }} className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#0B0F1F] text-sm font-extrabold px-5 py-3 shadow-lg">
             <Plus className="w-5 h-5" /> Nouvel article
           </button>
         </div>
@@ -265,7 +265,7 @@ export const ArticlesView: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <button type="button" id="btn-import-articles" onClick={importBuiltIn} disabled={importing} className="inline-flex items-center gap-2 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] text-white text-sm font-bold px-5 py-2.5 disabled:opacity-60">
+            <button type="button" id="btn-import-articles" onClick={importBuiltIn} disabled={importing} className="inline-flex items-center gap-2 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] text-white text-sm font-bold px-5 py-2.5 disabled:opacity-60">
               {importing && <Loader2 className="w-4 h-4 animate-spin" />}
               Importer ces articles pour les modifier
             </button>
@@ -301,8 +301,8 @@ export const ArticlesView: React.FC = () => {
               {allCats.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="text-[11px] font-bold uppercase text-stone-400 mr-1">Catégorie</span>
-                  <button type="button" onClick={() => setFCat('')} className={`rounded-full px-3 py-1 text-xs font-bold ${!fCat ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>Toutes</button>
-                  {allCats.map((c) => <button key={c} type="button" onClick={() => setFCat(fCat === c ? '' : c)} className={`rounded-full px-3 py-1 text-xs font-bold ${fCat === c ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{c}</button>)}
+                  <button type="button" onClick={() => setFCat('')} className={`rounded-full px-3 py-1 text-xs font-bold ${!fCat ? 'bg-[#0B0F1F] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>Toutes</button>
+                  {allCats.map((c) => <button key={c} type="button" onClick={() => setFCat(fCat === c ? '' : c)} className={`rounded-full px-3 py-1 text-xs font-bold ${fCat === c ? 'bg-[#0B0F1F] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{c}</button>)}
                 </div>
               )}
               {allTags.length > 0 && (
@@ -333,7 +333,7 @@ export const ArticlesView: React.FC = () => {
                     </div>
                   </button>
                   <div className="mt-auto flex items-center gap-2 border-t border-stone-100 p-3">
-                    <button type="button" onClick={() => open(r.id)} className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] px-4 py-2 text-xs font-bold text-white"><Pencil className="w-3.5 h-3.5" />Modifier</button>
+                    <button type="button" onClick={() => open(r.id)} className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] px-4 py-2 text-xs font-bold text-white"><Pencil className="w-3.5 h-3.5" />Modifier</button>
                     {r.status === 'publie' && (
                       <a href={`/blog/${r.slug}`} target="_blank" rel="noreferrer" className="rounded-full border border-stone-300 p-2 text-stone-600 hover:bg-stone-50" title="Voir sur le site"><ExternalLink className="w-4 h-4" /></a>
                     )}
@@ -361,7 +361,7 @@ export const ArticlesView: React.FC = () => {
   const addBtn = 'inline-flex items-center gap-2 rounded-full border-2 border-dashed border-stone-300 bg-white hover:border-sky-400 hover:bg-sky-50 px-4 py-2.5 text-sm font-bold text-stone-700 transition-colors';
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-28">
-      <div className="rounded-3xl bg-[#0f1f3d] text-white p-4 sm:p-5 shadow-md flex flex-wrap items-center justify-between gap-3">
+      <div className="rounded-3xl bg-[#0B0F1F] text-white p-4 sm:p-5 shadow-md flex flex-wrap items-center justify-between gap-3">
         <button type="button" onClick={() => { if (!dirty || window.confirm('Quitter sans enregistrer vos modifications ?')) { setDraft(null); void load(); } }} className="rounded-full bg-white/10 hover:bg-white/20 px-4 py-2 text-sm font-bold">← Tous mes articles</button>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="rounded-full bg-white/10 px-3 py-1.5 font-semibold">{words} mots • ~{Math.max(1, Math.round(words / 200))} min de lecture</span>
@@ -380,7 +380,7 @@ export const ArticlesView: React.FC = () => {
             <label htmlFor="art-cat" className={label}>Catégorie</label>
             <input id="art-cat" list="art-cats" className={input} value={draft.category} onChange={(e) => patch({ category: e.target.value })} maxLength={40} />
             <datalist id="art-cats">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
-            <div className="mt-2 flex flex-wrap gap-1.5">{CATEGORIES.map((c) => <button key={c} type="button" onClick={() => patch({ category: c })} className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${draft.category === c ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{c}</button>)}</div>
+            <div className="mt-2 flex flex-wrap gap-1.5">{CATEGORIES.map((c) => <button key={c} type="button" onClick={() => patch({ category: c })} className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${draft.category === c ? 'bg-[#0B0F1F] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{c}</button>)}</div>
           </div>
           <div>
             <span className={label}>Photo d'illustration</span>
@@ -486,12 +486,12 @@ export const ArticlesView: React.FC = () => {
       </details>
 
       <div className="fixed bottom-3 inset-x-3 z-40">
-        <div className="max-w-4xl mx-auto rounded-3xl bg-[#0f1f3d] text-white shadow-xl p-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-4xl mx-auto rounded-3xl bg-[#0B0F1F] text-white shadow-xl p-3 flex flex-wrap items-center justify-between gap-3">
           <p className="hidden sm:block text-xs text-slate-300 pl-2">{dirty ? 'Modifications non enregistrées' : 'Tout est enregistré'}</p>
           <div className="flex flex-wrap items-center gap-2 ml-auto">
             <button type="button" onClick={() => setPreview(true)} className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold"><Eye className="w-4 h-4" />Aperçu</button>
             <button type="button" onClick={() => save('brouillon')} disabled={saving} className="rounded-full bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold disabled:opacity-60">{draft.status === 'publie' ? 'Dépublier' : 'Enregistrer le brouillon'}</button>
-            <button type="button" id="btn-publish-article" onClick={() => save('publie')} disabled={saving || !draft.title.trim()} className="inline-flex items-center gap-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-extrabold px-6 py-2.5 text-sm disabled:opacity-60">
+            <button type="button" id="btn-publish-article" onClick={() => save('publie')} disabled={saving || !draft.title.trim()} className="inline-flex items-center gap-2 rounded-full bg-amber-400 hover:bg-amber-300 text-[#0B0F1F] font-extrabold px-6 py-2.5 text-sm disabled:opacity-60">
               {saving && <Loader2 className="w-4 h-4 animate-spin" />}
               {draft.status === 'publie' ? 'Mettre à jour' : 'Publier'}
             </button>

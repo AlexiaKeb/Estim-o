@@ -127,7 +127,7 @@ export const CommissionCalculator: React.FC = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
+      <div className="rounded-3xl bg-[#0B0F1F] text-white p-5 sm:p-7 shadow-md relative overflow-hidden">
         <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-400/10" aria-hidden="true" />
         <div className="relative">
           <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2.5"><Calculator className="w-7 h-7 text-amber-300" /> Calculatrice de commission</h1>
@@ -161,7 +161,7 @@ export const CommissionCalculator: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap justify-center gap-2">
-            <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] px-5 py-2.5 text-sm font-bold text-white">
+            <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] px-5 py-2.5 text-sm font-bold text-white">
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? 'Copié' : 'Copier le résumé'}
             </button>
             <button type="button" onClick={() => setResetKey((k) => k + 1)} className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white hover:bg-stone-50 px-5 py-2.5 text-sm font-bold text-stone-700">

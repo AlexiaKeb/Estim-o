@@ -130,12 +130,12 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
           </div>
         </aside>
       </section>
-      <div className="relative overflow-hidden border-y-[3px] border-[#0B0F1F] bg-[#FFD60A] py-3 text-[#0B0F1F]" aria-hidden="true">
+      <div className="relative overflow-hidden border-y-[3px] border-[#0B0F1F] bg-[#0B0F1F] py-3 text-[#FFF7E6]" aria-hidden="true">
         <div className="marquee2 flex w-max gap-10 whitespace-nowrap text-sm font-black uppercase tracking-wide">
           {[0, 1].map((k) => (
             <span key={k} className="flex gap-10">
               {['Estimation en 2 minutes', '100 % gratuit', 'Sans engagement', 'Région Lyonnaise & Beaujolais', 'Estimation en 2 minutes', '100 % gratuit', 'Sans engagement', 'Région Lyonnaise & Beaujolais'].map((t, i) => (
-                <span key={i} className="flex items-center gap-10">{t}<span>★</span></span>
+                <span key={i} className="flex items-center gap-10">{t}<span className="text-[#FFD60A]">★</span></span>
               ))}
             </span>
           ))}

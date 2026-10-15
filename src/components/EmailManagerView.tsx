@@ -371,7 +371,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   };
   const stepNo = (n: number, t: string, sub?: string) => (
     <div className="flex items-center gap-3 mb-4">
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f1f3d] text-white text-sm font-extrabold shadow-sm">{n}</span>
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0B0F1F] text-white text-sm font-extrabold shadow-sm">{n}</span>
       <div><h2 className="text-base font-bold text-stone-900 leading-tight">{t}</h2>{sub && <p className="text-xs text-stone-500">{sub}</p>}</div>
     </div>
   );
@@ -383,14 +383,14 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
-      <div className="rounded-3xl bg-[#0f1f3d] text-white p-5 sm:p-6 shadow-md flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-3xl bg-[#0B0F1F] text-white p-5 sm:p-6 shadow-md flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold flex items-center gap-2"><Mail className="w-6 h-6 text-amber-300" /> Vos e-mails</h1>
           <p className="text-sm text-slate-300 mt-0.5">Choisissez vos contacts, écrivez, envoyez. Un seul endroit.</p>
         </div>
         <div className="inline-flex rounded-xl bg-white/10 p-1" role="tablist" aria-label="Outil e-mail">
           {([['compose', 'Écrire & envoyer'], ['follow', 'Suivi']] as const).map(([k, l]) => (
-            <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${view === k ? 'bg-white text-[#0f1f3d] shadow-sm' : 'text-slate-200 hover:text-white'}`}>{l}</button>
+            <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${view === k ? 'bg-white text-[#0B0F1F] shadow-sm' : 'text-slate-200 hover:text-white'}`}>{l}</button>
           ))}
         </div>
       </div>
@@ -458,7 +458,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
               </select>
               <div className="flex items-center gap-1">
                 {([['ALL', 'Tous'], ['HOT', '🔥'], ['WARM', '🟡'], ['COLD', '❄️']] as const).map(([k, l]) => (
-                  <button key={k} type="button" onClick={() => { setHeatF(k); setLimit(50); }} title={k === 'HOT' ? 'Chauds' : k === 'WARM' ? 'Tièdes' : k === 'COLD' ? 'Froids' : 'Tous'} className={`rounded-full px-3 py-2 text-xs font-bold ${heatF === k ? 'bg-[#0f1f3d] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{l}</button>
+                  <button key={k} type="button" onClick={() => { setHeatF(k); setLimit(50); }} title={k === 'HOT' ? 'Chauds' : k === 'WARM' ? 'Tièdes' : k === 'COLD' ? 'Froids' : 'Tous'} className={`rounded-full px-3 py-2 text-xs font-bold ${heatF === k ? 'bg-[#0B0F1F] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{l}</button>
                 ))}
               </div>
               <label className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-stone-600"><input type="checkbox" checked={onlyEmail} onChange={(e) => { setOnlyEmail(e.target.checked); setLimit(50); }} className="h-4 w-4" /> Avec e-mail valide</label>
@@ -512,7 +512,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
               <button type="button" onClick={() => deleteTemplate(c)} aria-label={`Supprimer ${c.label}`} className="ml-1 rounded-full p-1 text-stone-400 hover:text-rose-600"><Trash2 className="w-3.5 h-3.5" /></button>
             </span>
           ))}
-          <button type="button" id="btn-new-mail" onClick={newMessage} className="inline-flex items-center gap-1 rounded-full bg-[#0f1f3d] hover:bg-[#1a3060] text-white text-sm font-bold px-3.5 py-1.5"><Plus className="w-4 h-4" /> Nouveau</button>
+          <button type="button" id="btn-new-mail" onClick={newMessage} className="inline-flex items-center gap-1 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] text-white text-sm font-bold px-3.5 py-1.5"><Plus className="w-4 h-4" /> Nouveau</button>
         </div>
 
         {seq && (
@@ -603,21 +603,21 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
       {report && <p role="status" className={`rounded-2xl p-3 text-sm font-semibold ${report.ok ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>{report.text}</p>}
 
       {/* ACTION */}
-      <div className="sticky bottom-3 z-10 rounded-3xl bg-[#0f1f3d] text-white p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
+      <div className="sticky bottom-3 z-10 rounded-3xl bg-[#0B0F1F] text-white p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm font-bold">{targets.length} contact{targets.length > 1 ? 's' : ''} prêt{targets.length > 1 ? 's' : ''}{chosen.length !== targets.length ? ` • ${chosen.length - targets.length} sans e-mail valide ignoré(s)` : ''}</p>
           {status && <p className="text-[11px] text-slate-300">Limite d'envoi : {status.sentLast24h} / {status.dailyLimit} e-mails sur 24 h</p>}
         </div>
         {when === 'now' && (
-          <button type="button" onClick={sendNow} disabled={busy || !targets.length} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2">
+          <button type="button" onClick={sendNow} disabled={busy || !targets.length} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0B0F1F] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2">
             {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Envoyer maintenant à {targets.length}
           </button>
         )}
         {when === 'date' && (
-          <button type="button" onClick={schedule} disabled={busy || !targets.length || !date} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2"><CalendarClock className="w-5 h-5" /> Programmer pour {targets.length}</button>
+          <button type="button" onClick={schedule} disabled={busy || !targets.length || !date} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0B0F1F] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2"><CalendarClock className="w-5 h-5" /> Programmer pour {targets.length}</button>
         )}
         {when === 'seq' && (
-          <button type="button" id="btn-launch-seq" onClick={launchSequence} disabled={busy || !targets.length || steps.length === 0} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2">
+          <button type="button" id="btn-launch-seq" onClick={launchSequence} disabled={busy || !targets.length || steps.length === 0} className="rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0B0F1F] disabled:opacity-40 text-sm font-extrabold px-5 py-3 flex items-center gap-2">
             {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Lancer la séquence ({steps.length}) pour {targets.length}
           </button>
         )}

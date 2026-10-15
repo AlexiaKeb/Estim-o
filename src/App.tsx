@@ -465,7 +465,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbfbfa] text-stone-900 flex flex-col font-sans selection:bg-stone-900 selection:text-white">
+    <div className={`min-h-screen ${isAgentMode ? 'admin-da bg-[#FFF7E6]' : 'bg-[#fbfbfa]'} text-stone-900 flex flex-col font-sans selection:bg-stone-900 selection:text-white`}>
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 bg-stone-900 text-stone-100 px-4 py-3 rounded-xl shadow-lg border border-stone-800 flex items-center gap-2.5 text-xs font-semibold animate-in slide-in-from-top-3">
@@ -477,7 +477,7 @@ export default function App() {
       {/* TOP HEADER: DUAL MODE (Agent Mode vs Client Mode) */}
       {isAgentMode ? (
         /* =================== AGENT AUTHENTICATED HEADER (Warm Attio/Linear SaaS) =================== */
-        <header className="sticky top-0 z-40 bg-[#18181b] text-stone-100 border-b border-zinc-800 shadow-xs">
+        <header className="sticky top-0 z-40 bg-[#FFF7E6] text-[#0B0F1F] border-b-[3px] border-[#0B0F1F]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             {/* Agent Logo & Security Indicator */}
             <div className="flex items-center gap-3">
@@ -486,35 +486,35 @@ export default function App() {
                 onClick={() => handleNavigate('pipeline')}
                 className="flex items-center gap-2.5 text-left focus:outline-none group"
               >
-                <div className="w-8.5 h-8.5 rounded-xl bg-stone-100 text-stone-900 flex items-center justify-center font-bold text-sm group-hover:bg-white transition-all shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-[#2B4BFF] border-[3px] border-[#0B0F1F] text-white flex items-center justify-center font-bold text-sm group-hover:bg-[#0B0F1F] transition-all">
                   <Building2 className="w-4.5 h-4.5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-white tracking-tight">{BRAND.name}</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-stone-800 text-stone-300 font-semibold text-[10px] uppercase border border-stone-700">
+                    <span className="text-sm font-black text-[#0B0F1F] tracking-tight">{BRAND.name}</span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-[#FFD60A] text-[#0B0F1F] font-black text-[10px] uppercase border-2 border-[#0B0F1F]">
                       Conseil Pro
                     </span>
                   </div>
-                  <div className="text-[11px] text-stone-400 font-normal">Espace conseiller</div>
+                  <div className="text-[11px] text-[#0B0F1F]/70 font-medium">Espace conseiller</div>
                 </div>
               </button>
             </div>
 
             {/* Desktop Agent Nav Items */}
-            <nav className="hidden lg:flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 whitespace-nowrap">
+            <nav className="hidden lg:flex items-center gap-1 bg-white p-1 rounded-xl border-[3px] border-[#0B0F1F] whitespace-nowrap">
               <button
                 type="button"
                 id="agent-nav-pipeline"
                 onClick={() => handleNavigate('pipeline')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
                   currentView === 'pipeline'
-                    ? 'bg-zinc-800 text-white shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#2B4BFF] text-white'
+                    : 'text-[#0B0F1F] hover:bg-[#FFF7E6]'
                 }`}
               >
                 <span>Leads</span>
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
+                <span className="px-1.5 py-0.2 rounded-full bg-[#FFD60A] text-[#0B0F1F] text-[10px] font-black border-2 border-[#0B0F1F]">
                   {leads.filter(l => l.status === 'HOT').length}
                 </span>
               </button>
@@ -525,8 +525,8 @@ export default function App() {
                 onClick={() => handleNavigate('nurture')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   currentView === 'nurture'
-                    ? 'bg-zinc-800 text-white shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#2B4BFF] text-white'
+                    : 'text-[#0B0F1F] hover:bg-[#FFF7E6]'
                 }`}
               >
                 <MailCheck className="w-3.5 h-3.5" />
@@ -539,8 +539,8 @@ export default function App() {
                 onClick={() => handleNavigate('articles')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   currentView === 'articles'
-                    ? 'bg-zinc-800 text-white shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#2B4BFF] text-white'
+                    : 'text-[#0B0F1F] hover:bg-[#FFF7E6]'
                 }`}
               >
                 <PenLine className="w-3.5 h-3.5" />
@@ -553,8 +553,8 @@ export default function App() {
                 onClick={() => handleNavigate('stats')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   currentView === 'stats'
-                    ? 'bg-zinc-800 text-white shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#2B4BFF] text-white'
+                    : 'text-[#0B0F1F] hover:bg-[#FFF7E6]'
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -567,8 +567,8 @@ export default function App() {
                 onClick={() => handleNavigate('calculator')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   currentView === 'calculator'
-                    ? 'bg-zinc-800 text-white shadow-xs'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#2B4BFF] text-white'
+                    : 'text-[#0B0F1F] hover:bg-[#FFF7E6]'
                 }`}
               >
                 <Calculator className="w-3.5 h-3.5" />
@@ -582,30 +582,30 @@ export default function App() {
                 type="button"
                 id="btn-agent-privacy-shield"
                 onClick={() => setIsPrivacyModalOpen(true)}
-                className="py-1.5 px-3 rounded-lg border border-stone-700 bg-stone-800/80 hover:bg-stone-800 text-stone-200 text-xs font-medium transition-all flex items-center gap-1.5"
+                className="py-1.5 px-3 rounded-lg border-[3px] border-[#0B0F1F] bg-white hover:bg-[#FFF7E6] text-[#0B0F1F] text-xs font-bold shadow-[3px_3px_0_#0B0F1F] transition-all flex items-center gap-1.5"
                 title="Gérer la confidentialité et l'identité affichée aux clients"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-stone-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#2B4BFF]" />
                 <span>Confidentialité</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => window.open('/', '_blank', 'noopener')}
-                className="py-1.5 px-3 rounded-lg border border-stone-700 bg-stone-800/50 hover:bg-stone-800 text-stone-300 text-xs font-medium transition-all flex items-center gap-1.5"
+                className="py-1.5 px-3 rounded-lg border-[3px] border-[#0B0F1F] bg-white hover:bg-[#FFF7E6] text-[#0B0F1F] text-xs font-bold shadow-[3px_3px_0_#0B0F1F] transition-all flex items-center gap-1.5"
                 title="Ouvre le site tel que le voient vos clients, dans un nouvel onglet"
               >
-                <Eye className="w-3.5 h-3.5 text-stone-400" />
+                <Eye className="w-3.5 h-3.5 text-[#2B4BFF]" />
                 <span>Voir le site client</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleLockAgentMode}
-                className="py-1.5 px-3 rounded-lg border border-rose-950/60 bg-rose-950/30 hover:bg-rose-950/50 text-rose-300 text-xs font-medium transition-all flex items-center gap-1.5"
+                className="py-1.5 px-3 rounded-lg border-[3px] border-[#0B0F1F] bg-[#FFD60A] hover:brightness-95 text-[#0B0F1F] text-xs font-black shadow-[3px_3px_0_#0B0F1F] transition-all flex items-center gap-1.5"
                 title="Verrouiller et masquer le dashboard agent"
               >
-                <Lock className="w-3.5 h-3.5 text-rose-400" />
+                <Lock className="w-3.5 h-3.5 text-[#0B0F1F]" />
                 <span>Verrouiller</span>
               </button>
             </div>
@@ -615,7 +615,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-stone-300 hover:bg-stone-800"
+                className="p-2 rounded-lg text-[#0B0F1F] hover:bg-white border-[3px] border-[#0B0F1F]"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -624,7 +624,7 @@ export default function App() {
 
           {/* Mobile Dropdown for Agent */}
           {mobileMenuOpen && (
-            <div className="lg:hidden bg-zinc-900 border-b border-zinc-800 px-4 py-3 space-y-1">
+            <div className="lg:hidden bg-[#FFF7E6] border-b-[3px] border-[#0B0F1F] px-4 py-3 space-y-1">
               {[
                 { key: 'pipeline', label: `Leads (${leads.length})` },
                 { key: 'nurture', label: 'Email' },
@@ -638,28 +638,28 @@ export default function App() {
                   onClick={() => handleNavigate(item.key as NavView)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium ${
                     currentView === item.key
-                      ? 'bg-zinc-800 text-white font-semibold'
-                      : 'text-stone-300 hover:bg-zinc-800/50'
+                      ? 'bg-[#2B4BFF] text-white font-bold'
+                      : 'text-[#0B0F1F] hover:bg-white'
                   }`}
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="pt-2 border-t border-zinc-800 flex flex-col gap-2">
+              <div className="pt-2 border-t-[3px] border-[#0B0F1F] flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => setIsPrivacyModalOpen(true)}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-stone-200 bg-stone-800/50 border border-stone-700 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-[#0B0F1F] bg-white border-[3px] border-[#0B0F1F] flex items-center gap-2"
                 >
-                  <ShieldCheck className="w-4 h-4 text-stone-400" />
+                  <ShieldCheck className="w-4 h-4 text-[#2B4BFF]" />
                   <span>Confidentialité</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleLockAgentMode}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-rose-300 bg-rose-950/40 border border-rose-800 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-[#0B0F1F] bg-[#FFD60A] border-[3px] border-[#0B0F1F] flex items-center gap-2"
                 >
-                  <Lock className="w-4 h-4 text-rose-400" />
+                  <Lock className="w-4 h-4 text-[#0B0F1F]" />
                   <span>Verrouiller l'Espace Pro</span>
                 </button>
               </div>
