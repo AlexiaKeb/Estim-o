@@ -31,6 +31,8 @@ import { INITIAL_LEADS } from './data/mockLeads';
 import { fetchCrmLeads, saveCrmLead } from './lib/supabaseService';
 import { LandingSimulator } from './components/LandingSimulator';
 import { CalendarBookingModal } from './components/CalendarBookingModal';
+// Part of the booking flow: loaded with the page so the confirmation always opens, even right after a site update
+import { BookingConfirmationView } from './components/BookingConfirmationView';
 import { clearAssistantDraft } from './components/GuidedAssistant';
 
 // After a redeploy an open tab can ask for a file that no longer exists: reload once to fetch the new version
@@ -54,7 +56,6 @@ const QualificationChatbot = lazyRetry(() => import('./components/QualificationC
 const CrmPipelineView = lazyRetry(() => import('./components/CrmPipelineView').then((m) => ({ default: m.CrmPipelineView })));
 const EmailManagerView = lazyRetry(() => import('./components/EmailManagerView').then((m) => ({ default: m.EmailManagerView })));
 const CommissionCalculator = lazyRetry(() => import('./components/CommissionCalculator').then((m) => ({ default: m.CommissionCalculator })));
-const BookingConfirmationView = lazyRetry(() => import('./components/BookingConfirmationView').then((m) => ({ default: m.BookingConfirmationView })));
 const PrivacyShieldModal = lazyRetry(() => import('./components/PrivacyShieldModal').then((m) => ({ default: m.PrivacyShieldModal })));
 const AgentAuthModal = lazyRetry(() => import('./components/AgentAuthModal').then((m) => ({ default: m.AgentAuthModal })));
 const StatsView = lazyRetry(() => import('./components/StatsView').then((m) => ({ default: m.StatsView })));

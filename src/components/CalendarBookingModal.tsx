@@ -45,7 +45,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
   const proceed = (l: Lead) => {
     if (proceededRef.current) return;
     proceededRef.current = true;
-    trackConversion('booking');
+    try { trackConversion('booking'); } catch { /* the measurement must never block the confirmation */ }
     onConfirmBooking(l);
   };
   const [bookingError, setBookingError] = useState<string | null>(null);
