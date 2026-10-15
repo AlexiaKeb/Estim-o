@@ -31,7 +31,7 @@ const AgentAvatar: React.FC<{ size?: number }> = ({ size = 56 }) =>
     />
   ) : (
     <div
-      className="rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 text-stone-950 font-bold flex items-center justify-center border-2 border-white shadow-sm"
+      className="rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-stone-950 font-bold flex items-center justify-center border-2 border-white shadow-sm"
       style={{ width: size, height: size, fontSize: size * 0.38 }}
       aria-hidden
     >
@@ -75,7 +75,7 @@ const PhoneDemo: React.FC = () => {
     <div className="relative mx-auto w-[17.5rem] sm:w-[19rem]" aria-hidden="true">
       <div className="float-slow rounded-[2.4rem] border-[7px] border-[#1b2d57] bg-[#f4f1ea] shadow-2xl shadow-black/40 overflow-hidden">
         <div className="bg-[#0f1f3d] px-4 py-3 flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white text-xs font-extrabold">IA</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-[#0f1f3d] text-xs font-extrabold">IA</span>
           <div><p className="text-[13px] font-bold text-white leading-tight">Assistant Estimation</p><p className="text-[10px] text-slate-300 leading-tight">En ligne • réponse en 2 min</p></div>
         </div>
         <div className="h-[22.5rem] space-y-2 px-3 py-3 text-[12.5px] leading-snug">
@@ -87,12 +87,12 @@ const PhoneDemo: React.FC = () => {
           {step >= 1 && step < DEMO.length + 1 && step % 2 === 0 && <div className="pop-in flex"><span className="rounded-2xl rounded-bl-md bg-white px-3 py-2 text-stone-400 shadow-sm">• • •</span></div>}
           {showResult && (
             <div className="pop-in rounded-2xl bg-white p-3 shadow-md">
-              <p className="text-[10px] font-extrabold uppercase tracking-wide text-indigo-700">Estimation indicative (IA) • exemple</p>
+              <p className="text-[10px] font-extrabold uppercase tracking-wide text-amber-700">Estimation indicative (IA) • exemple</p>
               <div className="mt-1 flex items-center justify-between text-[15px] font-extrabold text-[#0f1f3d]"><span>412 000 €</span><span>468 000 €</span></div>
               <div className="relative my-2 h-2 rounded-full bg-gradient-to-r from-rose-300 via-amber-200 to-emerald-300">
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0f1f3d] px-2 py-0.5 text-[9px] font-bold text-white whitespace-nowrap">🔒 Prix juste à fixer sur place</span>
               </div>
-              <p className="mt-3 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 px-3 py-2 text-center text-[11px] font-extrabold text-white">Réserver ma visite offerte</p>
+              <p className="mt-3 rounded-xl bg-amber-400 px-3 py-2 text-center text-[11px] font-extrabold text-[#0f1f3d]">Réserver ma visite offerte</p>
             </div>
           )}
         </div>
@@ -118,19 +118,19 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
 
   return (
     <section className="relative overflow-hidden rounded-[2rem] bg-[#0a1530] text-white shadow-2xl">
-      <div aria-hidden className="drift pointer-events-none absolute -top-40 -right-32 h-[30rem] w-[30rem] rounded-full bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 blur-3xl" />
+      <div aria-hidden className="drift pointer-events-none absolute -top-40 -right-32 h-[30rem] w-[30rem] rounded-full bg-amber-400/25 blur-3xl" />
       <div aria-hidden className="drift pointer-events-none absolute -bottom-48 -left-28 h-[28rem] w-[28rem] rounded-full bg-sky-500/20 blur-3xl" style={{ animationDelay: '3s' }} />
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
       <div className="relative grid lg:grid-cols-[1.25fr_1fr] gap-12 lg:gap-8 p-6 sm:p-12 lg:p-16 items-center">
         <div className="space-y-7 min-w-0">
-          <p className="inline-flex items-center gap-2 text-xs font-bold tracking-wide text-cyan-200 bg-white/10 border border-white/15 backdrop-blur rounded-full px-3.5 py-1.5">
+          <p className="inline-flex items-center gap-2 text-xs font-bold tracking-wide text-amber-200 bg-white/10 border border-white/15 backdrop-blur rounded-full px-3.5 py-1.5">
             <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" /></span>
             Région Lyonnaise &amp; Beaujolais
           </p>
 
           <h1 className="text-[2.6rem] sm:text-6xl lg:text-[4.4rem] font-extrabold tracking-tight leading-[1.02] [text-wrap:balance]">
             Quelle est la{' '}
-            <span className="text-shimmer bg-gradient-to-r from-amber-300 via-amber-100 to-cyan-400 bg-clip-text text-transparent">valeur réelle</span>{' '}
+            <span className="text-shimmer bg-gradient-to-r from-amber-300 via-amber-100 to-amber-300 bg-clip-text text-transparent">valeur réelle</span>{' '}
             de votre bien à&nbsp;Lyon&nbsp;?
           </h1>
 
@@ -158,7 +158,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
             <button
               type="submit"
               id="btn-hero-start"
-              className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-cyan-400 hover:from-amber-300 hover:to-amber-200 text-[#0f1f3d] font-extrabold px-8 py-4 text-base shadow-lg shadow-amber-500/30 transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2"
+              className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-[#0f1f3d] font-extrabold px-8 py-4 text-base shadow-lg shadow-amber-500/30 transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2"
             >
               Estimer
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
@@ -168,7 +168,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
           <ul className="flex flex-wrap gap-2.5 text-sm text-slate-100">
             {['2 minutes', '100 % gratuit', 'Sans engagement'].map((t) => (
               <li key={t} className="flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3.5 py-1.5 backdrop-blur">
-                <CheckCircle2 className="w-4 h-4 text-cyan-300 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
                 {t}
               </li>
             ))}
@@ -182,7 +182,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
         <div className="min-w-0 pb-4 lg:pb-0 pl-6 sm:pl-10 lg:pl-0">
           <PhoneDemo />
           <a href={AGENT.phoneHref} className="mx-auto mt-8 flex w-fit items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2.5 text-sm font-bold text-white backdrop-blur transition-colors">
-            <Phone className="w-4 h-4 text-cyan-300" />
+            <Phone className="w-4 h-4 text-amber-300" />
             Appeler {AGENT.firstName} : {AGENT.phone}
           </a>
         </div>
@@ -196,7 +196,7 @@ const TONES: Record<Tone, string> = {
   white: 'bg-white',
   cream: 'bg-[#f7f2e8]',
   navy: 'bg-[#0f1f3d] text-white',
-  gold: 'bg-gradient-to-br from-amber-400 to-cyan-400 text-[#0f1f3d]',
+  gold: 'bg-gradient-to-br from-amber-400 to-amber-300 text-[#0f1f3d]',
 };
 
 /** Full-width horizontal band: gives each part of the page its own background and rhythm. */
@@ -207,7 +207,7 @@ const Band: React.FC<{ tone: Tone; children: React.ReactNode; id?: string }> = (
 );
 
 const Eyebrow: React.FC<{ children: React.ReactNode; light?: boolean }> = ({ children, light }) => (
-  <p className={`text-xs font-bold uppercase tracking-[0.18em] ${light ? 'text-cyan-300' : 'text-indigo-600'}`}>{children}</p>
+  <p className={`text-xs font-bold uppercase tracking-[0.18em] ${light ? 'text-amber-300' : 'text-amber-600'}`}>{children}</p>
 );
 
 const H2: React.FC<{ id: string; children: React.ReactNode; light?: boolean }> = ({ id, children, light }) => (
@@ -245,9 +245,9 @@ export const HowItWorks: React.FC = () => (
         {STEPS.map((st, i) => (
           <li key={st.title} className="contents">
             <Reveal delay={i * 120}>
-              <div className={`group relative h-full overflow-hidden rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl ${i === 1 ? 'bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white shadow-xl' : i === 2 ? 'bg-gradient-to-br from-amber-100 to-amber-50 text-[#0f1f3d] border border-indigo-200' : 'bg-stone-50 text-[#0f1f3d] border border-stone-200'}`}>
+              <div className={`group relative h-full overflow-hidden rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl ${i === 1 ? 'bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white shadow-xl' : i === 2 ? 'bg-gradient-to-br from-amber-100 to-amber-50 text-[#0f1f3d] border border-amber-200' : 'bg-stone-50 text-[#0f1f3d] border border-stone-200'}`}>
                 <span className={`absolute -right-3 -top-6 select-none text-[8rem] font-extrabold leading-none ${i === 1 ? 'text-white/10' : 'text-[#0f1f3d]/[0.06]'}`}>{i + 1}</span>
-                <div className={`relative flex h-14 w-14 items-center justify-center rounded-2xl shadow-md transition-transform duration-300 group-hover:rotate-6 ${i === 1 ? 'bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white' : 'bg-[#0f1f3d] text-cyan-300'}`}>
+                <div className={`relative flex h-14 w-14 items-center justify-center rounded-2xl shadow-md transition-transform duration-300 group-hover:rotate-6 ${i === 1 ? 'bg-amber-400 text-[#0f1f3d]' : 'bg-[#0f1f3d] text-amber-300'}`}>
                   <st.icon className="w-7 h-7" />
                 </div>
                 <h3 className="relative mt-6 text-xl font-extrabold leading-snug">{st.title}</h3>
@@ -282,7 +282,7 @@ export const WhyOnSite: React.FC = () => (
           </ul>
         </div>
         <div className="rounded-2xl bg-white text-stone-800 border-2 border-amber-400 p-5 shadow-xl sm:-translate-y-2">
-          <p className="text-xs font-bold uppercase tracking-wider text-indigo-700">Gratuite · sans engagement</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Gratuite · sans engagement</p>
           <h3 className="mt-1 text-lg font-bold text-[#0f1f3d]">L'expertise sur place par {AGENT.firstName}</h3>
           <ul className="mt-3 space-y-2 text-sm text-stone-700">
             <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-600" />Analyse de la vue, de l'exposition et des travaux</li>
@@ -318,7 +318,7 @@ export const SocialProof: React.FC = () => {
         <div className="grid md:grid-cols-3 gap-4">
           {TESTIMONIALS.map((t) => (
             <figure key={t.author + t.quote} className="rounded-xl bg-white border border-stone-200 p-6 space-y-3">
-              <Quote className="w-5 h-5 text-indigo-600" />
+              <Quote className="w-5 h-5 text-amber-600" />
               <blockquote className="text-stone-800 leading-relaxed">{t.quote}</blockquote>
               <figcaption className="text-sm text-stone-600">
                 <span className="font-semibold text-stone-900">{t.author}</span>, {t.place}
@@ -343,7 +343,7 @@ export const FaqSection: React.FC = () => {
           <H2 id="faq-title">Toutes les réponses sur votre estimation</H2>
           <p className="mt-4 text-stone-600 leading-relaxed">Une question spécifique ? {AGENT.firstName} vous répond directement par téléphone.</p>
           <a href={AGENT.phoneHref} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0f1f3d] hover:bg-[#1a3060] text-white font-semibold px-5 py-3 transition-colors">
-            <Phone className="w-4 h-4 text-cyan-300" />
+            <Phone className="w-4 h-4 text-amber-300" />
             {AGENT.phone}
           </a>
         </div>
@@ -351,7 +351,7 @@ export const FaqSection: React.FC = () => {
           {FAQ.map((item, i) => {
             const isOpen = open === i;
             return (
-              <div key={item.q} className={`rounded-2xl bg-white border transition-shadow ${isOpen ? 'border-indigo-300 shadow-md' : 'border-stone-200'}`}>
+              <div key={item.q} className={`rounded-2xl bg-white border transition-shadow ${isOpen ? 'border-amber-300 shadow-md' : 'border-stone-200'}`}>
                 <h3>
                   <button
                     type="button"
@@ -362,7 +362,7 @@ export const FaqSection: React.FC = () => {
                     className="w-full flex items-center justify-between gap-4 text-left px-5 py-4 font-semibold text-[#0f1f3d] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-2xl"
                   >
                     <span>{item.q}</span>
-                    <ChevronDown className={`w-5 h-5 shrink-0 text-indigo-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 shrink-0 text-amber-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 </h3>
                 {isOpen && (
@@ -420,7 +420,7 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
     >
       {unlocked && priceLabel && (
         <div className="basis-full flex items-baseline justify-between text-xs">
-          <span className="font-semibold uppercase tracking-wider text-indigo-800">Votre estimation</span>
+          <span className="font-semibold uppercase tracking-wider text-amber-800">Votre estimation</span>
           <span className="text-base font-bold text-[#0f1f3d]">{priceLabel}</span>
         </div>
       )}
@@ -428,12 +428,12 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
         <button
           type="button"
           onClick={onBook}
-          className="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 active:bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white font-bold py-3.5 text-sm shadow"
+          className="flex-1 rounded-xl bg-amber-400 active:bg-amber-500 text-[#0f1f3d] font-bold py-3.5 text-sm shadow"
         >
           Réserver ma visite gratuite
         </button>
       ) : (
-        <button type="button" onClick={scrollToSimulator} className="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 text-white font-semibold py-3 text-sm">
+        <button type="button" onClick={scrollToSimulator} className="flex-1 rounded-xl bg-stone-900 text-white font-semibold py-3 text-sm">
           Estimer mon bien
         </button>
       )}
@@ -527,7 +527,7 @@ export const ZoneSection: React.FC = () => (
           'Villefranche & alentours',
         ].map((c) => (
           <li key={c} className="flex items-center gap-2 rounded-xl bg-white border border-stone-200 px-4 py-3.5 font-semibold text-[#0f1f3d]">
-            <MapPin className="w-4 h-4 text-indigo-600 shrink-0" />
+            <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
             {c}
           </li>
         ))}
@@ -556,10 +556,10 @@ export const BlogTeaser: React.FC = () => (
       <ul className="mt-8 grid md:grid-cols-3 gap-5">
         {TEASER.map(([slug, cat, title]) => (
           <li key={slug}>
-            <a href={`/blog/${slug}`} className="group flex h-full flex-col rounded-2xl bg-[#f7f2e8] border border-transparent p-6 hover:border-indigo-300 hover:shadow-lg transition">
-              <span className="self-start rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-700">{cat}</span>
+            <a href={`/blog/${slug}`} className="group flex h-full flex-col rounded-2xl bg-[#f7f2e8] border border-transparent p-6 hover:border-amber-300 hover:shadow-lg transition">
+              <span className="self-start rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-700">{cat}</span>
               <span className="mt-4 flex-1 text-lg font-bold leading-snug text-[#0f1f3d]">{title}</span>
-              <span className="mt-5 flex items-center gap-1.5 text-sm font-semibold text-indigo-700">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
+              <span className="mt-5 flex items-center gap-1.5 text-sm font-semibold text-amber-700">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
             </a>
           </li>
         ))}

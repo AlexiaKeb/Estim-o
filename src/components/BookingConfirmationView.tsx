@@ -166,7 +166,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
       {/* 1. TOP CONFIRMATION BANNER */}
       <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-stone-800 shadow-xl relative overflow-hidden">
         <div className="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-16 -top-16 w-80 h-80 bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-16 -top-16 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -186,20 +186,20 @@ export const BookingConfirmationView: React.FC<Props> = ({
               {firstName}, votre visite sur place est bien confirmée !
             </h1>
             <p className="text-sm sm:text-base text-stone-300 max-w-2xl leading-relaxed">
-              Céline se rendra à l'adresse indiquée <strong className="text-cyan-300 font-semibold">{confirmedLead.address || confirmedLead.city}</strong> pour réaliser l'analyse complète de votre bien et préparer votre avis de valeur.
+              Céline se rendra à l'adresse indiquée <strong className="text-amber-300 font-semibold">{confirmedLead.address || confirmedLead.city}</strong> pour réaliser l'analyse complète de votre bien et préparer votre avis de valeur.
             </p>
           </div>
 
           {/* Core Appointment Summary Card */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             <div className="bg-stone-950/90 border border-stone-800 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-inner">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-cyan-300 border border-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Calendar className="w-5 h-5 text-cyan-300" />
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Calendar className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Date du rendez-vous</div>
                 <div className="text-sm sm:text-base font-bold text-white mt-0.5">{cleanFormattedDate}</div>
-                <div className="text-xs text-cyan-300 font-medium mt-0.5 flex items-center gap-1">
+                <div className="text-xs text-amber-300 font-medium mt-0.5 flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{confirmedLead.meetingTime || '14:30'}</span>
                 </div>
@@ -282,7 +282,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
             <div className="flex items-start gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-cyan-400 flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
                   C
                 </div>
                 <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" title="En ligne" />
@@ -290,7 +290,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-stone-900">Céline LEVRAT</h3>
-                <p className="text-xs font-medium text-indigo-700">Experte immobilière locale</p>
+                <p className="text-xs font-medium text-amber-700">Experte immobilière locale</p>
               </div>
             </div>
 
@@ -301,7 +301,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
             <div className="space-y-2 pt-1">
               <a
                 href="tel:0603580316"
-                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
+                className="w-full py-3 px-4 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
               >
                 <PhoneCall className="w-4 h-4 text-emerald-400" />
                 <span className="flex flex-col items-center leading-tight"><span>Appeler Céline</span><span>06 03 58 03 16</span></span>
@@ -317,7 +317,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
           {/* Secteur & Engagement Spécifique */}
           <div className="bg-stone-900 text-white rounded-3xl p-5 sm:p-6 border border-stone-800 shadow-sm space-y-3">
-            <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
               <Compass className="w-4 h-4" />
               <span>Secteur d'expertise</span>
             </div>
@@ -338,7 +338,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
             <div className="flex items-center justify-between border-b border-stone-100 pb-3.5">
               <div>
                 <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  <Sparkles className="w-4 h-4 text-amber-500" />
                   Préparer votre visite : les éléments utiles
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
@@ -369,9 +369,9 @@ export const BookingConfirmationView: React.FC<Props> = ({
             </div>
 
             {/* Team Evaluation Highlight */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 border border-white/20 text-stone-800 space-y-1.5 mt-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-indigo-900">
-                <Award className="w-4 h-4 text-indigo-600" />
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-stone-800 space-y-1.5 mt-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                <Award className="w-4 h-4 text-amber-600" />
                 <span>Votre avis de valeur sous 48h</span>
               </div>
               <p className="text-xs text-stone-600 leading-relaxed">

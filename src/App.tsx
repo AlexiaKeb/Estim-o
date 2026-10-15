@@ -669,7 +669,7 @@ export default function App() {
       ) : (
         /* =================== PUBLIC CLIENT HEADER (Warm SaaS Editorial) =================== */
         <>
-          <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/70">
+          <header className="sticky top-0 z-40 bg-[#fbfbfa]/95 backdrop-blur-md border-b border-stone-200/80 shadow-2xs">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               {/* Public Brand Logo with subtle triple-click detection */}
               <div className="flex items-center gap-3">
@@ -682,7 +682,7 @@ export default function App() {
                   className="flex items-center gap-2.5 text-left focus:outline-none group select-none"
                   title={privacySettings.publicBrandName}
                 >
-                  <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm group-hover:brightness-110 transition-all shadow-xs">
+                  <div className="w-8.5 h-8.5 rounded-xl bg-stone-900 text-stone-100 flex items-center justify-center font-bold text-sm group-hover:bg-stone-800 transition-all shadow-xs">
                     <Building2 className="w-4.5 h-4.5" />
                   </div>
                   <div>
@@ -718,7 +718,7 @@ export default function App() {
                     >
                       <span
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                          st.active ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white' : st.done ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-500'
+                          st.active ? 'bg-stone-900 text-white' : st.done ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-500'
                         }`}
                       >
                         {st.done && !st.active ? '✓' : st.n}
@@ -871,24 +871,24 @@ export default function App() {
       </Suspense>
 
       {/* Footer */}
-      <footer className="bg-[#0b1020] pt-8 pb-24 sm:pb-8 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <footer className="bg-white border-t border-stone-200/80 pt-6 pb-24 sm:pb-6 mt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-white">
+            <span className="font-semibold text-stone-800">
               {BRAND.name} – Céline LEVRAT – Expertise Immobilière
             </span>
             <span>•</span>
             <span>Estimation gratuite et sans engagement</span>
             <span>•</span>
-            <a href="/blog" className="hover:text-white underline-offset-2 hover:underline">Conseils</a>
-            <a href="/mentions-legales" className="hover:text-white underline-offset-2 hover:underline">Mentions légales</a>
-            <a href="/confidentialite" className="hover:text-white underline-offset-2 hover:underline">Politique de confidentialité</a>
-            <a href="tel:+33603580316" className="hover:text-white underline-offset-2 hover:underline">Contact</a>
+            <a href="/blog" className="hover:text-stone-800 underline-offset-2 hover:underline">Conseils</a>
+            <a href="/mentions-legales" className="hover:text-stone-800 underline-offset-2 hover:underline">Mentions légales</a>
+            <a href="/confidentialite" className="hover:text-stone-800 underline-offset-2 hover:underline">Politique de confidentialité</a>
+            <a href="tel:+33603580316" className="hover:text-stone-800 underline-offset-2 hover:underline">Contact</a>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex items-center gap-4 text-stone-500">
             {isAgentMode ? (
-              <span className="text-emerald-300 font-medium flex items-center gap-1.5">
+              <span className="text-emerald-700 font-medium flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                 Session Conseiller Active
               </span>
