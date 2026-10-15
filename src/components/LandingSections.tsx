@@ -98,9 +98,9 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
             </button>
           </form>
 
-          <ul className="flex flex-wrap gap-3 text-sm font-bold">
+          <ul className="flex flex-wrap gap-2 text-[13px] font-bold sm:flex-nowrap sm:text-sm">
             {['Estimation en 2 minutes', '100 % offert', 'Sans engagement'].map((t) => (
-              <li key={t} className="flex items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFF7E6] px-4 py-1.5 text-[#0B0F1F]">
+              <li key={t} className="flex items-center gap-1.5 whitespace-nowrap rounded-full border-[3px] border-[#0B0F1F] bg-[#FFF7E6] px-3 py-1.5 text-[#0B0F1F]">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-[#2B4BFF]" />
                 {t}
               </li>
