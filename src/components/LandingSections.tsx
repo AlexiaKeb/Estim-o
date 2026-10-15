@@ -40,7 +40,72 @@ const AgentAvatar: React.FC<{ size?: number }> = ({ size = 56 }) =>
     </div>
   );
 
-/** Above the fold: one promise, one field to start, proof of who is behind it. */
+/** Apparition douce au défilement (aucun effet si le visiteur préfère moins de mouvement). */
+export const Reveal: React.FC<{ children: React.ReactNode; delay?: number; className?: string }> = ({ children, delay = 0, className = '' }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setShown(true); return; }
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setShown(true); io.disconnect(); } }, { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return <div ref={ref} className={`reveal ${shown ? 'in' : ''} ${className}`} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
+};
+
+type DemoMsg = { who: 'bot' | 'me'; text: string };
+const DEMO: DemoMsg[] = [
+  { who: 'bot', text: "Bonjour ! Je suis l'assistant (IA) de Céline. Quelle est l'adresse du bien ?" },
+  { who: 'me', text: '12 rue Mercière, Lyon 2e' },
+  { who: 'bot', text: 'Quelle est sa surface, en m² ?' },
+  { who: 'me', text: '78 m²' },
+];
+
+/** Aperçu animé de l'assistant (exemple illustratif, pas une vraie estimation). */
+const PhoneDemo: React.FC = () => {
+  const [step, setStep] = useState(0); // 0..DEMO.length = messages, +1 = fourchette
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setStep(DEMO.length + 1); return; }
+    const t = window.setInterval(() => setStep((n) => (n >= DEMO.length + 3 ? 0 : n + 1)), 1700);
+    return () => window.clearInterval(t);
+  }, []);
+  const showResult = step >= DEMO.length + 1;
+  return (
+    <div className="relative mx-auto w-[17.5rem] sm:w-[19rem]" aria-hidden="true">
+      <div className="float-slow rounded-[2.4rem] border-[7px] border-[#1b2d57] bg-[#f4f1ea] shadow-2xl shadow-black/40 overflow-hidden">
+        <div className="bg-[#0f1f3d] px-4 py-3 flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-[#0f1f3d] text-xs font-extrabold">IA</span>
+          <div><p className="text-[13px] font-bold text-white leading-tight">Assistant Estimation</p><p className="text-[10px] text-slate-300 leading-tight">En ligne • réponse en 2 min</p></div>
+        </div>
+        <div className="h-[22.5rem] space-y-2 px-3 py-3 text-[12.5px] leading-snug">
+          {DEMO.slice(0, Math.min(step, DEMO.length)).map((m, i) => (
+            <div key={i} className={`pop-in flex ${m.who === 'me' ? 'justify-end' : ''}`}>
+              <span className={`max-w-[85%] rounded-2xl px-3 py-2 ${m.who === 'me' ? 'rounded-br-md bg-[#0f1f3d] text-white' : 'rounded-bl-md bg-white text-stone-800 shadow-sm'}`}>{m.text}</span>
+            </div>
+          ))}
+          {step >= 1 && step < DEMO.length + 1 && step % 2 === 0 && <div className="pop-in flex"><span className="rounded-2xl rounded-bl-md bg-white px-3 py-2 text-stone-400 shadow-sm">• • •</span></div>}
+          {showResult && (
+            <div className="pop-in rounded-2xl bg-white p-3 shadow-md">
+              <p className="text-[10px] font-extrabold uppercase tracking-wide text-amber-700">Estimation indicative (IA) • exemple</p>
+              <div className="mt-1 flex items-center justify-between text-[15px] font-extrabold text-[#0f1f3d]"><span>412 000 €</span><span>468 000 €</span></div>
+              <div className="relative my-2 h-2 rounded-full bg-gradient-to-r from-rose-300 via-amber-200 to-emerald-300">
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0f1f3d] px-2 py-0.5 text-[9px] font-bold text-white whitespace-nowrap">🔒 Prix juste à fixer sur place</span>
+              </div>
+              <p className="mt-3 rounded-xl bg-amber-400 px-3 py-2 text-center text-[11px] font-extrabold text-[#0f1f3d]">Réserver ma visite offerte</p>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="absolute -left-6 bottom-10 sm:-left-10 flex items-center gap-2.5 rounded-2xl bg-white/95 p-2 pr-4 shadow-xl backdrop-blur float-slow" style={{ animationDelay: '1.2s' }}>
+        {AGENT.photoUrl ? <img src={AGENT.photoUrl} alt="" width={44} height={44} className="h-11 w-11 rounded-full object-cover object-[50%_20%]" /> : <AgentAvatar size={44} />}
+        <div><p className="text-[12px] font-extrabold text-[#0f1f3d] leading-tight">{AGENT.firstName} {AGENT.name.split(' ').slice(1).join(' ').toUpperCase()}</p><p className="text-[10px] text-stone-500 leading-tight">Votre experte locale</p></div>
+      </div>
+    </div>
+  );
+};
+
+/** Au-dessus de la ligne de flottaison : une promesse, un champ pour démarrer, l'assistant en action. */
 export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?: string; city?: string }) => void }> = ({ onStart }) => {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<AddressSuggestion | null>(null);
@@ -52,25 +117,28 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
   };
 
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-[#0f1f3d] text-white shadow-xl">
-      <div aria-hidden className="pointer-events-none absolute -top-32 -right-24 h-96 w-96 rounded-full bg-amber-400/20 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-sky-400/10 blur-3xl" />
-      <div className="relative grid lg:grid-cols-[1.35fr_1fr] gap-10 lg:gap-14 p-6 sm:p-10 lg:p-14 items-center">
-        <div className="space-y-6 min-w-0">
-          <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-amber-200 bg-white/10 border border-white/15 rounded-full px-3 py-1">
-            <MapPin className="w-3.5 h-3.5" />
+    <section className="relative overflow-hidden rounded-[2rem] bg-[#0a1530] text-white shadow-2xl">
+      <div aria-hidden className="drift pointer-events-none absolute -top-40 -right-32 h-[30rem] w-[30rem] rounded-full bg-amber-400/25 blur-3xl" />
+      <div aria-hidden className="drift pointer-events-none absolute -bottom-48 -left-28 h-[28rem] w-[28rem] rounded-full bg-sky-500/20 blur-3xl" style={{ animationDelay: '3s' }} />
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
+      <div className="relative grid lg:grid-cols-[1.25fr_1fr] gap-12 lg:gap-8 p-6 sm:p-12 lg:p-16 items-center">
+        <div className="space-y-7 min-w-0">
+          <p className="inline-flex items-center gap-2 text-xs font-bold tracking-wide text-amber-200 bg-white/10 border border-white/15 backdrop-blur rounded-full px-3.5 py-1.5">
+            <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" /></span>
             Région Lyonnaise &amp; Beaujolais
           </p>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05] [text-wrap:balance]">
-            Quelle est la <span className="text-amber-300">valeur réelle</span> de votre bien à&nbsp;Lyon et sa région&nbsp;?
+          <h1 className="text-[2.6rem] sm:text-6xl lg:text-[4.4rem] font-extrabold tracking-tight leading-[1.02] [text-wrap:balance]">
+            Quelle est la{' '}
+            <span className="text-shimmer bg-gradient-to-r from-amber-300 via-amber-100 to-amber-300 bg-clip-text text-transparent">valeur réelle</span>{' '}
+            de votre bien à&nbsp;Lyon&nbsp;?
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-            Obtenez une estimation basée sur les ventes réelles de votre quartier, affinée sur place par {AGENT.firstName}, votre conseillère de proximité.
+          <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-xl">
+            Une estimation basée sur les ventes réelles de votre quartier, puis affinée sur place par {AGENT.firstName}, votre conseillère de proximité.
           </p>
 
-          <form onSubmit={start} className="rounded-2xl bg-white shadow-2xl shadow-black/30 p-2 sm:p-3 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-2xl text-stone-900" aria-label="Démarrer l'estimation">
+          <form onSubmit={start} className="rounded-3xl bg-white/95 backdrop-blur shadow-2xl shadow-black/40 p-2.5 sm:p-3 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-2xl text-stone-900 ring-1 ring-white/40" aria-label="Démarrer l'estimation">
             <label htmlFor="hero-address" className="sr-only">Adresse du bien</label>
             <AddressSearch
               id="hero-address"
@@ -90,16 +158,16 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
             <button
               type="submit"
               id="btn-hero-start"
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold px-7 py-4 text-base transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2"
+              className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-[#0f1f3d] font-extrabold px-8 py-4 text-base shadow-lg shadow-amber-500/30 transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2"
             >
               Estimer
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </button>
           </form>
 
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-200">
-            {['Estimation en 2 minutes', '100 % gratuit', 'Sans engagement'].map((t) => (
-              <li key={t} className="flex items-center gap-2">
+          <ul className="flex flex-wrap gap-2.5 text-sm text-slate-100">
+            {['2 minutes', '100 % gratuit', 'Sans engagement'].map((t) => (
+              <li key={t} className="flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3.5 py-1.5 backdrop-blur">
                 <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
                 {t}
               </li>
@@ -111,42 +179,13 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
           </p>
         </div>
 
-        {/* Who you will talk to */}
-        <aside className="rounded-3xl bg-white text-stone-900 shadow-2xl shadow-black/30 overflow-hidden min-w-0 max-w-md w-full justify-self-center lg:justify-self-end">
-          {AGENT.photoUrl ? (
-            <img src={AGENT.photoUrl} alt={`${AGENT.name}, conseillère immobilière à Lyon`} width={640} height={480} decoding="async" className="w-full aspect-[4/3] object-cover object-[50%_25%]" />
-          ) : (
-            <div className="w-full aspect-[4/3] bg-gradient-to-br from-amber-200 to-amber-400 flex items-center justify-center">
-              <AgentAvatar size={96} />
-            </div>
-          )}
-          <div className="p-6 space-y-4">
-            <div>
-              <div className="text-lg font-semibold">{AGENT.firstName} {AGENT.name.split(' ').slice(1).join(' ').toUpperCase()}</div>
-              <div className="text-sm text-stone-600">Votre experte immobilière locale</div>
-            </div>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              Un accompagnement sur mesure, de l'estimation jusqu'à la signature. Un seul interlocuteur direct, sans intermédiaire ni centre d'appels.
-            </p>
-            <dl className="text-sm space-y-2 border-t border-stone-200 pt-4">
-              <div className="flex gap-2">
-                <MapPin className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                <dd className="text-stone-700">{AGENT.zone}</dd>
-              </div>
-              <div className="flex gap-2">
-                <Clock className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                <dd className="text-stone-700">Déplacement &amp; rendez-vous offerts</dd>
-              </div>
-            </dl>
-            <a
-              href={AGENT.phoneHref}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0f1f3d] hover:bg-[#1a3060] px-4 py-3 text-sm font-semibold text-white transition-colors"
-            >
-              <Phone className="w-4 h-4 text-amber-300" />
-              Appeler {AGENT.firstName} au {AGENT.phone}
-            </a>
-          </div>
-        </aside>
+        <div className="min-w-0 pb-4 lg:pb-0 pl-6 sm:pl-10 lg:pl-0">
+          <PhoneDemo />
+          <a href={AGENT.phoneHref} className="mx-auto mt-8 flex w-fit items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2.5 text-sm font-bold text-white backdrop-blur transition-colors">
+            <Phone className="w-4 h-4 text-amber-300" />
+            Appeler {AGENT.firstName} : {AGENT.phone}
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -198,20 +237,23 @@ const STEPS = [
 export const HowItWorks: React.FC = () => (
   <Band tone="white">
     <section aria-labelledby="how-title">
-      <div className="text-center max-w-2xl mx-auto">
+      <Reveal className="text-center max-w-2xl mx-auto">
         <Eyebrow>Votre estimation en 3 étapes</Eyebrow>
         <H2 id="how-title">Comment obtenir l'estimation de votre bien ?</H2>
-      </div>
-      <ol className="mt-12 grid md:grid-cols-3 gap-10 md:gap-8 relative">
-        <div aria-hidden className="hidden md:block absolute top-8 left-[16%] right-[16%] border-t-2 border-dashed border-amber-300" />
+      </Reveal>
+      <ol className="mt-12 grid md:grid-cols-3 gap-5">
         {STEPS.map((st, i) => (
-          <li key={st.title} className="relative text-center px-2">
-            <div className="relative mx-auto w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-sm ring-4 ring-white">
-              <st.icon className="w-7 h-7" />
-              <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-[#0f1f3d] text-white text-sm font-bold flex items-center justify-center">{i + 1}</span>
-            </div>
-            <h3 className="mt-5 text-lg font-bold text-[#0f1f3d]">{st.title}</h3>
-            <p className="mt-2 text-stone-600 leading-relaxed">{st.text}</p>
+          <li key={st.title} className="contents">
+            <Reveal delay={i * 120}>
+              <div className={`group relative h-full overflow-hidden rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl ${i === 1 ? 'bg-gradient-to-br from-[#0f1f3d] to-[#1d3566] text-white shadow-xl' : i === 2 ? 'bg-gradient-to-br from-amber-100 to-amber-50 text-[#0f1f3d] border border-amber-200' : 'bg-stone-50 text-[#0f1f3d] border border-stone-200'}`}>
+                <span className={`absolute -right-3 -top-6 select-none text-[8rem] font-extrabold leading-none ${i === 1 ? 'text-white/10' : 'text-[#0f1f3d]/[0.06]'}`}>{i + 1}</span>
+                <div className={`relative flex h-14 w-14 items-center justify-center rounded-2xl shadow-md transition-transform duration-300 group-hover:rotate-6 ${i === 1 ? 'bg-amber-400 text-[#0f1f3d]' : 'bg-[#0f1f3d] text-amber-300'}`}>
+                  <st.icon className="w-7 h-7" />
+                </div>
+                <h3 className="relative mt-6 text-xl font-extrabold leading-snug">{st.title}</h3>
+                <p className={`relative mt-3 leading-relaxed ${i === 1 ? 'text-slate-300' : 'text-stone-600'}`}>{st.text}</p>
+              </div>
+            </Reveal>
           </li>
         ))}
       </ol>
