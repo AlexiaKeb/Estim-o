@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -550,6 +550,11 @@ export const BlogTeaser: React.FC = () => {
   const [posts, setPosts] = useState<Array<{ slug: string; category: string; title: string; coverUrl?: string | null }>>(
     TEASER.map(([slug, category, title]) => ({ slug, category, title, coverUrl: null })),
   );
+  const railRef = useRef<HTMLUListElement>(null);
+  const scrollBlog = (dir: 1 | -1) => {
+    const el = railRef.current;
+    if (el) el.scrollBy({ left: dir * Math.max(280, el.clientWidth * 0.8), behavior: 'smooth' });
+  };
   useEffect(() => {
     let off = false;
     fetch('/api/blog/latest')
@@ -582,9 +587,18 @@ export const BlogTeaser: React.FC = () => {
           </div>
           <a href="/blog" className="group inline-flex items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-white px-5 py-2.5 text-base font-black text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-all hover:-translate-y-0.5 hover:bg-[#FFD60A]">Tous les conseils d'experts <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></a>
         </div>
-        <ul className="mt-10 grid gap-6 md:grid-cols-3">
+        <div className="relative mt-6">
+          <div className="mb-3 flex items-center justify-end gap-2" aria-hidden={false}>
+            <button type="button" aria-label="Articles précédents" onClick={() => scrollBlog(-1)} className="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] bg-white shadow-[3px_3px_0_#0B0F1F] transition-all hover:bg-[#FFD60A] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+              <ArrowRight className="h-5 w-5 rotate-180" />
+            </button>
+            <button type="button" aria-label="Articles suivants" onClick={() => scrollBlog(1)} className="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] bg-white shadow-[3px_3px_0_#0B0F1F] transition-all hover:bg-[#FFD60A] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none">
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          </div>
+          <ul ref={railRef} className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth px-4 pb-8 pt-3 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [&::-webkit-scrollbar]:hidden" aria-label="Articles de conseils">
           {posts.map((p, idx) => (
-            <li key={p.slug} className={`transition-[rotate] duration-200 hover:rotate-0 ${['md:-rotate-2', 'md:rotate-1', 'md:-rotate-1'][idx % 3]} ${idx === 1 ? 'md:mt-4' : ''}`}>
+            <li key={p.slug} className={`w-[82%] shrink-0 snap-start transition-[rotate] duration-200 hover:rotate-0 sm:w-[46%] lg:w-[31.5%] ${['md:-rotate-1', 'md:rotate-1', 'md:-rotate-1'][idx % 3]}`}>
               <a href={`/blog/${p.slug}`} className={`group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] bg-white`}>
                 {p.coverUrl && /^https:\/\//i.test(p.coverUrl) ? (
                   <img src={p.coverUrl as string} alt={p.title} loading="lazy" decoding="async" width={600} height={600} className="aspect-square w-full border-b-[3px] border-[#0B0F1F] object-cover" />
@@ -597,7 +611,8 @@ export const BlogTeaser: React.FC = () => {
               </a>
             </li>
           ))}
-        </ul>
+          </ul>
+        </div>
       </section>
     </Band>
   );

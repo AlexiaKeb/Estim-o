@@ -331,7 +331,7 @@ export const ArticlesView: React.FC = () => {
                 </div>
               )}
               {featuredEnabled ? (
-                <p className="text-xs text-stone-600"><Star className="inline w-3.5 h-3.5 -mt-0.5 text-amber-500" fill="currentColor" /> <strong>À la une de l'accueil : {rows.filter((r) => r.featured).length}/3</strong>. Cliquez sur l'étoile d'un article publié pour le mettre en avant sur la page d'accueil. Sans sélection, les 3 derniers articles s'affichent.</p>
+                <p className="text-xs text-stone-600"><Star className="inline w-3.5 h-3.5 -mt-0.5 text-amber-500" fill="currentColor" /> <strong>À la une de l'accueil : {rows.filter((r) => r.featured).length}/3</strong>. Cliquez sur l'étoile d'un article publié pour le placer en premier dans le carrousel de la page d'accueil. Les autres articles suivent, du plus récent au plus ancien.</p>
               ) : (
                 <p className="text-xs text-amber-800 bg-amber-50 rounded-lg px-3 py-2">Pour choisir les articles de l'accueil, exécutez la migration <code>20261015000000_article_featured.sql</code> dans Supabase (SQL Editor).</p>
               )}

@@ -2728,7 +2728,7 @@ async function startServer() {
   const articlesMissing = (error: any) => error && (error.code === "42P01" || /relation .*articles|schema cache/i.test(error.message || ""));
   const MISSING_MSG = "La table des articles n'existe pas encore : exécutez la migration 20261006000000_articles.sql dans Supabase (SQL Editor).";
 
-  // Public: the articles shown on the home page. The ones chosen in the dashboard come first (exactly those if any), otherwise the latest 3.
+  // Public: the articles of the home page carousel. The ones chosen in the dashboard come first, then the latest ones (9 at most).
   app.get("/api/blog/latest", async (_req: Request, res: Response) => {
     try {
       const client = getSupabaseAdmin();
@@ -2739,7 +2739,9 @@ async function startServer() {
         const slugs = new Set((data || []).map((r: any) => r.slug));
         chosen = posts.filter((p) => slugs.has(p.slug)).slice(0, 3);
       }
-      const list = chosen.length ? chosen : posts.slice(0, 3);
+      // The ones chosen in the dashboard come first, then the most recent: enough cards to swipe through
+      const picked = new Set(chosen.map((p) => p.slug));
+      const list = [...chosen, ...posts.filter((p) => !picked.has(p.slug))].slice(0, 9);
       res.set("Cache-Control", "public, max-age=60");
       res.json({ posts: list.map((p) => ({ slug: p.slug, category: p.category, title: p.title, coverUrl: p.coverUrl || null })) });
     } catch {
