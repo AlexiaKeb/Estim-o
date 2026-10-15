@@ -4,6 +4,7 @@ import App from './App.tsx';
 import {createRoot} from 'react-dom/client';
 import './index.css';
 import { ConsentBanner } from './components/ConsentBanner.tsx';
+import { ChunkErrorBoundary } from './components/ChunkErrorBoundary.tsx';
 import { initTracking } from './utils/tracking.ts';
 
 initTracking();
@@ -40,7 +41,7 @@ async function pageFor(p: string): Promise<ReactElement> {
 pageFor(path).then((page) => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      {page}
+      <ChunkErrorBoundary>{page}</ChunkErrorBoundary>
       <ConsentBanner />
     </StrictMode>,
   );

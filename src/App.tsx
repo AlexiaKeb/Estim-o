@@ -40,13 +40,17 @@ const lazyRetry = <T extends React.ComponentType<any>>(load: () => Promise<{ def
   lazy(() =>
     load().then(
       (m) => {
-        try { sessionStorage.removeItem('chunk-reload'); } catch { /* ignoré */ }
         return m;
       },
       (err) => {
-        let done = false;
-        try { done = sessionStorage.getItem('chunk-reload') === '1'; sessionStorage.setItem('chunk-reload', '1'); } catch { /* ignoré */ }
-        if (!done) { window.location.reload(); return new Promise<never>(() => {}); }
+        // After a site update the file may no longer exist: reload once (not in a loop), the boundary shows a message otherwise
+        let last = 0;
+        try { last = Number(sessionStorage.getItem('chunk-reload-at') || 0); } catch { /* ignoré */ }
+        if (Date.now() - last > 30_000) {
+          try { sessionStorage.setItem('chunk-reload-at', String(Date.now())); } catch { /* ignoré */ }
+          window.location.reload();
+          return new Promise<never>(() => {});
+        }
         throw err;
       },
     ),
