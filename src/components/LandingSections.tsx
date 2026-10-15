@@ -553,8 +553,28 @@ export const BlogTeaser: React.FC = () => {
   const railRef = useRef<HTMLUListElement>(null);
   const scrollBlog = (dir: 1 | -1) => {
     const el = railRef.current;
-    if (el) el.scrollBy({ left: dir * Math.max(280, el.clientWidth * 0.8), behavior: 'smooth' });
+    if (el) el.scrollBy({ left: dir * Math.max(280, el.clientWidth * 0.5), behavior: 'smooth' });
   };
+  // Endless carousel: the cards are repeated three times and the middle set is shown first, so there are cards on both sides
+  const loop = posts.length >= 2;
+  const items = loop ? [...posts, ...posts, ...posts] : posts;
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el || !loop) return;
+    const first = el.children[posts.length] as HTMLElement | undefined;
+    const base = el.children[0] as HTMLElement | undefined;
+    if (!first || !base) return;
+    const setW = first.offsetLeft - base.offsetLeft;
+    const pad = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+    el.style.scrollBehavior = 'auto';
+    el.scrollLeft = first.offsetLeft - pad;
+    const onScroll = () => {
+      if (el.scrollLeft < setW * 0.35) el.scrollLeft += setW;
+      else if (el.scrollLeft > setW * 1.65) el.scrollLeft -= setW;
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [posts, loop]);
   useEffect(() => {
     let off = false;
     fetch('/api/blog/latest')
@@ -596,21 +616,34 @@ export const BlogTeaser: React.FC = () => {
               <ArrowRight className="h-5 w-5" />
             </button>
           </div>
-          <ul ref={railRef} className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth px-4 pb-8 pt-3 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [&::-webkit-scrollbar]:hidden" aria-label="Articles de conseils">
-          {posts.map((p, idx) => (
-            <li key={p.slug} className={`w-[82%] shrink-0 snap-start transition-[rotate] duration-200 hover:rotate-0 sm:w-[46%] lg:w-[31.5%] ${['md:-rotate-1', 'md:rotate-1', 'md:-rotate-1'][idx % 3]}`}>
-              <a href={`/blog/${p.slug}`} className={`group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] bg-white`}>
+        </div>
+        <div className="relative left-1/2 w-screen -translate-x-1/2">
+          <ul ref={railRef} className="flex snap-x gap-5 overflow-x-auto overscroll-x-contain px-4 pb-8 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6 lg:px-[max(2rem,calc((100vw-72rem)/2+2rem))]" aria-label="Articles de conseils">
+          {items.map((p, idx) => {
+            const clone = loop && (idx < posts.length || idx >= posts.length * 2);
+            const k = idx % posts.length;
+            return (
+            <li key={`${p.slug}-${idx}`} aria-hidden={clone || undefined} className={`w-[78vw] shrink-0 snap-center transition-[rotate] duration-200 hover:rotate-0 sm:w-[340px] lg:w-[360px] ${['md:-rotate-1', 'md:rotate-1', 'md:-rotate-1'][k % 3]}`}>
+              <a href={`/blog/${p.slug}`} tabIndex={clone ? -1 : undefined} className="group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] bg-white shadow-[5px_5px_0_#0B0F1F]">
                 {p.coverUrl && /^https:\/\//i.test(p.coverUrl) ? (
-                  <img src={p.coverUrl as string} alt={p.title} loading="lazy" decoding="async" width={600} height={600} className="aspect-square w-full border-b-[3px] border-[#0B0F1F] object-cover" />
-                ) : null}
+                  <img src={p.coverUrl as string} alt={clone ? '' : p.title} loading="lazy" decoding="async" width={600} height={600} className="aspect-square w-full border-b-[3px] border-[#0B0F1F] object-cover" />
+                ) : (
+                  <span aria-hidden="true" className={`relative block h-32 w-full overflow-hidden border-b-[3px] border-[#0B0F1F] ${['bg-[#FFD60A]', 'bg-[#2B4BFF]', 'bg-[#FFF7E6]'][k % 3]}`}>
+                    <span className={`absolute -right-5 -top-8 h-28 w-28 rounded-full border-[3px] border-[#0B0F1F] ${['bg-[#2B4BFF]', 'bg-[#FFD60A]', 'bg-[#2B4BFF]'][k % 3]}`} />
+                    <span className={`absolute -bottom-10 -left-6 h-24 w-32 rotate-12 rounded-3xl border-[3px] border-[#0B0F1F] ${['bg-[#FFF7E6]', 'bg-[#FFF7E6]', 'bg-[#FFD60A]'][k % 3]}`} />
+                    <span className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#0B0F1F] bg-white" />
+                    <Spark className="spark absolute left-[60%] top-[55%] h-8 w-8" />
+                  </span>
+                )}
                 <span className="flex flex-1 flex-col p-6">
-                  <span className={`self-start rounded-full border-2 border-[#0B0F1F] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F] ${['bg-[#FFF3B8]', 'bg-[#E4E9FF]', 'bg-[#FFF7E6]'][idx % 3]}`}>{p.category}</span>
+                  <span className={`self-start rounded-full border-2 border-[#0B0F1F] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F] ${['bg-[#FFF3B8]', 'bg-[#E4E9FF]', 'bg-[#FFF7E6]'][k % 3]}`}>{p.category}</span>
                   <span className="mt-4 flex-1 text-xl font-black leading-snug text-[#0B0F1F]">{p.title}</span>
-                  <span className="mt-5 flex items-center gap-1.5 text-sm font-black text-[#2B4BFF]">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
+                  <span className="mt-5 flex items-center gap-1.5 text-sm font-black text-[#2B4BFF]">Lire l'article <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></span>
                 </span>
               </a>
             </li>
-          ))}
+            );
+          })}
           </ul>
         </div>
       </section>
