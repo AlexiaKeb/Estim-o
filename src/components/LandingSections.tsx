@@ -564,16 +564,16 @@ export const BlogTeaser: React.FC = () => {
           <a href="/blog" className="inline-flex items-center gap-1.5 text-base font-black text-[#0B0F1F] underline decoration-[3px] underline-offset-4">Tous les conseils d'experts <ArrowRight className="w-4 h-4" /></a>
         </div>
         <ul className="mt-8 grid md:grid-cols-3 gap-5">
-          {posts.map((p) => (
+          {posts.map((p, idx) => (
             <li key={p.slug}>
-              <a href={`/blog/${p.slug}`} className="group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] shadow-[5px_5px_0_#0B0F1F]">
+              <a href={`/blog/${p.slug}`} className={`group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] ${['bg-[#E4E9FF]', 'bg-[#FFF3B8]', 'bg-[#FFF7E6]'][idx % 3]}`}>
                 {p.coverUrl && /^https:\/\//i.test(p.coverUrl) ? (
                   <img src={p.coverUrl as string} alt={p.title} loading="lazy" decoding="async" width={600} height={600} className="aspect-square w-full border-b-[3px] border-[#0B0F1F] object-cover" />
                 ) : null}
                 <span className="flex flex-1 flex-col p-6">
-                  <span className="self-start rounded-full border-2 border-[#0B0F1F] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F]">{p.category}</span>
+                  <span className="self-start rounded-full border-2 border-[#0B0F1F] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#2B4BFF]">{p.category}</span>
                   <span className="mt-4 flex-1 text-xl font-black leading-snug text-[#0B0F1F]">{p.title}</span>
-                  <span className="mt-5 flex items-center gap-1.5 text-sm font-black text-[#0B0F1F]">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
+                  <span className="mt-5 flex items-center gap-1.5 text-sm font-black text-[#2B4BFF]">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
                 </span>
               </a>
             </li>
