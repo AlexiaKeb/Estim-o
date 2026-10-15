@@ -15,9 +15,9 @@ import { AddressSearch, AddressSuggestion } from './AddressSearch';
 import { AGENT, FAQ, KEY_FIGURES, TESTIMONIALS } from '../data/siteContent';
 import { Duo, Human, Robot, Spark } from './Mascots';
 
+export const OPEN_ASSISTANT_EVENT = 'open-assistant';
 export const scrollToSimulator = () => {
-  document.getElementById('simulateur')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  window.setTimeout(() => document.getElementById('input-surface-range')?.focus({ preventScroll: true }), 450);
+  window.dispatchEvent(new CustomEvent(OPEN_ASSISTANT_EVENT));
 };
 
 const AgentAvatar: React.FC<{ size?: number }> = ({ size = 56 }) =>
