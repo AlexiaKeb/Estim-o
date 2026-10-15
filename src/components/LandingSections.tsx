@@ -13,7 +13,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AddressSearch, AddressSuggestion } from './AddressSearch';
-import { AGENT, FAQ, KEY_FIGURES, TESTIMONIALS } from '../data/siteContent';
+import { AGENT, FAQ, FAQ_HOME_COUNT, KEY_FIGURES, TESTIMONIALS } from '../data/siteContent';
 import { Duo, Human, Robot, Spark } from './Mascots';
 
 export const OPEN_ASSISTANT_EVENT = 'open-assistant';
@@ -314,7 +314,7 @@ export const FaqSection: React.FC = () => {
           <Human className="bob mt-8 w-36 sm:w-44" />
         </div>
         <div className="space-y-4">
-          {FAQ.map((item, i) => {
+          {FAQ.slice(0, FAQ_HOME_COUNT).map((item, i) => {
             const isOpen = open === i;
             return (
               <div key={item.q} className={`rounded-2xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] ${isOpen ? 'bg-[#FFD60A]' : 'bg-white'}`}>
@@ -339,6 +339,14 @@ export const FaqSection: React.FC = () => {
               </div>
             );
           })}
+          <a
+            href="/faq"
+            id="link-all-faq"
+            className="group inline-flex items-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#0B0F1F] px-6 py-3.5 font-black text-white shadow-[5px_5px_0_#2B4BFF] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#2B4BFF]"
+          >
+            Voir toutes les questions et réponses
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+          </a>
         </div>
       </section>
     </Band>

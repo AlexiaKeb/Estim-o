@@ -16,6 +16,10 @@ async function pageFor(p: string): Promise<ReactElement> {
     const m = await import('./components/LegalPages.tsx');
     return p === '/mentions-legales' ? <m.MentionsLegales /> : <m.Confidentialite />;
   }
+  if (p === '/faq') {
+    const m = await import('./components/BlogPages.tsx');
+    return <m.FaqPage />;
+  }
   if (p === '/blog' || p.startsWith('/blog/')) {
     const [pages, data] = await Promise.all([import('./components/BlogPages.tsx'), import('./data/blog.ts')]);
     // The server sends the articles with the page (including those written in the dashboard)

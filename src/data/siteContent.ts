@@ -65,6 +65,9 @@ export interface KeyFigure {
 export const TESTIMONIALS: Testimonial[] = [];
 export const KEY_FIGURES: KeyFigure[] = [];
 
+/** Number of questions shown on the home page (the full list lives on /faq). */
+export const FAQ_HOME_COUNT = 5;
+
 export const FAQ: Array<{ q: string; a: string }> = [
   {
     q: 'La visite sur place est-elle réellement offerte et sans engagement ?',

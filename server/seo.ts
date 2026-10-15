@@ -1,9 +1,9 @@
 import type { Request } from "express";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AGENT, BRAND, FAQ } from "../src/data/siteContent";
+import { AGENT, BRAND, FAQ, FAQ_HOME_COUNT } from "../src/data/siteContent";
 import { getPost, BlogPost } from "../src/data/blog";
-import { BlogIndex, BlogArticle, BlogNotFound } from "../src/components/BlogPages";
+import { BlogIndex, BlogArticle, BlogNotFound, FaqPage } from "../src/components/BlogPages";
 
 // Référencement : balises par page, données structurées, robots.txt, sitemap.xml.
 // L'adresse canonique vient de APP_URL (ou SITE_URL) pour que le nom de domaine définitif soit toujours celui indexé.
@@ -24,6 +24,7 @@ interface PageMeta {
   home?: boolean;
   post?: BlogPost;
   blogIndex?: boolean;
+  faq?: boolean;
   status?: number;
 }
 
@@ -53,6 +54,15 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
       description: "Données collectées, finalités, durée de conservation, vos droits et cookies : la politique de confidentialité d'Agent Estimation.",
       path,
       index: true,
+    };
+  }
+  if (path === "/faq") {
+    return {
+      title: `Questions fréquentes sur l'estimation immobilière | ${BRAND.name}`,
+      description: "Estimation en ligne, visite offerte, avis de valeur sous 48h, documents à préparer : toutes les réponses à vos questions avant de vendre votre bien.",
+      path,
+      index: true,
+      faq: true,
     };
   }
   if (path === "/blog") {
@@ -111,7 +121,7 @@ function jsonLd(base: string): string {
     },
     {
       "@type": "FAQPage",
-      mainEntity: FAQ.map((f) => ({
+      mainEntity: FAQ.slice(0, FAQ_HOME_COUNT).map((f) => ({
         "@type": "Question",
         name: f.q,
         acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -119,6 +129,24 @@ function jsonLd(base: string): string {
     },
   ];
   // "<" échappé pour que le JSON ne puisse jamais fermer la balise script
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
+}
+
+function faqLd(base: string): string {
+  const graph = [
+    {
+      "@type": "FAQPage",
+      "@id": `${base}/faq#faq`,
+      mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Accueil", item: `${base}/` },
+        { "@type": "ListItem", position: 2, name: "Questions fréquentes", item: `${base}/faq` },
+      ],
+    },
+  ];
   return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
 }
 
@@ -179,6 +207,7 @@ function buildHead(req: Request, m: PageMeta): string {
     `<meta name="twitter:image" content="${esc(image)}" />`,
     m.home ? `<script type="application/ld+json">${jsonLd(base)}</script>` : "",
     m.post ? `<script type="application/ld+json">${articleLd(base, m.post)}</script>` : "",
+    m.faq ? `<script type="application/ld+json">${faqLd(base)}</script>` : "",
   ];
   return tags.filter(Boolean).join("\n    ");
 }
@@ -199,6 +228,8 @@ export async function renderSeo(req: Request, posts: BlogPost[]): Promise<SeoRes
   if (m.post) {
     const related = m.post.related.map((s) => getPost(s, posts)).filter(Boolean) as BlogPost[];
     body = renderToStaticMarkup(createElement(BlogArticle, { post: m.post, all: posts })) + data({ post: m.post, related: related.map(card) });
+  } else if (m.faq) {
+    body = renderToStaticMarkup(createElement(FaqPage));
   } else if (m.blogIndex) {
     body = renderToStaticMarkup(createElement(BlogIndex, { posts })) + data({ posts: posts.map(card) });
   } else if (m.status === 404 && req.path.startsWith("/blog")) body = renderToStaticMarkup(createElement(BlogNotFound));
@@ -224,6 +255,7 @@ export function sitemapXml(base: string, posts: BlogPost[]): string {
     ["/", "1.0", "weekly"],
     ["/mentions-legales", "0.2", "yearly"],
     ["/confidentialite", "0.2", "yearly"],
+    ["/faq", "0.7", "monthly"],
     ["/blog", "0.8", "weekly"],
     ...posts.map((p) => [`/blog/${p.slug}`, "0.7", "monthly"] as [string, string, string]),
   ];

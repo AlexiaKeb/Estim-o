@@ -1,5 +1,5 @@
 import React from 'react';
-import { AGENT, BRAND } from '../data/siteContent';
+import { AGENT, BRAND, FAQ } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
 import { CreditLine } from './CreditLine';
 import { BlogPost, ArticleBlock, blocksOf, formatPostDate, getPost } from '../data/blog';
@@ -40,6 +40,7 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         <span>{BRAND.name} · Estimation immobilière à Lyon</span>
         <span className="flex gap-4">
           <a href="/" className="hover:text-[#FFD60A]">Accueil</a>
+          <a href="/faq" className="hover:text-[#FFD60A]">Questions fréquentes</a>
           <a href="/mentions-legales" className="hover:text-[#FFD60A]">Mentions légales</a>
           <a href="/confidentialite" className="hover:text-[#FFD60A]">Confidentialité</a>
           <CreditLine />
@@ -180,3 +181,27 @@ export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ po
     </Shell>
   );
 };
+
+/** Full list of questions and answers (rendered on the server too, for search engines). */
+export const FaqPage: React.FC = () => (
+  <Shell>
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+      <nav aria-label="Fil d'Ariane" className="text-xs text-stone-500 mb-4">
+        <a href="/" className="hover:underline">Accueil</a> › <span>Questions fréquentes</span>
+      </nav>
+      <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance]">Questions fréquentes sur l'estimation de votre bien</h1>
+      <p className="mt-4 text-lg text-stone-700 leading-relaxed">
+        Toutes les réponses sur l'estimation en ligne, la visite de {AGENT.firstName} et la suite de votre projet. Une question spécifique ? Appelez-la au <a className="font-bold underline" href={AGENT.phoneHref}>{AGENT.phone}</a>.
+      </p>
+      <div className="mt-8 space-y-4">
+        {FAQ.map((item) => (
+          <section key={item.q} className="rounded-2xl border-[3px] border-[#0B0F1F] bg-white p-5 sm:p-6 shadow-[5px_5px_0_#0B0F1F]">
+            <h2 className="text-lg sm:text-xl font-black leading-snug text-[#0B0F1F]">{item.q}</h2>
+            <p className="mt-2 text-stone-700 leading-relaxed">{item.a}</p>
+          </section>
+        ))}
+      </div>
+      <BlogCta />
+    </main>
+  </Shell>
+);
