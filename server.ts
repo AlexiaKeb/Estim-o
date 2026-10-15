@@ -2728,22 +2728,59 @@ async function startServer() {
   const articlesMissing = (error: any) => error && (error.code === "42P01" || /relation .*articles|schema cache/i.test(error.message || ""));
   const MISSING_MSG = "La table des articles n'existe pas encore : exécutez la migration 20261006000000_articles.sql dans Supabase (SQL Editor).";
 
-  // Public: the latest articles (title, category, cover) for the home page teaser
+  // Public: the articles shown on the home page. The ones chosen in the dashboard come first (exactly those if any), otherwise the latest 3.
   app.get("/api/blog/latest", async (_req: Request, res: Response) => {
     try {
-      const posts = await getAllPosts(getSupabaseAdmin());
-      res.set("Cache-Control", "public, max-age=300");
-      res.json({ posts: posts.slice(0, 3).map((p) => ({ slug: p.slug, category: p.category, title: p.title, coverUrl: p.coverUrl || null })) });
+      const client = getSupabaseAdmin();
+      const posts = await getAllPosts(client);
+      let chosen: typeof posts = [];
+      if (client) {
+        const { data } = await client.from("articles").select("slug").eq("featured", true).eq("status", "publie");
+        const slugs = new Set((data || []).map((r: any) => r.slug));
+        chosen = posts.filter((p) => slugs.has(p.slug)).slice(0, 3);
+      }
+      const list = chosen.length ? chosen : posts.slice(0, 3);
+      res.set("Cache-Control", "public, max-age=60");
+      res.json({ posts: list.map((p) => ({ slug: p.slug, category: p.category, title: p.title, coverUrl: p.coverUrl || null })) });
     } catch {
       res.json({ posts: [] });
     }
+  });
+
+  // The "featured" column comes from migration 20261015000000_article_featured.sql: everything keeps working without it
+  let featuredProbe: { ok: boolean; at: number } | null = null;
+  const articleFeaturedReady = async (client: any): Promise<boolean> => {
+    if (featuredProbe && (featuredProbe.ok || Date.now() - featuredProbe.at < 60_000)) return featuredProbe.ok;
+    const { error } = await client.from("articles").select("featured").limit(1);
+    featuredProbe = { ok: !error, at: Date.now() };
+    return featuredProbe.ok;
+  };
+
+  // Chooses which articles are highlighted on the home page (3 at most)
+  app.post("/api/articles/:id/featured", requireAgent, rateLimit("article-featured", 120, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client || !isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    if (!(await articleFeaturedReady(client))) return res.status(409).json({ error: "Option non activée : exécutez la migration 20261015000000_article_featured.sql dans Supabase." });
+    const want = req.body?.featured === true;
+    if (want) {
+      const { data: art } = await client.from("articles").select("status, featured").eq("id", req.params.id).maybeSingle();
+      if (!art) return res.status(404).json({ error: "Article introuvable" });
+      if (art.status !== "publie") return res.status(400).json({ error: "Seul un article publié peut être mis en avant." });
+      const { count } = await client.from("articles").select("id", { count: "exact", head: true }).eq("featured", true).neq("id", req.params.id);
+      if ((count ?? 0) >= 3) return res.status(409).json({ error: "3 articles maximum à la une : retirez-en un d'abord." });
+    }
+    const { error } = await client.from("articles").update({ featured: want }).eq("id", req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    invalidateArticles();
+    res.json({ success: true, featured: want });
   });
 
   app.get("/api/articles", requireAgent, async (_req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client) return res.status(503).json({ error: "Supabase non configuré" });
     const tagsOk = await articleTagsReady(client);
-    const { data: raw, error } = await client.from("articles").select(`id, slug, title, category, status, cover_url, published_at, updated_at, intro, blocks${tagsOk ? ", tags" : ""}`).order("updated_at", { ascending: false }).limit(300);
+    const featuredOk = await articleFeaturedReady(client);
+    const { data: raw, error } = await client.from("articles").select(`id, slug, title, category, status, cover_url, published_at, updated_at, intro, blocks${tagsOk ? ", tags" : ""}${featuredOk ? ", featured" : ""}`).order("updated_at", { ascending: false }).limit(300);
     if (articlesMissing(error)) return res.status(409).json({ error: MISSING_MSG });
     if (error) return res.status(500).json({ error: error.message });
     // Plain text of each article, so the screen can search inside the content
@@ -2756,6 +2793,7 @@ async function startServer() {
     const inDb = new Set((data || []).map((a: any) => a.slug));
     res.json({
       tagsEnabled: tagsOk,
+      featuredEnabled: featuredOk,
       articles: data || [],
       builtIn: BLOG_POSTS.filter((p) => !inDb.has(p.slug)).map((p) => ({ slug: p.slug, title: p.title, category: p.category, date: p.date })),
     });

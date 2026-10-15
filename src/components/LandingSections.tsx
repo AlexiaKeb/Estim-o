@@ -483,57 +483,51 @@ const ZONES = [
   'Beaujolais & Pierres Dorées',
   'Villefranche & alentours',
 ];
-// Pin positions on the schematic map (viewBox 560 x 520), same order as ZONES
-const PINS: Array<[number, number]> = [[362, 322], [262, 215], [120, 105], [330, 80]];
+// Pin positions on the abstract poster (viewBox 560 x 560), same order as ZONES
+const PINS: Array<[number, number]> = [[330, 508], [310, 408], [150, 452], [330, 170]];
 
-/** A flat, schematic map of the area: the two rivers meeting in Lyon, the hills of the Monts d'Or and the Beaujolais. */
+/** An abstract, flat "poster" of the area: the sun on the golden stones, hills and vines of the Beaujolais, the Rhône and the Saône flowing together. */
 const LyonMap: React.FC<{ active: number | null; onPick: (i: number | null) => void }> = ({ active, onPick }) => (
-  <svg viewBox="0 0 560 520" role="img" aria-label="Carte schématique du secteur : Lyon entre Rhône et Saône, Monts d'Or, Val de Saône, Beaujolais et Villefranche" className="h-auto w-full" xmlns="http://www.w3.org/2000/svg">
-    {/* Beaujolais hills */}
-    <path d="M10 170 Q40 70 100 120 Q150 40 205 112 Q250 70 285 170 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
-    <path d="M45 160 Q75 125 105 160 M120 160 Q150 120 180 160 M195 160 Q220 130 248 160" fill="none" stroke="#0B0F1F" strokeWidth="4" strokeLinecap="round" />
-    {/* Monts d'Or */}
-    <path d="M180 270 Q205 200 250 232 Q285 190 315 270 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
-    {/* Rhône and Saône meeting at the Confluence */}
-    <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M345 0 C 330 90, 365 150, 335 230 C 315 290, 335 340, 345 420 L 345 520" stroke="#0B0F1F" strokeWidth="26" />
-      <path d="M475 0 C 470 80, 430 150, 420 230 C 410 310, 370 360, 350 420" stroke="#0B0F1F" strokeWidth="26" />
-      <path d="M345 0 C 330 90, 365 150, 335 230 C 315 290, 335 340, 345 420 L 345 520" stroke="#2B4BFF" strokeWidth="14" />
-      <path d="M475 0 C 470 80, 430 150, 420 230 C 410 310, 370 360, 350 420" stroke="#2B4BFF" strokeWidth="14" />
+  <svg viewBox="0 0 560 560" role="img" aria-label="Illustration abstraite du secteur : le soleil sur les pierres dorées, les collines du Beaujolais et les deux fleuves qui se rejoignent à Lyon" className="block h-auto w-full" xmlns="http://www.w3.org/2000/svg">
+    <rect width="560" height="560" fill="#FFF7E6" />
+    {/* Vine rows */}
+    <g fill="none" stroke="#0B0F1F" strokeWidth="5">
+      <circle cx="560" cy="300" r="45" />
+      <circle cx="560" cy="300" r="85" />
+      <circle cx="560" cy="300" r="125" />
+      <circle cx="560" cy="300" r="165" />
     </g>
-    {/* Presqu'île between the rivers */}
-    <path d="M362 250 C 372 300, 372 350, 350 395 C 346 360, 346 300, 362 250 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="4" strokeLinejoin="round" />
-    {/* Fourvière hill and basilica */}
-    <path d="M200 400 Q235 330 290 385 L 290 420 L 200 420 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
-    <g stroke="#0B0F1F" strokeWidth="3" strokeLinejoin="round">
-      <rect x="226" y="352" width="38" height="24" fill="#FFF7E6" />
-      <rect x="222" y="338" width="8" height="26" fill="#FFF7E6" />
-      <rect x="260" y="338" width="8" height="26" fill="#FFF7E6" />
-      <path d="M234 352 Q245 336 256 352 Z" fill="#2B4BFF" />
+    {/* Ink arch with dots */}
+    <path d="M0 0 H230 A230 230 0 0 1 0 230 Z" fill="#0B0F1F" />
+    <g fill="#FFD60A">
+      {[0, 1, 2, 3, 4].flatMap((r) => [0, 1, 2, 3, 4].map((c) => (r + c < 6 ? <circle key={`${r}-${c}`} cx={28 + c * 34} cy={28 + r * 34} r="6" /> : null)))}
     </g>
-    {/* Métropole ring */}
-    <circle cx="362" cy="330" r="122" fill="none" stroke="#0B0F1F" strokeWidth="4" strokeDasharray="4 12" strokeLinecap="round" />
-    <text x="105" y="492" fontSize="44" fontWeight="900" fill="#0B0F1F" letterSpacing="3" transform="rotate(-4 105 492)">LYON</text>
-    {/* Compass */}
-    <g transform="translate(505 470)">
-      <circle r="26" fill="#FFF7E6" stroke="#0B0F1F" strokeWidth="4" />
-      <path d="M0 -16 L7 6 L0 2 L-7 6 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="3" strokeLinejoin="round" />
-      <text y="-30" textAnchor="middle" fontSize="14" fontWeight="900" fill="#0B0F1F">N</text>
+    {/* The sun on the golden stones */}
+    <circle cx="330" cy="170" r="118" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" />
+    <circle cx="330" cy="170" r="74" fill="none" stroke="#0B0F1F" strokeWidth="5" strokeDasharray="2 14" strokeLinecap="round" />
+    {/* Layered hills */}
+    <path d="M20 560 A125 125 0 0 1 270 560 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
+    <path d="M190 560 A125 125 0 0 1 440 560 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
+    <path d="M380 560 A90 90 0 0 1 560 560 Z" fill="#FFF7E6" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
+    {/* Saône and Rhône flowing together */}
+    <g fill="none" strokeLinecap="round">
+      <path d="M-20 70 C 120 110, 210 250, 300 340 S 360 500, 335 590" stroke="#0B0F1F" strokeWidth="34" />
+      <path d="M590 40 C 470 120, 520 250, 400 350 S 345 480, 335 590" stroke="#0B0F1F" strokeWidth="34" />
+      <path d="M-20 70 C 120 110, 210 250, 300 340 S 360 500, 335 590" stroke="#2B4BFF" strokeWidth="22" />
+      <path d="M590 40 C 470 120, 520 250, 400 350 S 345 480, 335 590" stroke="#2B4BFF" strokeWidth="22" />
+      <path d="M-20 70 C 120 110, 210 250, 300 340 S 360 500, 335 590" stroke="#FFF7E6" strokeWidth="4" strokeDasharray="2 18" />
+      <path d="M590 40 C 470 120, 520 250, 400 350 S 345 480, 335 590" stroke="#FFF7E6" strokeWidth="4" strokeDasharray="2 18" />
     </g>
+    {/* Sparkles */}
+    <path d="M470 70 L478 96 L504 104 L478 112 L470 138 L462 112 L436 104 L462 96 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="4" strokeLinejoin="round" className="spark" style={{ transformOrigin: '470px 104px' }} />
+    <path d="M60 330 L65 346 L81 351 L65 356 L60 372 L55 356 L39 351 L55 346 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="3" strokeLinejoin="round" />
     {/* Pins */}
     {PINS.map(([x, y], i) => {
       const on = active === i;
       return (
-        <g
-          key={i}
-          transform={`translate(${x} ${y})`}
-          onMouseEnter={() => onPick(i)}
-          onMouseLeave={() => onPick(null)}
-          style={{ cursor: 'pointer' }}
-        >
-          <circle r={on ? 25 : 20} fill={on ? '#FFD60A' : '#FFF7E6'} stroke="#0B0F1F" strokeWidth="5" className="transition-all" />
-          <text y="7" textAnchor="middle" fontSize="20" fontWeight="900" fill="#0B0F1F">{i + 1}</text>
-          {i === 0 && <circle r="30" fill="none" stroke="#FFD60A" strokeWidth="4" className="spark" style={{ transformOrigin: 'center' }} />}
+        <g key={i} transform={`translate(${x} ${y})`} onMouseEnter={() => onPick(i)} onMouseLeave={() => onPick(null)} style={{ cursor: 'pointer' }}>
+          <circle r={on ? 27 : 22} fill={on ? '#FFD60A' : '#FFF7E6'} stroke="#0B0F1F" strokeWidth="5" className="transition-all" />
+          <text y="8" textAnchor="middle" fontSize="22" fontWeight="900" fill="#0B0F1F">{i + 1}</text>
         </g>
       );
     })}
@@ -566,7 +560,7 @@ export const ZoneSection: React.FC = () => {
           </ul>
         </div>
         <div className="relative">
-          <div className="rounded-3xl border-[3px] border-[#0B0F1F] bg-white p-3 shadow-[8px_8px_0_#0B0F1F] sm:p-5">
+          <div className="overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[8px_8px_0_#0B0F1F]">
             <LyonMap active={active} onPick={setActive} />
           </div>
           <Robot className="bob absolute -bottom-6 -left-3 h-24 w-20 sm:-bottom-8 sm:-left-6 sm:h-32 sm:w-24" />

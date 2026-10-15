@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Eye, ImagePlus, List, Loader2, Pencil, Plus, Trash2, Type, Heading2, X, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
+import { ArrowDown, ArrowUp, Star, Eye, ImagePlus, List, Loader2, Pencil, Plus, Trash2, Type, Heading2, X, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 import { ArticleBlock, BlogPost } from '../data/blog';
 import { BlogArticle } from './BlogPages';
 
@@ -13,6 +13,7 @@ interface Row {
   published_at: string | null;
   updated_at: string;
   tags?: string[];
+  featured?: boolean;
   search?: string;
 }
 
@@ -102,6 +103,7 @@ export const ArticlesView: React.FC = () => {
   const [preview, setPreview] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [tagsEnabled, setTagsEnabled] = useState(true);
+  const [featuredEnabled, setFeaturedEnabled] = useState(true);
   const [tagInput, setTagInput] = useState('');
   // Filtres de la liste
   const [fq, setFq] = useState('');
@@ -127,6 +129,7 @@ export const ArticlesView: React.FC = () => {
       setRows(data.articles || []);
       setBuiltIn(data.builtIn || []);
       setTagsEnabled(data.tagsEnabled !== false);
+      setFeaturedEnabled(data.featuredEnabled !== false);
     } catch {
       setRows([]);
       flash(false, 'Serveur injoignable.');
@@ -197,6 +200,21 @@ export const ArticlesView: React.FC = () => {
     } finally {
       setImporting(false);
     }
+  };
+
+  // Highlights an article on the home page (3 at most)
+  const toggleFeatured = async (r: Row) => {
+    const res = await fetch(`/api/articles/${r.id}/featured`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ featured: !r.featured }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) {
+      flash(true, !r.featured ? 'Article mis à la une sur la page d\'accueil.' : 'Article retiré de la page d\'accueil.');
+      setRows((prev) => (prev || []).map((x) => (x.id === r.id ? { ...x, featured: !r.featured } : x)));
+    } else flash(false, d.error || 'Action impossible.');
   };
 
   const remove = async (id: string, title: string) => {
@@ -312,6 +330,11 @@ export const ArticlesView: React.FC = () => {
                   {allTags.map((t) => <button key={t} type="button" onClick={() => setFTag(fTag === t ? '' : t)} className={`rounded-full px-3 py-1 text-xs font-bold ${fTag === t ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 hover:bg-sky-100'}`}>#{t}</button>)}
                 </div>
               )}
+              {featuredEnabled ? (
+                <p className="text-xs text-stone-600"><Star className="inline w-3.5 h-3.5 -mt-0.5 text-amber-500" fill="currentColor" /> <strong>À la une de l'accueil : {rows.filter((r) => r.featured).length}/3</strong>. Cliquez sur l'étoile d'un article publié pour le mettre en avant sur la page d'accueil. Sans sélection, les 3 derniers articles s'affichent.</p>
+              ) : (
+                <p className="text-xs text-amber-800 bg-amber-50 rounded-lg px-3 py-2">Pour choisir les articles de l'accueil, exécutez la migration <code>20261015000000_article_featured.sql</code> dans Supabase (SQL Editor).</p>
+              )}
               <div className="flex items-center justify-between text-xs text-stone-500">
                 <span>{shown.length} article{shown.length > 1 ? 's' : ''}{filtering ? ` sur ${rows.length}` : ''} • {rows.filter((r) => r.status === 'publie').length} publié(s), {rows.filter((r) => r.status !== 'publie').length} brouillon(s)</span>
                 {filtering && <button type="button" onClick={() => { setFq(''); setFCat(''); setFStatus(''); setFTag(''); }} className="font-bold text-sky-700 underline">Effacer les filtres</button>}
@@ -335,6 +358,17 @@ export const ArticlesView: React.FC = () => {
                   </button>
                   <div className="mt-auto flex items-center gap-2 border-t border-stone-100 p-3">
                     <button type="button" onClick={() => open(r.id)} className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-[#0B0F1F] hover:bg-[#2B4BFF] px-4 py-2 text-xs font-bold text-white"><Pencil className="w-3.5 h-3.5" />Modifier</button>
+                    {r.status === 'publie' && featuredEnabled && (
+                      <button
+                        type="button"
+                        onClick={() => void toggleFeatured(r)}
+                        aria-pressed={!!r.featured}
+                        className={`rounded-full border p-2 ${r.featured ? 'border-amber-400 bg-amber-100 text-amber-700' : 'border-stone-300 text-stone-500 hover:bg-stone-50'}`}
+                        title={r.featured ? "Retirer de la page d'accueil" : "Mettre à la une sur la page d'accueil (3 maximum)"}
+                      >
+                        <Star className="w-4 h-4" fill={r.featured ? 'currentColor' : 'none'} />
+                      </button>
+                    )}
                     {r.status === 'publie' && (
                       <a href={`/blog/${r.slug}`} target="_blank" rel="noreferrer" className="rounded-full border border-stone-300 p-2 text-stone-600 hover:bg-stone-50" title="Voir sur le site"><ExternalLink className="w-4 h-4" /></a>
                     )}
