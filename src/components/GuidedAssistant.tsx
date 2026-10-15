@@ -8,7 +8,6 @@ import { fetchCalSlotsDetailed, syncLeadToSupabase } from '../lib/supabaseServic
 import { getAttribution, trackConversion } from '../utils/tracking';
 import { renderRichText } from '../utils/richText';
 import { AddressSearch, AddressSuggestion } from './AddressSearch';
-import { ValuationEvidence } from './LandingSections';
 import { Human, Robot } from './Mascots';
 
 type Timeframe = Lead['timeframe'];
@@ -622,109 +621,95 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     return () => cancelAnimationFrame(raf);
   }, [result]);
 
-  const pitchCard = (
-    <div className="rounded-2xl bg-[#2B4BFF] text-white p-4 sm:p-5 shadow-lg border-l-4 border-[#0B0F1F] w-full">
-      <p className="text-[#FFD60A] text-[11px] font-bold uppercase tracking-wider mb-1.5">Pourquoi prendre rendez-vous ?</p>
-      <p className="text-[15px] sm:text-base leading-relaxed">
-        <strong className="text-white">Ce montant est un premier indicateur.</strong> Seule une visite physique sur place permet de fixer le prix juste, la clé d'une vente réussie. {AGENT.firstName} étudie votre bien et vous remet un <strong className="text-[#FFD60A]">avis de valeur complet sous 48h</strong>.
-      </p>
-      <p className="mt-2 text-[15px] sm:text-base leading-relaxed">
-        <strong className="text-white">{AGENT.firstName} vous contactera personnellement</strong> pour tout organiser et répondre à vos questions.
-      </p>
-      <p className="mt-1.5 text-sm font-semibold text-[#FFD60A]">Réservez votre visite offerte et sans engagement ↓</p>
-    </div>
-  );
-
   // Rendering --------------------------------------------------------------------------------------------
   const resultCard =
     result && lead ? (
-      <div className="relative w-full space-y-5 rounded-3xl border-[3px] border-[#0B0F1F] bg-[#0B0F1F] p-4 text-white shadow-[6px_6px_0_#2B4BFF] sm:p-6">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <Robot className="bob h-16 w-12 shrink-0 sm:h-20 sm:w-16" />
-          <div className="min-w-0 space-y-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F]">
-              <TrendingUp className="h-3.5 w-3.5" />
-              Estimation indicative (IA)
-            </span>
-            <p className="text-xs font-semibold leading-snug text-white/80 sm:text-sm">Calculée par l'assistant IA de {AGENT.firstName} à partir des ventes réelles (DVF) autour de chez vous.</p>
+      <div className="relative w-full overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] bg-white shadow-[5px_5px_0_#0B0F1F]">
+        <div className="space-y-4 bg-[#0B0F1F] p-4 text-white sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Robot className="bob h-16 w-12 shrink-0 sm:h-20 sm:w-16" />
+            <div className="min-w-0 space-y-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD60A] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F]">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Estimation indicative (IA)
+              </span>
+              <p className="text-xs font-semibold leading-snug text-white/80 sm:text-sm">Calculée par l'assistant IA de {AGENT.firstName} à partir des ventes réelles (DVF) autour de chez vous.</p>
+            </div>
           </div>
-        </div>
-
-        <div className="space-y-2 text-center">
-          <div className="text-4xl font-black leading-none tracking-tight text-[#FFD60A] sm:text-6xl" aria-hidden="true">
+          <div className="text-center text-4xl font-black leading-none tracking-tight text-[#FFD60A] sm:text-6xl" aria-hidden="true">
             {fmt(shownLow)} € <span className="text-white">–</span> {fmt(shownHigh)} €
           </div>
           <p className="sr-only">Fourchette de {fmt(result.lowPrice)} à {fmt(result.highPrice)} euros.</p>
-          <p className="text-sm font-medium leading-snug text-white/85">
+        </div>
+
+        <div className="space-y-5 p-4 sm:p-6">
+          <p className="text-center text-sm font-medium leading-snug text-[#0B0F1F]/80">
             La base DVF donne des moyennes. Votre logement se situe quelque part dans cette amplitude :
           </p>
-        </div>
 
-        <div className="space-y-3 rounded-2xl border-[3px] border-white/90 bg-[#FFF7E6] p-3 text-[#0B0F1F] sm:p-4">
-          <div className="flex justify-between gap-3 text-xs sm:text-sm">
-            <div>
-              <div className="font-black">📉 Décote</div>
-              <div className="text-[11px] font-medium text-[#0B0F1F]/70">Travaux, bruit, vis-à-vis</div>
+          <div className="space-y-3 rounded-2xl bg-[#FFF7E6] p-3 text-[#0B0F1F] sm:p-4">
+            <div className="flex justify-between gap-3 text-xs sm:text-sm">
+              <div>
+                <div className="font-black">📉 Décote</div>
+                <div className="text-[11px] font-medium text-[#0B0F1F]/65">Travaux, bruit, vis-à-vis</div>
+              </div>
+              <div className="text-right">
+                <div className="font-black">📈 Plus-value</div>
+                <div className="text-[11px] font-medium text-[#0B0F1F]/65">Lumière, vue, état irréprochable</div>
+              </div>
             </div>
-            <div className="text-right">
-              <div className="font-black">📈 Plus-value</div>
-              <div className="text-[11px] font-medium text-[#0B0F1F]/70">Lumière, vue, état irréprochable</div>
+            <div className="relative flex h-4 rounded-full border-[3px] border-[#0B0F1F] bg-white">
+              <span aria-hidden className="h-full w-1/3 rounded-l-full bg-[#FFD60A]" />
+              <span aria-hidden className="ml-auto h-full w-1/3 rounded-r-full bg-[#2B4BFF]" />
+              <button
+                type="button"
+                onClick={() => onOpenBooking?.(bookingInfo())}
+                className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border-[3px] border-[#0B0F1F] bg-white px-3 py-2 text-[11px] font-black text-[#0B0F1F] sm:px-4 sm:text-xs"
+              >
+                <Lock className="h-3.5 w-3.5 text-[#2B4BFF]" /> <span className="sm:hidden">Valeur réelle sur place</span><span className="hidden sm:inline">Valeur réelle à déterminer sur place</span>
+              </button>
+            </div>
+            <div className="h-2" aria-hidden="true" />
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#E4E9FF] p-4 text-[#0B0F1F]">
+              <div className="text-sm font-black">🤖 Ce que voit l'algorithme (IA)</div>
+              <ul className="space-y-1 text-sm font-medium">
+                {['Surface en m²', 'Code postal / quartier', 'Historique des ventes DVF'].map((t) => (
+                  <li key={t} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#2B4BFF]" />{t}</li>
+                ))}
+              </ul>
+              <p className="text-xs italic text-[#0B0F1F]/70">Une vision théorique, sans visite.</p>
+            </div>
+            <div className="space-y-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFF3B8] p-4 text-[#0B0F1F]">
+              <div className="text-sm font-black">🏠 Ce que valide {AGENT.firstName} sur place</div>
+              <ul className="space-y-1 text-sm font-semibold">
+                {['Luminosité, exposition & vue', 'Agencement & potentiel du bien', 'Qualité des prestations & matériaux', 'Demande réelle des acheteurs du secteur'].map((t) => (
+                  <li key={t} className="flex gap-2"><Lock className="mt-1 h-3.5 w-3.5 shrink-0" />{t}</li>
+                ))}
+              </ul>
             </div>
           </div>
-          <div className="relative flex h-4 rounded-full border-[3px] border-[#0B0F1F] bg-white">
-            <span aria-hidden className="h-full w-1/3 rounded-l-full bg-[#FFD60A]" />
-            <span aria-hidden className="ml-auto h-full w-1/3 rounded-r-full bg-[#2B4BFF]" />
-            <button
-              type="button"
-              onClick={() => onOpenBooking?.(bookingInfo())}
-              className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border-[3px] border-[#0B0F1F] bg-[#0B0F1F] px-3 py-2 text-[11px] font-black text-white sm:px-4 sm:text-xs"
-            >
-              <Lock className="h-3.5 w-3.5 text-[#FFD60A]" /> <span className="sm:hidden">Valeur réelle sur place</span><span className="hidden sm:inline">Valeur réelle à déterminer sur place</span>
-            </button>
-          </div>
-          <div className="h-2" aria-hidden="true" />
-        </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-2 rounded-2xl border-[3px] border-white/90 bg-[#2B4BFF] p-4 text-white">
-            <div className="flex items-center justify-between gap-2 text-sm font-black">
-              <span>🤖 Ce que voit l'algorithme (IA)</span>
+          <div className="flex items-end gap-3 sm:gap-4">
+            <Human className="bob w-20 shrink-0 sm:w-28" />
+            <div className="min-w-0 flex-1 space-y-2 pb-1">
+              <button
+                type="button"
+                onClick={() => onOpenBooking?.(bookingInfo())}
+                className="cta-pulse flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-4 py-4 text-base font-black text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5 sm:text-lg"
+              >
+                <Lock className="h-5 w-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
+              </button>
+              <p className="text-center text-xs font-semibold text-[#0B0F1F]/70">Visite offerte et sans engagement · avis de valeur sous 48h</p>
             </div>
-            <ul className="space-y-1 text-sm font-medium">
-              {['Surface en m²', 'Code postal / quartier', 'Historique des ventes DVF'].map((t) => (
-                <li key={t} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#FFD60A]" />{t}</li>
-              ))}
-            </ul>
-            <p className="text-xs italic text-white/80">Une vision théorique, sans visite.</p>
           </div>
-          <div className="space-y-2 rounded-2xl border-[3px] border-white/90 bg-[#FFD60A] p-4 text-[#0B0F1F]">
-            <div className="text-sm font-black">🏠 Ce que valide {AGENT.firstName} sur place</div>
-            <ul className="space-y-1 text-sm font-semibold">
-              {['Luminosité, exposition & vue', 'Agencement & potentiel du bien', 'Qualité des prestations & matériaux', 'Demande réelle des acheteurs du secteur'].map((t) => (
-                <li key={t} className="flex gap-2"><Lock className="mt-1 h-3.5 w-3.5 shrink-0" />{t}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
 
-        <div className="flex items-end gap-3 sm:gap-4">
-          <Human className="bob w-20 shrink-0 sm:w-28" />
-          <div className="min-w-0 flex-1 space-y-2 pb-1">
-          <button
-            type="button"
-            onClick={() => onOpenBooking?.(bookingInfo())}
-            className="cta-pulse flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-white bg-[#FFD60A] px-4 py-4 text-base font-black text-[#0B0F1F] shadow-[5px_5px_0_#2B4BFF] transition-transform hover:-translate-y-0.5 sm:text-lg"
-          >
-            <Lock className="h-5 w-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
-          </button>
-          <p className="text-center text-xs font-semibold text-white/80">Visite offerte et sans engagement · avis de valeur sous 48h</p>
+          <div className="text-center text-xs font-medium text-[#0B0F1F]/60">
+            ~{fmt(result.avgM2)} €/m² · {result.propertyType} de {result.surface} m² à {result.city}
           </div>
         </div>
-
-        <div className="text-center text-xs font-medium text-white/70">
-          ~{fmt(result.avgM2)} €/m² · {result.propertyType} de {result.surface} m² à {result.city}
-        </div>
-        <ValuationEvidence result={result} />
       </div>
     ) : null;
 
@@ -904,7 +889,6 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       case 'offer':
         return (
           <div className="space-y-3">
-            {pitchCard}
             {slots === null && !slotsFailed && (
               <div className="flex items-center gap-2 text-sm text-white/90" role="status">
                 <Loader2 className="w-4 h-4 animate-spin" /> Je regarde les disponibilités de {AGENT.firstName}…
