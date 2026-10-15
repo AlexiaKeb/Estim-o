@@ -81,7 +81,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
     return { title: `Article introuvable | ${BRAND.name}`, description: BRAND.tagline, path, index: false, status: 404 };
   }
   // Espace conseiller : jamais indexé. Toute autre adresse inconnue répond « 404 » (et non un faux 200) pour ne pas polluer Google
-  if (AGENT_PATHS.has(path)) return { title: BRAND.name, description: BRAND.tagline, path, index: false };
+  if (AGENT_PATHS.has(path)) return { title: `Dashboard | ${BRAND.name}`, description: BRAND.tagline, path, index: false };
   return { title: `Page introuvable | ${BRAND.name}`, description: BRAND.tagline, path, index: false, status: 404 };
 }
 

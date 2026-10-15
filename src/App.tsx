@@ -332,6 +332,14 @@ export default function App() {
   };
 
   // Deletes a contact and everything attached to it (server side), then removes it from the screen
+  // The advisor's tab is easy to tell apart from the public site tab
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const publicTitle = document.title.startsWith('Dashboard') ? BRAND.name : document.title;
+    if (isAgentMode) document.title = `Dashboard | ${BRAND.name}`;
+    else document.title = publicTitle;
+  }, [isAgentMode]);
+
   const handleDeleteLead = async (lead: Lead): Promise<boolean> => {
     const isDbId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lead.id);
     if (isDbId) {
