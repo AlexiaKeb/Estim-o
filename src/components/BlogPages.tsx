@@ -118,7 +118,7 @@ const Block: React.FC<{ b: ArticleBlock }> = ({ b }) => {
     case 'img':
       return safeImg(b.url) ? (
         <figure className="mt-6">
-          <img src={safeImg(b.url)} alt={b.alt} loading="lazy" decoding="async" className="w-full rounded-2xl border-[3px] border-[#0B0F1F] object-cover" />
+          <img src={safeImg(b.url)} alt={b.alt} loading="lazy" decoding="async" className="mx-auto aspect-square w-full max-w-2xl rounded-2xl border-[3px] border-[#0B0F1F] object-cover" />
           {b.caption && <figcaption className="mt-2 text-center text-xs text-stone-500">{b.caption}</figcaption>}
         </figure>
       ) : null;
@@ -131,7 +131,7 @@ export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ po
   let h2Seen = 0;
   return (
     <Shell>
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         <nav aria-label="Fil d'Ariane" className="text-xs text-stone-500 mb-4">
           <a href="/" className="hover:underline">Accueil</a> › <a href="/blog" className="hover:underline">Conseils</a> › <span>{post.category}</span>
         </nav>
@@ -147,7 +147,7 @@ export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ po
           </a>
 
           {post.coverUrl && safeImg(post.coverUrl) && (
-            <img src={safeImg(post.coverUrl)} alt={post.title} width={1200} height={630} decoding="async" className="mt-6 w-full rounded-2xl border-[3px] border-[#0B0F1F] object-cover aspect-[16/9]" />
+            <img src={safeImg(post.coverUrl)} alt={post.title} width={1200} height={1200} decoding="async" className="mx-auto mt-6 aspect-square w-full max-w-2xl rounded-2xl border-[3px] border-[#0B0F1F] object-cover" />
           )}
 
           {blocks.map((b, i) => {

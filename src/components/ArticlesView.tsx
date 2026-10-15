@@ -35,18 +35,19 @@ const EMPTY: Draft = { status: 'brouillon', title: '', category: 'Conseils', cov
 const CATEGORIES = ['Conseils', 'Estimation', 'Marché', 'Préparer sa vente', 'Vendre', 'Quartiers'];
 const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 
-/** Reduces a photo before sending it (max 1600 px, JPEG): fast upload and fast pages for visitors. */
+/** Crops a photo to a centred square and reduces it before sending (max 1400 px, JPEG): square format, fast upload and fast pages. */
 async function shrinkImage(file: File): Promise<Blob> {
   const bmp = await createImageBitmap(file);
-  const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const side = Math.min(bmp.width, bmp.height);
+  const out = Math.min(1400, side);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(bmp.width * scale);
-  canvas.height = Math.round(bmp.height * scale);
+  canvas.width = out;
+  canvas.height = out;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Image illisible');
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, out, out);
+  ctx.drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, out, out);
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Image illisible'))), 'image/jpeg', 0.85));
 }
 
