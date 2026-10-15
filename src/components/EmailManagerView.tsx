@@ -71,6 +71,12 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [sentLogs, setSentLogs] = useState<Array<{ id: string; leadName: string; subject: string; status: string; sentAt: string }> | null>(null);
   // The message the advisor opened in the "Envoyés" list (what was really sent)
   const [openSent, setOpenSent] = useState<string | null>(null);
+  // Filters and selection in the "Envoyés" list
+  const [sq, setSq] = useState('');
+  const [sStatus, setSStatus] = useState<'all' | 'envoye' | 'erreur' | 'annule'>('all');
+  const [sPeriod, setSPeriod] = useState<'all' | '7' | '30'>('all');
+  const [sSel, setSSel] = useState<Set<string>>(new Set());
+  const [sBusy, setSBusy] = useState(false);
   const [sentDetail, setSentDetail] = useState<Record<string, { subject: string; html: string; recipient: string; error: string | null } | 'loading' | 'error'>>({});
   // Recherche et filtres de la liste des contacts (utile avec des centaines de dossiers)
   const [q, setQ] = useState('');
@@ -340,6 +346,28 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     fetch('/api/relances/history', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setSentLogs((d.logs || []).map((l: any) => ({ id: l.id, leadName: l.leadName, subject: l.subject, status: l.status, sentAt: l.sentAt })))).catch(() => setSentLogs([]));
   };
   useEffect(() => { if (view === 'follow') loadFollow(); }, [view]);
+  const shownLogs = (sentLogs || []).filter((l) => {
+    if (sStatus !== 'all' && l.status !== sStatus) return false;
+    if (sPeriod !== 'all' && Date.now() - new Date(l.sentAt).getTime() > Number(sPeriod) * 86400000) return false;
+    const needle = sq.trim().toLowerCase();
+    return !needle || `${l.leadName} ${l.subject}`.toLowerCase().includes(needle);
+  });
+  const deleteSent = async (ids: string[]) => {
+    if (!ids.length) return;
+    if (!window.confirm(`Supprimer ${ids.length} message${ids.length > 1 ? 's' : ''} de la liste « Envoyés » ? Les e-mails déjà partis ne sont pas rappelés.`)) return;
+    setSBusy(true);
+    try {
+      const r = await fetch('/api/relances/delete-history', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { window.alert(d.error || 'Suppression impossible.'); return; }
+      const gone = new Set<string>(d.deleted || []);
+      setSentLogs((prev) => (prev || []).filter((l) => !gone.has(l.id)));
+      setSSel((prev) => { const n = new Set(prev); gone.forEach((id) => n.delete(id)); return n; });
+      if (d.keptRecent) window.alert(`${d.keptRecent} message${d.keptRecent > 1 ? 's' : ''} envoyé${d.keptRecent > 1 ? 's' : ''} depuis moins de 24 h ${d.keptRecent > 1 ? 'ont été conservés' : 'a été conservé'} : ${d.keptRecent > 1 ? 'ils comptent' : 'il compte'} dans la limite d'envoi quotidienne. Vous pourrez ${d.keptRecent > 1 ? 'les' : 'le'} supprimer demain.`);
+    } finally {
+      setSBusy(false);
+    }
+  };
   const toggleSent = (id: string) => {
     if (openSent === id) { setOpenSent(null); return; }
     setOpenSent(id);
@@ -470,18 +498,45 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
           </section>
           <section className="bg-white rounded-2xl border border-stone-200 p-4">
             <h2 className="text-base font-bold text-stone-900">Envoyés</h2>
-            <p className="text-xs text-stone-500 mb-3">Les 100 derniers messages.</p>
-            {sentLogs === null ? <Loader2 className="w-4 h-4 animate-spin" /> : sentLogs.length === 0 ? <p className="text-sm text-stone-400">Aucun message envoyé.</p> : (
+            <p className="text-xs text-stone-500 mb-3">Les 300 derniers messages. Cliquez sur un message pour le relire.</p>
+            {sentLogs !== null && sentLogs.length > 0 && (
+              <div className="mb-3 space-y-2">
+                <input value={sq} onChange={(e) => setSq(e.target.value)} placeholder="Rechercher un nom, un objet…" aria-label="Rechercher dans les messages envoyés" className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  {([['all', 'Tous'], ['envoye', 'Envoyés'], ['erreur', 'Échecs'], ['annule', 'Annulés']] as const).map(([k, l]) => (
+                    <button key={k} type="button" onClick={() => setSStatus(k)} className={`rounded-full px-3 py-1 font-bold ${sStatus === k ? 'bg-[#0B0F1F] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{l}</button>
+                  ))}
+                  <span className="mx-1 text-stone-300">|</span>
+                  {([['all', 'Tout'], ['30', '30 jours'], ['7', '7 jours']] as const).map(([k, l]) => (
+                    <button key={k} type="button" onClick={() => setSPeriod(k)} className={`rounded-full px-3 py-1 font-bold ${sPeriod === k ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 hover:bg-sky-100'}`}>{l}</button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-3 rounded-lg bg-stone-50 border border-stone-200 px-3 py-2 text-xs">
+                  <label className="inline-flex cursor-pointer items-center gap-2 font-bold text-stone-700">
+                    <input type="checkbox" className="h-4 w-4 accent-[#2B4BFF]" checked={shownLogs.length > 0 && shownLogs.every((l) => sSel.has(l.id))} onChange={(e) => setSSel(e.target.checked ? new Set(shownLogs.map((l) => l.id)) : new Set())} />
+                    Tout sélectionner ({shownLogs.length})
+                  </label>
+                  {sSel.size > 0 && (
+                    <button type="button" id="btn-delete-sent" disabled={sBusy} onClick={() => void deleteSent(Array.from(sSel))} className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-[#0B0F1F] hover:bg-rose-700 disabled:opacity-60 px-3 py-1.5 font-bold text-white"><Trash2 className="w-3.5 h-3.5" /> Supprimer ({sSel.size})</button>
+                  )}
+                </div>
+              </div>
+            )}
+            {sentLogs === null ? <Loader2 className="w-4 h-4 animate-spin" /> : sentLogs.length === 0 ? <p className="text-sm text-stone-400">Aucun message envoyé.</p> : shownLogs.length === 0 ? <p className="text-sm text-stone-400">Aucun message ne correspond à ces filtres.</p> : (
               <ul className="divide-y divide-stone-100 max-h-[32rem] overflow-y-auto">
-                {sentLogs.map((l) => {
+                {shownLogs.map((l) => {
                   const det = sentDetail[l.id];
                   const isOpen = openSent === l.id;
                   return (
                   <li key={l.id} className="py-2 text-sm">
-                    <button type="button" onClick={() => toggleSent(l.id)} aria-expanded={isOpen} className="w-full text-left rounded-lg hover:bg-stone-50 -mx-1 px-1">
+                    <div className="flex items-start gap-2">
+                    <input type="checkbox" aria-label={`Sélectionner le message à ${l.leadName}`} className="mt-1 h-4 w-4 shrink-0 accent-[#2B4BFF]" checked={sSel.has(l.id)} onChange={() => setSSel((prev) => { const n = new Set(prev); if (n.has(l.id)) n.delete(l.id); else n.add(l.id); return n; })} />
+                    <button type="button" onClick={() => toggleSent(l.id)} aria-expanded={isOpen} className="min-w-0 flex-1 text-left rounded-lg hover:bg-stone-50 -mx-1 px-1">
                       <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
                       <p className="text-xs text-stone-500 truncate">{l.subject || 'Sans objet'} • {new Date(l.sentAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} • <span className="font-bold text-sky-700">{isOpen ? 'Masquer' : 'Voir le message'}</span></p>
                     </button>
+                    <button type="button" onClick={() => void deleteSent([l.id])} disabled={sBusy} aria-label={`Supprimer le message à ${l.leadName}`} title="Supprimer ce message de la liste" className="shrink-0 rounded-full p-1.5 text-stone-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
+                    </div>
                     {isOpen && (
                       <div className="mt-2 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFF7E6] p-3 text-sm">
                         {det === 'loading' || !det ? <Loader2 className="w-4 h-4 animate-spin" /> : det === 'error' ? <p className="text-rose-700">Impossible d'afficher ce message.</p> : (

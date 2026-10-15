@@ -983,6 +983,24 @@ async function startServer() {
     res.json({ relances: data || [] });
   });
 
+  // Cleans the "Envoyés" list. Messages sent in the last 24 h are kept: they count in the daily sending limit
+  app.post("/api/relances/delete-history", requireAgent, rateLimit("relances-clean", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const ids: string[] = Array.isArray(req.body?.ids) ? Array.from(new Set<string>(req.body.ids.filter((x: any) => typeof x === "string" && isUuidStr(x)))).slice(0, 300) : [];
+    if (!ids.length) return res.status(400).json({ error: "Aucun message à supprimer" });
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: rows } = await client.from("relances").select("id, status, sent_at").in("id", ids).in("status", ["envoye", "erreur", "annule"]);
+    const deletable: string[] = [];
+    const kept: string[] = [];
+    for (const r of rows || []) (r.status === "envoye" && r.sent_at && r.sent_at >= since ? kept : deletable).push(r.id);
+    if (deletable.length) {
+      const { error } = await client.from("relances").delete().in("id", deletable);
+      if (error) return res.status(500).json({ error: error.message });
+    }
+    res.json({ success: true, deleted: deletable, keptRecent: kept.length });
+  });
+
   // What was actually sent: subject and message with the contact's data filled in
   app.get("/api/relances/:id/content", requireAgent, async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();
@@ -1004,7 +1022,7 @@ async function startServer() {
       .select("id, lead_id, step, channel, subject, message, status, sent_at, send_at, recipient, error, created_at")
       .in("status", ["envoye", "erreur", "annule"])
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(300);
     const rows: any[] = data || [];
     // Messages whose contact no longer exists (deleted by hand in the database) are removed for good
     const leadIds = [...new Set(rows.map((r) => r.lead_id).filter(Boolean))];
