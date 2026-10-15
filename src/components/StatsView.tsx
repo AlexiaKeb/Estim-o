@@ -64,7 +64,8 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
     setAmount(spend && spend[month] ? String(spend[month]) : '');
   }, [month, spend]);
 
-  const saveSpend = async () => {
+  const [edits, setEdits] = useState<Record<string, string>>({});
+  const saveSpendFor = async (m: string, value: number) => {
     setSaving(true);
     setError(null);
     try {
@@ -72,17 +73,23 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
         method: 'PUT',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month, amount: Number(amount.replace(',', '.')) || 0 }),
+        body: JSON.stringify({ month: m, amount: value }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) setError(d.error || "L'enregistrement a échoué.");
-      else setSpend(d.spend || {});
+      else {
+        setSpend(d.spend || {});
+        setEdits((e) => { const n = { ...e }; delete n[m]; return n; });
+      }
     } catch {
       setError('Serveur injoignable.');
     } finally {
       setSaving(false);
     }
   };
+
+  const saveSpend = () => saveSpendFor(month, Number(amount.replace(',', '.')) || 0);
+  const monthLabel = (k: string) => new Date(`${k}-01T12:00:00`).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
   const s = useMemo(() => {
     const from = periodStart(period);
@@ -193,31 +200,54 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
           </div>
         </div>
 
-        <details className="rounded-xl border border-dashed border-stone-300 p-4 group">
-          <summary className="cursor-pointer text-sm font-semibold text-stone-800">Saisir le budget publicité du mois</summary>
-          <p className="text-xs text-stone-500 mt-2 mb-3">Reportez le montant dépensé dans Google Ads (visible dans votre compte Google Ads).</p>
+        <div className="rounded-2xl border border-stone-200 p-4 sm:p-5" id="spend-editor">
+          <p className="text-sm font-bold text-stone-900">Budget publicité, mois par mois</p>
+          <p className="text-xs text-stone-500 mb-3">Reportez le montant dépensé dans Google Ads. Vous pouvez le corriger à tout moment : les coûts et le retour sur publicité se recalculent.</p>
           {spend === null ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <div className="flex flex-wrap items-end gap-3">
-              <div>
-                <label htmlFor="spend-month" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Mois</label>
-                <input id="spend-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
+            <>
+              <ul className="divide-y divide-stone-100">
+                {Object.entries(spend).sort(([a], [b]) => b.localeCompare(a)).map(([k, v]) => {
+                  const val = edits[k] ?? String(v);
+                  const changed = edits[k] !== undefined && Number(edits[k].replace(',', '.')) !== Number(v);
+                  return (
+                    <li key={k} className="flex flex-wrap items-center gap-2 py-2">
+                      <span className="w-40 text-sm font-semibold capitalize text-stone-800">{monthLabel(k)}</span>
+                      <div className="relative">
+                        <input
+                          aria-label={`Budget de ${monthLabel(k)}`}
+                          inputMode="decimal"
+                          value={val}
+                          onChange={(e) => setEdits((ed) => ({ ...ed, [k]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && changed) void saveSpendFor(k, Number(val.replace(',', '.')) || 0); }}
+                          className="w-36 rounded-lg border border-stone-300 py-1.5 pl-2.5 pr-7 text-sm"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-stone-400">€</span>
+                      </div>
+                      {changed && <button type="button" onClick={() => saveSpendFor(k, Number(val.replace(',', '.')) || 0)} disabled={saving} className="rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-stone-800 disabled:opacity-60">Enregistrer</button>}
+                      {changed && <button type="button" onClick={() => setEdits((ed) => { const n = { ...ed }; delete n[k]; return n; })} className="text-xs text-stone-500 underline">Annuler</button>}
+                      <button type="button" onClick={() => { if (window.confirm(`Supprimer le budget de ${monthLabel(k)} ?`)) void saveSpendFor(k, 0); }} className="ml-auto text-xs font-semibold text-rose-700 underline">Supprimer</button>
+                    </li>
+                  );
+                })}
+                {Object.keys(spend).length === 0 && <li className="py-2 text-sm text-stone-400">Aucun budget saisi pour le moment.</li>}
+              </ul>
+              <div className="mt-3 flex flex-wrap items-end gap-3 rounded-xl bg-stone-50 p-3">
+                <div>
+                  <label htmlFor="spend-month" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Ajouter un mois</label>
+                  <input id="spend-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
+                </div>
+                <div>
+                  <label htmlFor="spend-amount" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Montant dépensé (€)</label>
+                  <input id="spend-amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="w-36 rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
+                </div>
+                <button type="button" id="btn-save-spend" onClick={saveSpend} disabled={saving || !amount.trim()} className="rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-4 py-2 disabled:opacity-60">{saving ? 'Enregistrement…' : spend[month] !== undefined ? 'Mettre à jour ce mois' : 'Ajouter'}</button>
               </div>
-              <div>
-                <label htmlFor="spend-amount" className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Montant dépensé (€)</label>
-                <input id="spend-amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="w-36 rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" />
-              </div>
-              <button type="button" id="btn-save-spend" onClick={saveSpend} disabled={saving} className="rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold px-4 py-2 disabled:opacity-60">{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
-              {error && <p role="alert" className="text-xs text-rose-700">{error}</p>}
-            </div>
+              {error && <p role="alert" className="mt-2 text-xs text-rose-700">{error}</p>}
+            </>
           )}
-          {spend && Object.keys(spend).length > 0 && (
-            <p className="mt-3 text-xs text-stone-600">
-              {Object.entries(spend).sort(([a], [b]) => b.localeCompare(a)).slice(0, 6).map(([k, v]) => `${k} : ${eur(Number(v))}`).join(' · ')}
-            </p>
-          )}
-        </details>
+        </div>
       </section>
 
       <div className="grid md:grid-cols-2 gap-6">
