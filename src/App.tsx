@@ -893,16 +893,16 @@ export default function App() {
       </Suspense>
 
       {/* Footer */}
-      <footer className="bg-[#0B0F1F] pt-8 pb-24 sm:pb-8 mt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/70">
-          <div className="flex items-center gap-2">
-            <span className="font-black text-white">
+      <footer className="bg-[#0B0F1F] pt-6 pb-20 sm:pt-8 sm:pb-8 mt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-[11px] sm:text-xs text-center sm:text-left text-white/70">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1">
+            <span className="w-full font-black text-white sm:w-auto">
               {BRAND.name} – Céline LEVRAT – Expertise Immobilière
             </span>
-            <span>•</span>
-            <span>Estimation offerte et sans engagement</span>
-            <span>•</span>
-            <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
+            <span className="hidden sm:inline">•</span>
+            <span className="w-full sm:w-auto">Estimation offerte et sans engagement</span>
+            <span className="hidden sm:inline">•</span>
+                        <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
             <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
             <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
             <a href="tel:+33603580316" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
