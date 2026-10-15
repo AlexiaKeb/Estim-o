@@ -2724,6 +2724,17 @@ async function startServer() {
   const articlesMissing = (error: any) => error && (error.code === "42P01" || /relation .*articles|schema cache/i.test(error.message || ""));
   const MISSING_MSG = "La table des articles n'existe pas encore : exécutez la migration 20261006000000_articles.sql dans Supabase (SQL Editor).";
 
+  // Public: the latest articles (title, category, cover) for the home page teaser
+  app.get("/api/blog/latest", async (_req: Request, res: Response) => {
+    try {
+      const posts = await getAllPosts(getSupabaseAdmin());
+      res.set("Cache-Control", "public, max-age=300");
+      res.json({ posts: posts.slice(0, 3).map((p) => ({ slug: p.slug, category: p.category, title: p.title, coverUrl: p.coverUrl || null })) });
+    } catch {
+      res.json({ posts: [] });
+    }
+  });
+
   app.get("/api/articles", requireAgent, async (_req: Request, res: Response) => {
     const client = getSupabaseAdmin();
     if (!client) return res.status(503).json({ error: "Supabase non configuré" });

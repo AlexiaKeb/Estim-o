@@ -502,28 +502,48 @@ const TEASER = [
   ['documents-vendre-appartement-maison', 'Préparer sa vente', 'Vendre son bien : la liste des documents à rassembler'],
 ];
 
-/** Internal links to the blog: help visitors and search engines find the guides. */
-export const BlogTeaser: React.FC = () => (
-  <Band tone="white" full={false}>
-    <section aria-labelledby="blog-teaser-title">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <Eyebrow>L'avis de l'expert</Eyebrow>
-          <H2 id="blog-teaser-title">Comment valoriser et vendre votre logement à sa vraie valeur</H2>
+/** Internal links to the blog: help visitors and search engines find the guides. Shows the cover of each article. */
+export const BlogTeaser: React.FC = () => {
+  const [posts, setPosts] = useState<Array<{ slug: string; category: string; title: string; coverUrl?: string | null }>>(
+    TEASER.map(([slug, category, title]) => ({ slug, category, title, coverUrl: null })),
+  );
+  useEffect(() => {
+    let off = false;
+    fetch('/api/blog/latest')
+      .then((r) => r.json())
+      .then((d) => {
+        if (!off && Array.isArray(d?.posts) && d.posts.length) setPosts(d.posts);
+      })
+      .catch(() => { /* the built-in list stays */ });
+    return () => { off = true; };
+  }, []);
+  return (
+    <Band tone="white" full={false}>
+      <section aria-labelledby="blog-teaser-title">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <Eyebrow>L'avis de l'expert</Eyebrow>
+            <H2 id="blog-teaser-title">Comment valoriser et vendre votre logement à sa vraie valeur</H2>
+          </div>
+          <a href="/blog" className="inline-flex items-center gap-1.5 text-base font-black text-[#0B0F1F] underline decoration-[3px] underline-offset-4">Tous les conseils d'experts <ArrowRight className="w-4 h-4" /></a>
         </div>
-        <a href="/blog" className="inline-flex items-center gap-1.5 text-base font-black text-[#0B0F1F] underline decoration-[3px] underline-offset-4">Tous les conseils d'experts <ArrowRight className="w-4 h-4" /></a>
-      </div>
-      <ul className="mt-8 grid md:grid-cols-3 gap-5">
-        {TEASER.map(([slug, cat, title]) => (
-          <li key={slug}>
-            <a href={`/blog/${slug}`} className="group pop-card flex h-full flex-col rounded-3xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] p-6 shadow-[5px_5px_0_#0B0F1F]">
-              <span className="self-start rounded-full border-2 border-[#0B0F1F] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F]">{cat}</span>
-              <span className="mt-4 flex-1 text-xl font-black leading-snug text-[#0B0F1F]">{title}</span>
-              <span className="mt-5 flex items-center gap-1.5 text-sm font-black text-[#0B0F1F]">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  </Band>
-);
+        <ul className="mt-8 grid md:grid-cols-3 gap-5">
+          {posts.map((p) => (
+            <li key={p.slug}>
+              <a href={`/blog/${p.slug}`} className="group pop-card flex h-full flex-col overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] shadow-[5px_5px_0_#0B0F1F]">
+                {p.coverUrl && /^https:\/\//i.test(p.coverUrl) ? (
+                  <img src={p.coverUrl as string} alt="" loading="lazy" decoding="async" width={600} height={600} className="aspect-square w-full border-b-[3px] border-[#0B0F1F] object-cover" />
+                ) : null}
+                <span className="flex flex-1 flex-col p-6">
+                  <span className="self-start rounded-full border-2 border-[#0B0F1F] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F]">{p.category}</span>
+                  <span className="mt-4 flex-1 text-xl font-black leading-snug text-[#0B0F1F]">{p.title}</span>
+                  <span className="mt-5 flex items-center gap-1.5 text-sm font-black text-[#0B0F1F]">Lire l'article <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </Band>
+  );
+};
