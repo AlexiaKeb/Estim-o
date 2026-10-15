@@ -37,18 +37,17 @@ export const Robot: React.FC<{ className?: string; waving?: boolean }> = ({ clas
 
 /** L'humaine (Céline) : sa photo en grand, éclaircie, dans un cadre franc. */
 export const Human: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`relative ${className}`}>
+  <div className={`relative ${className}`} style={{ aspectRatio: '200 / 250' }}>
+    <svg viewBox="0 0 200 250" className="absolute inset-0 h-full w-full" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 250 Q24 160 100 160 Q176 160 176 250 Z" fill={YELLOW} stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+      <path d="M78 160 L100 196 L122 160" fill={CREAM} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    </svg>
     {AGENT.photoUrl ? (
-      <img
-        src={AGENT.photoUrl}
-        alt={`${AGENT.name}, conseillère immobilière`}
-        width={480}
-        height={480}
-        className="aspect-square w-full rounded-[2rem] border-[4px] border-[#0B0F1F] bg-[#FFD60A] object-cover object-[50%_18%] shadow-[7px_7px_0_#0B0F1F]"
-        style={{ filter: 'brightness(1.35) contrast(1.08)' }}
-      />
+      <div className="absolute left-1/2 top-[2%] aspect-square w-[74%] -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-[#0B0F1F] bg-[#FFD60A]">
+        <img src={AGENT.photoUrl} alt={`${AGENT.name}, conseillère immobilière`} width={480} height={480} className="h-full w-full object-cover" style={{ transformOrigin: '57% 32%', transform: 'translate(-7%, 18%) scale(2.5)', filter: 'brightness(1.3) contrast(1.08)' }} />
+      </div>
     ) : (
-      <div className="flex aspect-square w-full items-center justify-center rounded-[2rem] border-[4px] border-[#0B0F1F] bg-[#FFD60A] text-6xl font-black text-[#0B0F1F] shadow-[7px_7px_0_#0B0F1F]">{AGENT.firstName[0]}</div>
+      <div className="absolute left-1/2 top-[2%] flex aspect-square w-[74%] -translate-x-1/2 items-center justify-center rounded-full border-[6px] border-[#0B0F1F] bg-[#FFD60A] text-5xl font-black text-[#0B0F1F]">{AGENT.firstName[0]}</div>
     )}
   </div>
 );
