@@ -536,7 +536,7 @@ export const ZoneSection: React.FC = () => (
   </Band>
 );
 
-const TEASER = [
+export const TEASER = [
   ['estimer-appartement-lyon-criteres-prix', 'Estimation', 'Estimer son appartement à Lyon : les 8 critères qui font varier le prix'],
   ['prix-immobilier-dvf-ventes-reelles-quartier', 'Marché', "Ventes réelles (DVF) : ce qu'elles disent de votre bien, et leurs limites"],
   ['documents-vendre-appartement-maison', 'Préparer sa vente', 'Vendre son bien : la liste des documents à rassembler'],

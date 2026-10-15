@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
-import { scrollToSimulator, LandingHero, HowItWorks, WhyOnSite, SocialProof, ZoneSection, BlogTeaser, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
+import { scrollToSimulator, SocialProof, StickyMobileCta } from './LandingSections';
+import { StartupHero, TrustMarquee, HowBento, AiVsHuman, MeetAgent, ZoneBento, BlogCards, FaqModern, FinalCtaModern } from './LandingStartup';
 import { GuidedAssistant, AssistantSeed } from './GuidedAssistant';
 
 interface Props {
@@ -29,26 +30,26 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
   };
 
   return (
-    <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto flex flex-col gap-10">
-      <LandingHero onStart={handleHeroStart} />
+    <div id="landing-simulator-container" className="w-full max-w-6xl mx-auto flex flex-col gap-16 sm:gap-24">
+      <StartupHero onStart={handleHeroStart} />
+      <TrustMarquee />
 
-      <section id="simulateur" aria-label="Votre estimation avec l'assistant" className="scroll-mt-20 space-y-4">
-        <div className="text-center space-y-1">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
-          <p className="text-stone-600 text-sm sm:text-base">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
+      <section id="simulateur" aria-label="Votre estimation avec l'assistant" className="scroll-mt-20 space-y-5 -mt-6 sm:-mt-10">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#0b1020] [text-wrap:balance]">Votre estimation, pas à pas</h2>
+          <p className="text-slate-600 text-base sm:text-lg">Une première valeur en 2 minutes, puis un rendez-vous avec Céline si vous le souhaitez.</p>
         </div>
         <GuidedAssistant seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={onOpenBooking} onLeadReady={setLeadInfo} />
       </section>
 
-      <div className="pt-2 pb-0">
-        <HowItWorks />
-        <WhyOnSite />
-        <SocialProof />
-        <ZoneSection />
-        <BlogTeaser />
-        <FaqSection />
-        <FinalCta />
-      </div>
+      <HowBento />
+      <AiVsHuman />
+      <MeetAgent />
+      <SocialProof />
+      <ZoneBento />
+      <BlogCards />
+      <FaqModern />
+      <FinalCtaModern />
       <StickyMobileCta
         unlocked={Boolean(leadInfo)}
         onBook={() => onOpenBooking?.(leadInfo || {})}
