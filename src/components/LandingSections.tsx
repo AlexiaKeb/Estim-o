@@ -483,92 +483,54 @@ const ZONES = [
   'Beaujolais & Pierres Dorées',
   'Villefranche & alentours',
 ];
-// Pin positions on the abstract poster (viewBox 560 x 560), same order as ZONES
-const PINS: Array<[number, number]> = [[330, 508], [310, 408], [150, 452], [330, 170]];
 
-/** An abstract, flat "poster" of the area: the sun on the golden stones, hills and vines of the Beaujolais, the Rhône and the Saône flowing together. */
-const LyonMap: React.FC<{ active: number | null; onPick: (i: number | null) => void }> = ({ active, onPick }) => (
-  <svg viewBox="0 0 560 560" role="img" aria-label="Illustration abstraite du secteur : le soleil sur les pierres dorées, les collines du Beaujolais et les deux fleuves qui se rejoignent à Lyon" className="block h-auto w-full" xmlns="http://www.w3.org/2000/svg">
-    <rect width="560" height="560" fill="#FFF7E6" />
-    {/* Vine rows */}
-    <g fill="none" stroke="#0B0F1F" strokeWidth="5">
-      <circle cx="560" cy="300" r="45" />
-      <circle cx="560" cy="300" r="85" />
-      <circle cx="560" cy="300" r="125" />
-      <circle cx="560" cy="300" r="165" />
-    </g>
-    {/* Ink arch with dots */}
-    <path d="M0 0 H230 A230 230 0 0 1 0 230 Z" fill="#0B0F1F" />
-    <g fill="#FFD60A">
-      {[0, 1, 2, 3, 4].flatMap((r) => [0, 1, 2, 3, 4].map((c) => (r + c < 6 ? <circle key={`${r}-${c}`} cx={28 + c * 34} cy={28 + r * 34} r="6" /> : null)))}
-    </g>
-    {/* The sun on the golden stones */}
-    <circle cx="330" cy="170" r="118" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" />
-    <circle cx="330" cy="170" r="74" fill="none" stroke="#0B0F1F" strokeWidth="5" strokeDasharray="2 14" strokeLinecap="round" />
-    {/* Layered hills */}
-    <path d="M20 560 A125 125 0 0 1 270 560 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
-    <path d="M190 560 A125 125 0 0 1 440 560 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
-    <path d="M380 560 A90 90 0 0 1 560 560 Z" fill="#FFF7E6" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
-    {/* Saône and Rhône flowing together */}
-    <g fill="none" strokeLinecap="round">
-      <path d="M-20 70 C 120 110, 210 250, 300 340 S 360 500, 335 590" stroke="#0B0F1F" strokeWidth="34" />
-      <path d="M590 40 C 470 120, 520 250, 400 350 S 345 480, 335 590" stroke="#0B0F1F" strokeWidth="34" />
-      <path d="M-20 70 C 120 110, 210 250, 300 340 S 360 500, 335 590" stroke="#2B4BFF" strokeWidth="22" />
-      <path d="M590 40 C 470 120, 520 250, 400 350 S 345 480, 335 590" stroke="#2B4BFF" strokeWidth="22" />
-      <path d="M-20 70 C 120 110, 210 250, 300 340 S 360 500, 335 590" stroke="#FFF7E6" strokeWidth="4" strokeDasharray="2 18" />
-      <path d="M590 40 C 470 120, 520 250, 400 350 S 345 480, 335 590" stroke="#FFF7E6" strokeWidth="4" strokeDasharray="2 18" />
-    </g>
-    {/* Sparkles */}
-    <path d="M470 70 L478 96 L504 104 L478 112 L470 138 L462 112 L436 104 L462 96 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="4" strokeLinejoin="round" className="spark" style={{ transformOrigin: '470px 104px' }} />
-    <path d="M60 330 L65 346 L81 351 L65 356 L60 372 L55 356 L39 351 L55 346 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="3" strokeLinejoin="round" />
-    {/* Pins */}
-    {PINS.map(([x, y], i) => {
-      const on = active === i;
-      return (
-        <g key={i} transform={`translate(${x} ${y})`} onMouseEnter={() => onPick(i)} onMouseLeave={() => onPick(null)} style={{ cursor: 'pointer' }}>
-          <circle r={on ? 27 : 22} fill={on ? '#FFD60A' : '#FFF7E6'} stroke="#0B0F1F" strokeWidth="5" className="transition-all" />
-          <text y="8" textAnchor="middle" fontSize="22" fontWeight="900" fill="#0B0F1F">{i + 1}</text>
-        </g>
-      );
-    })}
-  </svg>
+/** Light, animated decoration that sets this pale section apart (purely visual, hidden from screen readers). */
+const ZoneDecor: React.FC = () => (
+  <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-visible">
+    <span className="bob absolute -top-4 right-[-2%] h-14 w-14 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFD60A] sm:h-20 sm:w-20" />
+    <span className="bob absolute top-[30%] right-[-4%] hidden h-10 w-10 rounded-full border-[6px] border-[#2B4BFF] sm:block" style={{ animationDelay: '.8s' }} />
+    <Spark className="spark absolute top-8 left-[52%] hidden h-8 w-8 sm:block" />
+    <svg viewBox="0 0 120 30" className="bob absolute bottom-0 left-[3%] hidden h-8 w-32 sm:block" style={{ animationDelay: '.4s' }} fill="none" stroke="#2B4BFF" strokeWidth="5" strokeLinecap="round">
+      <path d="M4 20 Q19 2 34 15 T64 15 T94 15 T116 12" />
+    </svg>
+    <div className="absolute bottom-1 right-[4%] hidden grid-cols-4 gap-2 sm:grid">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <span key={i} className={`h-2.5 w-2.5 rounded-full ${i % 3 === 0 ? 'bg-[#2B4BFF]' : 'bg-[#0B0F1F]'}`} />
+      ))}
+    </div>
+    <svg viewBox="0 0 60 60" className="spin-slow absolute bottom-2 left-[46%] hidden h-10 w-10 lg:block" fill="none" stroke="#0B0F1F" strokeWidth="4" strokeLinejoin="round">
+      <path d="M30 6 L54 52 L6 52 Z" />
+    </svg>
+  </div>
 );
 
-export const ZoneSection: React.FC = () => {
-  const [active, setActive] = useState<number | null>(null);
-  return (
-    <Band tone="cream">
-      <section aria-labelledby="zone-title" className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
-        <div>
-          <Eyebrow>Secteur d'expertise</Eyebrow>
-          <H2 id="zone-title">Une estimation humaine, bien au-delà des algorithmes</H2>
-          <p className="mt-5 text-lg font-medium leading-relaxed">
-            Une IA calcule des prix au m². {AGENT.firstName} connaît la vraie valeur de votre logement : elle croise les ventes réelles de votre secteur (base DVF) avec ce qu'aucun ordinateur ne peut évaluer, la luminosité, la vue, l'étage, l'agencement et le coup de cœur du bien. C'est cette étude sur le terrain qui garantit un avis de valeur juste pour vendre efficacement.
-          </p>
-          <ul className="mt-7 grid gap-3">
-            {ZONES.map((c, i) => (
-              <li
-                key={c}
-                onMouseEnter={() => setActive(i)}
-                onMouseLeave={() => setActive(null)}
-                className={`pop-card flex items-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] px-4 py-3 text-base font-black shadow-[4px_4px_0_#0B0F1F] sm:text-lg ${active === i ? 'bg-[#FFD60A]' : 'bg-white'}`}
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] bg-[#2B4BFF] text-base font-black text-white">{i + 1}</span>
-                {c}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="relative">
-          <div className="overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] shadow-[8px_8px_0_#0B0F1F]">
-            <LyonMap active={active} onPick={setActive} />
-          </div>
-          <Robot className="bob absolute -bottom-6 -left-3 h-24 w-20 sm:-bottom-8 sm:-left-6 sm:h-32 sm:w-24" />
-        </div>
-      </section>
-    </Band>
-  );
-};
+export const ZoneSection: React.FC = () => (
+  <Band tone="cream">
+    <section aria-labelledby="zone-title" className="relative grid items-center gap-10 pb-12 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+      <ZoneDecor />
+      <div className="relative">
+        <Eyebrow>Secteur d'expertise</Eyebrow>
+        <H2 id="zone-title">Une estimation humaine, bien au-delà des algorithmes</H2>
+        <p className="mt-5 text-lg font-medium leading-relaxed">
+          Une IA calcule des prix au m². {AGENT.firstName} connaît la vraie valeur de votre logement : elle croise les ventes réelles de votre secteur (base DVF) avec ce qu'aucun ordinateur ne peut évaluer, la luminosité, la vue, l'étage, l'agencement et le coup de cœur du bien. C'est cette étude sur le terrain qui garantit un avis de valeur juste pour vendre efficacement.
+        </p>
+      </div>
+      <ul className="relative grid gap-4">
+        {ZONES.map((c, i) => (
+          <li
+            key={c}
+            className={`pop-card flex items-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] bg-white px-5 py-4 text-lg font-black shadow-[5px_5px_0_#0B0F1F] ${i % 2 ? 'lg:translate-x-6' : 'lg:-translate-x-2'}`}
+          >
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] ${i % 2 ? 'bg-[#FFD60A]' : 'bg-[#2B4BFF]'}`}>
+              <MapPin className={`h-5 w-5 ${i % 2 ? 'text-[#0B0F1F]' : 'text-white'}`} />
+            </span>
+            {c}
+          </li>
+        ))}
+      </ul>
+    </section>
+  </Band>
+);
 
 const TEASER = [
   ['estimer-appartement-lyon-criteres-prix', 'Estimation', 'Estimer son appartement à Lyon : les 8 critères qui font varier le prix'],
