@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { X, Send, Loader2, CheckCircle2, AlertCircle, Mail, Settings } from 'lucide-react';
 import { Lead } from '../types';
+import { splitName } from '../utils/names';
 
 interface Props {
   lead: Lead;
@@ -31,8 +32,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 /** Les variables {Prénom}, {Ville}, {TypeBien}, {PrixEstime}, {Motif} sont remplacées par le serveur à l'envoi. */
 const fillPreview = (text: string, lead: Lead) =>
   text
-    .replace(/\{Prénom\}/g, lead.name.split(' ')[0] || '')
-    .replace(/\{Nom\}/g, lead.name || '')
+    .replace(/\{Pr[ée]nom\}/g, splitName(lead.name).first)
+    .replace(/\{Nom\}/g, splitName(lead.name).last)
     .replace(/\{Adresse\}/g, lead.address || lead.city || 'votre bien')
     .replace(/\{Ville\}/g, lead.city || 'votre commune')
     .replace(/\{TypeBien\}/g, (lead.propertyType || 'bien').toLowerCase())

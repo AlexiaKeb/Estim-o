@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { insertAtCursor } from '../utils/insertAtCursor';
+import { splitName } from '../utils/names';
 import { CalendarClock, Loader2, Mail, Plus, Save, Send, Trash2 } from 'lucide-react';
 import { Lead } from '../types';
 import { AGENT } from '../data/siteContent';
@@ -357,8 +358,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const first = targets[0] || chosen[0];
   const fill = (t: string) =>
     t
-      .replace(/\{Pr[ée]nom\}/g, first ? first.name.split(' ')[0] : 'Prénom')
-      .replace(/\{Nom\}/g, first?.name || 'Nom Prénom')
+      .replace(/\{Pr[ée]nom\}/g, first ? splitName(first.name).first || 'Prénom' : 'Prénom')
+      .replace(/\{Nom\}/g, first ? splitName(first.name).last || 'NOM' : 'NOM')
       .replace(/\{Adresse\}/g, first?.address || first?.city || 'adresse du bien')
       .replace(/\{Ville\}/g, first?.city || 'Ville')
       .replace(/\{TypeBien\}/g, (first?.propertyType || 'bien').toLowerCase())

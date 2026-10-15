@@ -1,3 +1,4 @@
+import { splitName } from "../src/utils/names";
 // Sends real e-mails over HTTPS (Resend or Brevo). SMTP ports are blocked on most free hosting plans,
 // so an HTTP API is the reliable option.
 
@@ -136,11 +137,11 @@ ${t.bookingUrl ? `<p style="margin:20px 0 0"><a href="${esc(t.bookingUrl)}" styl
 
 /** Replaces {Prénom}, {Nom}, {Adresse}, {Ville}, {TypeBien}, {PrixEstime}, {Motif} with the lead's real data. */
 export function fillVariables(text: string, lead: { nom?: string; adresse?: string | null; ville_bien?: string; type_bien?: string; valeur_estimee?: number | string | null; motif?: string | null }): string {
-  const first = (lead.nom || "").trim().split(/\s+/)[0] || "";
+  const { first, last } = splitName(lead.nom || "");
   const price = Number(lead.valeur_estimee) > 0 ? `${Math.round(Number(lead.valeur_estimee)).toLocaleString("fr-FR")} €` : "";
   return text
     .replace(/\{Pr[ée]nom\}/gi, first)
-    .replace(/\{Nom\}/gi, (lead.nom || "").trim())
+    .replace(/\{Nom\}/gi, last)
     .replace(/\{Adresse\}/gi, (lead.adresse || lead.ville_bien || "").trim())
     .replace(/\{Ville\}/gi, lead.ville_bien || "")
     .replace(/\{TypeBien\}/gi, (lead.type_bien || "bien").toLowerCase())
