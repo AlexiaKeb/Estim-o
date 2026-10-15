@@ -30,7 +30,10 @@ html, body { overflow-x: clip; }
 .marquee2 { animation: marquee2 30s linear infinite; }
 .pop-card { transition: transform .18s ease, box-shadow .18s ease; }
 .pop-card:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 #0B0F1F; }
+@keyframes cta-pulse { 0%, 100% { box-shadow: 5px 5px 0 #2B4BFF; } 50% { box-shadow: 8px 8px 0 #2B4BFF; } }
+.cta-pulse { animation: cta-pulse 1.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
+  .cta-pulse { animation: none; }
   .bob, .robot-eyes, .robot-wave, .robot-antenna, .robot-pulse, .spark, .spin-slow, .bubble, .marquee2 { animation: none; }
   .pop-card, .pop-card:hover { transition: none; transform: none; }
 }

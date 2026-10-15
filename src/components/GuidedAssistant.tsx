@@ -9,6 +9,7 @@ import { getAttribution, trackConversion } from '../utils/tracking';
 import { renderRichText } from '../utils/richText';
 import { AddressSearch, AddressSuggestion } from './AddressSearch';
 import { ValuationEvidence } from './LandingSections';
+import { Robot } from './Mascots';
 
 type Timeframe = Lead['timeframe'];
 type Motive = Lead['motive'];
@@ -111,8 +112,8 @@ let uid = 0;
 const nextId = () => `m-${Date.now()}-${uid++}`;
 
 /** Wording of the consent box, kept with each lead as proof (version to bump whenever the text changes). */
-const CONSENT_VERSION = '2026-10-v2';
-const CONSENT_TEXT = `Je consens expressément à ce que ${AGENT.name}, conseillère immobilière indépendante, utilise mon nom, mon numéro de téléphone et mon adresse e-mail pour m'envoyer mon estimation, me contacter par téléphone ou par e-mail au sujet de mon projet immobilier et me proposer une visite, ainsi que quelques e-mails utiles liés à cette estimation. Je peux retirer mon consentement à tout moment, sans frais, en un clic dans chaque e-mail ou en contactant ${AGENT.firstName}. Mes données ne sont jamais revendues et sont conservées 3 ans après notre dernier échange.`;
+const CONSENT_VERSION = '2026-10-v3';
+const CONSENT_TEXT = `Je donne mon consentement explicite à être contacté(e) par ${AGENT.name}, conseillère immobilière indépendante, par téléphone ou par e-mail, au sujet de mon projet immobilier : réception de mon estimation, proposition d'une visite et quelques e-mails utiles liés à cette estimation. Pour cela, elle utilise mon nom, mon numéro de téléphone et mon adresse e-mail. Je peux retirer mon consentement à tout moment, sans frais, en un clic dans chaque e-mail ou en contactant ${AGENT.firstName}. Mes données ne sont jamais revendues et sont conservées 3 ans après notre dernier échange.`;
 
 const Chip: React.FC<{ onClick: () => void; children: React.ReactNode; strong?: boolean; disabled?: boolean }> = ({ onClick, children, strong, disabled }) => (
   <button
@@ -351,7 +352,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (name.length < 2) return setContactError('Indiquez votre prénom et votre nom.');
     if (!isValidFrPhone(phone)) return setContactError('Indiquez un numéro de téléphone français valide (ex : 06 12 34 56 78) : Céline doit pouvoir vous joindre.');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setContactError('Indiquez une adresse e-mail valide.');
-    if (!contact.consent) return setContactError('Pour obtenir votre estimation, cochez la case : votre accord est nécessaire pour que Céline puisse utiliser vos coordonnées.');
+    if (!contact.consent) return setContactError("Pour obtenir votre estimation, cochez la case : vous donnez ainsi votre consentement à être contacté(e) par Céline.");
     setContactError(null);
 
     userSays(`${name} · ${phone} · ${email}`, 'contact');
@@ -600,6 +601,27 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     }
   };
 
+  // Count-up of the range so the result "lands" (skipped when the visitor prefers reduced motion)
+  const [shownLow, setShownLow] = useState(0);
+  const [shownHigh, setShownHigh] = useState(0);
+  useEffect(() => {
+    if (!result) return;
+    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { setShownLow(result.lowPrice); setShownHigh(result.highPrice); return; }
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 1100);
+      const e = 1 - Math.pow(1 - t, 3);
+      setShownLow(Math.round((result.lowPrice * e) / 1000) * 1000);
+      setShownHigh(Math.round((result.highPrice * e) / 1000) * 1000);
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else { setShownLow(result.lowPrice); setShownHigh(result.highPrice); }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [result]);
+
   const pitchCard = (
     <div className="rounded-2xl bg-[#2B4BFF] text-white p-4 sm:p-5 shadow-lg border-l-4 border-[#0B0F1F] w-full">
       <p className="text-[#FFD60A] text-[11px] font-bold uppercase tracking-wider mb-1.5">Pourquoi prendre rendez-vous ?</p>
@@ -616,61 +638,70 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
   // Rendering --------------------------------------------------------------------------------------------
   const resultCard =
     result && lead ? (
-      <div className="rounded-2xl bg-white border border-stone-200 shadow-md p-4 sm:p-6 space-y-5 w-full">
-        <div className="text-center space-y-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFD60A] text-[#0B0F1F] border border-[#0B0F1F] text-[11px] font-bold uppercase tracking-wider">
-            <TrendingUp className="w-3.5 h-3.5" />
-            Estimation indicative (IA)
-          </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0B0F1F] tracking-tight">
-            {fmt(result.lowPrice)} € – {fmt(result.highPrice)} €
+      <div className="relative w-full space-y-5 rounded-3xl border-[3px] border-[#0B0F1F] bg-[#0B0F1F] p-4 text-white shadow-[6px_6px_0_#2B4BFF] sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Robot className="bob h-16 w-12 shrink-0 sm:h-20 sm:w-16" />
+          <div className="min-w-0 space-y-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#0B0F1F]">
+              <TrendingUp className="h-3.5 w-3.5" />
+              Estimation indicative (IA)
+            </span>
+            <p className="text-xs font-semibold leading-snug text-white/80 sm:text-sm">Calculée par l'assistant IA de {AGENT.firstName} à partir des ventes réelles (DVF) autour de chez vous.</p>
           </div>
-          <p className="text-sm text-stone-600 leading-snug">
+        </div>
+
+        <div className="space-y-2 text-center">
+          <div className="text-4xl font-black leading-none tracking-tight text-[#FFD60A] sm:text-6xl" aria-hidden="true">
+            {fmt(shownLow)} € <span className="text-white">–</span> {fmt(shownHigh)} €
+          </div>
+          <p className="sr-only">Fourchette de {fmt(result.lowPrice)} à {fmt(result.highPrice)} euros.</p>
+          <p className="text-sm font-medium leading-snug text-white/85">
             La base DVF donne des moyennes. Votre logement se situe quelque part dans cette amplitude :
           </p>
         </div>
 
-        <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 p-3 sm:p-4 space-y-3">
+        <div className="space-y-3 rounded-2xl border-[3px] border-white/90 bg-[#FFF7E6] p-3 text-[#0B0F1F] sm:p-4">
           <div className="flex justify-between gap-3 text-xs sm:text-sm">
             <div>
-              <div className="font-bold text-stone-800">📉 Décote</div>
-              <div className="text-[11px] text-stone-500">Travaux, bruit, vis-à-vis</div>
+              <div className="font-black">📉 Décote</div>
+              <div className="text-[11px] font-medium text-[#0B0F1F]/70">Travaux, bruit, vis-à-vis</div>
             </div>
             <div className="text-right">
-              <div className="font-bold text-stone-800">📈 Plus-value</div>
-              <div className="text-[11px] text-stone-500">Lumière, vue, état irréprochable</div>
+              <div className="font-black">📈 Plus-value</div>
+              <div className="text-[11px] font-medium text-[#0B0F1F]/70">Lumière, vue, état irréprochable</div>
             </div>
           </div>
-          <div className="relative flex h-4 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFF7E6]">
+          <div className="relative flex h-4 rounded-full border-[3px] border-[#0B0F1F] bg-white">
             <span aria-hidden className="h-full w-1/3 rounded-l-full bg-[#FFD60A]" />
             <span aria-hidden className="ml-auto h-full w-1/3 rounded-r-full bg-[#2B4BFF]" />
             <button
               type="button"
               onClick={() => onOpenBooking?.(bookingInfo())}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-full bg-[#2B4BFF] text-white text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-2 shadow-lg whitespace-nowrap"
+              className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border-[3px] border-[#0B0F1F] bg-[#0B0F1F] px-3 py-2 text-[11px] font-black text-white sm:px-4 sm:text-xs"
             >
-              <Lock className="w-3.5 h-3.5" /> <span className="sm:hidden">Valeur réelle sur place</span><span className="hidden sm:inline">Valeur réelle à déterminer sur place</span>
+              <Lock className="h-3.5 w-3.5 text-[#FFD60A]" /> <span className="sm:hidden">Valeur réelle sur place</span><span className="hidden sm:inline">Valeur réelle à déterminer sur place</span>
             </button>
           </div>
           <div className="h-2" aria-hidden="true" />
-          <p className="sr-only">Fourchette de {fmt(result.lowPrice)} à {fmt(result.highPrice)} euros.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-white border-[3px] border-[#0B0F1F] p-4 space-y-2">
-            <div className="font-bold text-sm text-[#0B0F1F]">🤖 Ce que voit l'algorithme (IA)</div>
-            <ul className="text-sm text-stone-700 space-y-1">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-2 rounded-2xl border-[3px] border-white/90 bg-[#2B4BFF] p-4 text-white">
+            <div className="flex items-center justify-between gap-2 text-sm font-black">
+              <span>🤖 Ce que voit l'algorithme (IA)</span>
+            </div>
+            <ul className="space-y-1 text-sm font-medium">
               {['Surface en m²', 'Code postal / quartier', 'Historique des ventes DVF'].map((t) => (
-                <li key={t} className="flex gap-2"><Check className="w-4 h-4 text-[#2B4BFF] shrink-0 mt-0.5" />{t}</li>
+                <li key={t} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#FFD60A]" />{t}</li>
               ))}
             </ul>
-            <p className="text-xs italic text-stone-500">Une vision théorique, sans visite.</p>
+            <p className="text-xs italic text-white/80">Une vision théorique, sans visite.</p>
           </div>
-          <div className="rounded-2xl bg-[#FFF7E6] border-[3px] border-[#0B0F1F] p-4 space-y-2">
-            <div className="font-bold text-sm text-[#0B0F1F]">🏠 Ce que valide {AGENT.firstName} sur place</div>
-            <ul className="text-sm text-stone-700 space-y-1">
+          <div className="space-y-2 rounded-2xl border-[3px] border-white/90 bg-[#FFD60A] p-4 text-[#0B0F1F]">
+            <div className="text-sm font-black">🏠 Ce que valide {AGENT.firstName} sur place</div>
+            <ul className="space-y-1 text-sm font-semibold">
               {['Luminosité, exposition & vue', 'Agencement & potentiel du bien', 'Qualité des prestations & matériaux', 'Demande réelle des acheteurs du secteur'].map((t) => (
-                <li key={t} className="flex gap-2"><Lock className="w-3.5 h-3.5 text-[#2B4BFF] shrink-0 mt-1" />{t}</li>
+                <li key={t} className="flex gap-2"><Lock className="mt-1 h-3.5 w-3.5 shrink-0" />{t}</li>
               ))}
             </ul>
           </div>
@@ -680,17 +711,19 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
           <button
             type="button"
             onClick={() => onOpenBooking?.(bookingInfo())}
-            className="w-full rounded-xl bg-[#FFD60A] hover:bg-[#ffe34d] text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-bold text-base sm:text-lg py-4 px-4 shadow-lg transition-colors flex items-center justify-center gap-2"
+            className="cta-pulse flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-white bg-[#FFD60A] px-4 py-4 text-base font-black text-[#0B0F1F] shadow-[5px_5px_0_#2B4BFF] transition-transform hover:-translate-y-0.5 sm:text-lg"
           >
-            <Lock className="w-5 h-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
+            <Lock className="h-5 w-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
           </button>
-          <p className="text-center text-xs text-stone-500">Visite offerte et sans engagement · avis de valeur sous 48h</p>
+          <p className="text-center text-xs font-semibold text-white/80">Visite offerte et sans engagement · avis de valeur sous 48h</p>
         </div>
 
-        <div className="text-xs text-stone-500 text-center">
+        <div className="text-center text-xs font-medium text-white/70">
           ~{fmt(result.avgM2)} €/m² · {result.propertyType} de {result.surface} m² à {result.city}
         </div>
-        <ValuationEvidence result={result} />
+        <div className="rounded-2xl bg-[#FFF7E6] p-1 text-[#0B0F1F]">
+          <ValuationEvidence result={result} />
+        </div>
       </div>
     ) : null;
 
