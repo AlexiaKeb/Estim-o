@@ -477,32 +477,104 @@ export const ValuationEvidence: React.FC<{ result: import('../types').ValuationR
 };
 
 /** Local context for visitors and search engines: who is served, and where the numbers come from. */
-export const ZoneSection: React.FC = () => (
-  <Band tone="cream">
-    <section aria-labelledby="zone-title" className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-14 items-center">
-      <div>
-        <Eyebrow>Secteur d'expertise</Eyebrow>
-        <H2 id="zone-title">Une estimation humaine, bien au-delà des algorithmes</H2>
-        <p className="mt-5 text-lg font-medium leading-relaxed">
-          Une IA calcule des prix au m². {AGENT.firstName} connaît la vraie valeur de votre logement : elle croise les ventes réelles de votre secteur (base DVF) avec ce qu'aucun ordinateur ne peut évaluer, la luminosité, la vue, l'étage, l'agencement et le coup de cœur du bien. C'est cette étude sur le terrain qui garantit un avis de valeur juste pour vendre efficacement.
-        </p>
-      </div>
-      <ul className="grid gap-4">
-        {[
-          'Métropole de Lyon (Grand Lyon, Nord & Ouest Lyonnais)',
-          "Val de Saône & Monts d'Or",
-          'Beaujolais & Pierres Dorées',
-          'Villefranche & alentours',
-        ].map((c) => (
-          <li key={c} className="pop-card flex items-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] bg-white px-5 py-4 text-lg font-black shadow-[5px_5px_0_#0B0F1F]">
-            <MapPin className="h-5 w-5 shrink-0 text-[#2B4BFF]" />
-            {c}
-          </li>
-        ))}
-      </ul>
-    </section>
-  </Band>
+const ZONES = [
+  'Métropole de Lyon (Grand Lyon, Nord & Ouest Lyonnais)',
+  "Val de Saône & Monts d'Or",
+  'Beaujolais & Pierres Dorées',
+  'Villefranche & alentours',
+];
+// Pin positions on the schematic map (viewBox 560 x 520), same order as ZONES
+const PINS: Array<[number, number]> = [[362, 322], [262, 215], [120, 105], [330, 80]];
+
+/** A flat, schematic map of the area: the two rivers meeting in Lyon, the hills of the Monts d'Or and the Beaujolais. */
+const LyonMap: React.FC<{ active: number | null; onPick: (i: number | null) => void }> = ({ active, onPick }) => (
+  <svg viewBox="0 0 560 520" role="img" aria-label="Carte schématique du secteur : Lyon entre Rhône et Saône, Monts d'Or, Val de Saône, Beaujolais et Villefranche" className="h-auto w-full" xmlns="http://www.w3.org/2000/svg">
+    {/* Beaujolais hills */}
+    <path d="M10 170 Q40 70 100 120 Q150 40 205 112 Q250 70 285 170 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
+    <path d="M45 160 Q75 125 105 160 M120 160 Q150 120 180 160 M195 160 Q220 130 248 160" fill="none" stroke="#0B0F1F" strokeWidth="4" strokeLinecap="round" />
+    {/* Monts d'Or */}
+    <path d="M180 270 Q205 200 250 232 Q285 190 315 270 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
+    {/* Rhône and Saône meeting at the Confluence */}
+    <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M345 0 C 330 90, 365 150, 335 230 C 315 290, 335 340, 345 420 L 345 520" stroke="#0B0F1F" strokeWidth="26" />
+      <path d="M475 0 C 470 80, 430 150, 420 230 C 410 310, 370 360, 350 420" stroke="#0B0F1F" strokeWidth="26" />
+      <path d="M345 0 C 330 90, 365 150, 335 230 C 315 290, 335 340, 345 420 L 345 520" stroke="#2B4BFF" strokeWidth="14" />
+      <path d="M475 0 C 470 80, 430 150, 420 230 C 410 310, 370 360, 350 420" stroke="#2B4BFF" strokeWidth="14" />
+    </g>
+    {/* Presqu'île between the rivers */}
+    <path d="M362 250 C 372 300, 372 350, 350 395 C 346 360, 346 300, 362 250 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="4" strokeLinejoin="round" />
+    {/* Fourvière hill and basilica */}
+    <path d="M200 400 Q235 330 290 385 L 290 420 L 200 420 Z" fill="#FFD60A" stroke="#0B0F1F" strokeWidth="5" strokeLinejoin="round" />
+    <g stroke="#0B0F1F" strokeWidth="3" strokeLinejoin="round">
+      <rect x="226" y="352" width="38" height="24" fill="#FFF7E6" />
+      <rect x="222" y="338" width="8" height="26" fill="#FFF7E6" />
+      <rect x="260" y="338" width="8" height="26" fill="#FFF7E6" />
+      <path d="M234 352 Q245 336 256 352 Z" fill="#2B4BFF" />
+    </g>
+    {/* Métropole ring */}
+    <circle cx="362" cy="330" r="122" fill="none" stroke="#0B0F1F" strokeWidth="4" strokeDasharray="4 12" strokeLinecap="round" />
+    <text x="105" y="492" fontSize="44" fontWeight="900" fill="#0B0F1F" letterSpacing="3" transform="rotate(-4 105 492)">LYON</text>
+    {/* Compass */}
+    <g transform="translate(505 470)">
+      <circle r="26" fill="#FFF7E6" stroke="#0B0F1F" strokeWidth="4" />
+      <path d="M0 -16 L7 6 L0 2 L-7 6 Z" fill="#2B4BFF" stroke="#0B0F1F" strokeWidth="3" strokeLinejoin="round" />
+      <text y="-30" textAnchor="middle" fontSize="14" fontWeight="900" fill="#0B0F1F">N</text>
+    </g>
+    {/* Pins */}
+    {PINS.map(([x, y], i) => {
+      const on = active === i;
+      return (
+        <g
+          key={i}
+          transform={`translate(${x} ${y})`}
+          onMouseEnter={() => onPick(i)}
+          onMouseLeave={() => onPick(null)}
+          style={{ cursor: 'pointer' }}
+        >
+          <circle r={on ? 25 : 20} fill={on ? '#FFD60A' : '#FFF7E6'} stroke="#0B0F1F" strokeWidth="5" className="transition-all" />
+          <text y="7" textAnchor="middle" fontSize="20" fontWeight="900" fill="#0B0F1F">{i + 1}</text>
+          {i === 0 && <circle r="30" fill="none" stroke="#FFD60A" strokeWidth="4" className="spark" style={{ transformOrigin: 'center' }} />}
+        </g>
+      );
+    })}
+  </svg>
 );
+
+export const ZoneSection: React.FC = () => {
+  const [active, setActive] = useState<number | null>(null);
+  return (
+    <Band tone="cream">
+      <section aria-labelledby="zone-title" className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
+        <div>
+          <Eyebrow>Secteur d'expertise</Eyebrow>
+          <H2 id="zone-title">Une estimation humaine, bien au-delà des algorithmes</H2>
+          <p className="mt-5 text-lg font-medium leading-relaxed">
+            Une IA calcule des prix au m². {AGENT.firstName} connaît la vraie valeur de votre logement : elle croise les ventes réelles de votre secteur (base DVF) avec ce qu'aucun ordinateur ne peut évaluer, la luminosité, la vue, l'étage, l'agencement et le coup de cœur du bien. C'est cette étude sur le terrain qui garantit un avis de valeur juste pour vendre efficacement.
+          </p>
+          <ul className="mt-7 grid gap-3">
+            {ZONES.map((c, i) => (
+              <li
+                key={c}
+                onMouseEnter={() => setActive(i)}
+                onMouseLeave={() => setActive(null)}
+                className={`pop-card flex items-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] px-4 py-3 text-base font-black shadow-[4px_4px_0_#0B0F1F] sm:text-lg ${active === i ? 'bg-[#FFD60A]' : 'bg-white'}`}
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] bg-[#2B4BFF] text-base font-black text-white">{i + 1}</span>
+                {c}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="relative">
+          <div className="rounded-3xl border-[3px] border-[#0B0F1F] bg-white p-3 shadow-[8px_8px_0_#0B0F1F] sm:p-5">
+            <LyonMap active={active} onPick={setActive} />
+          </div>
+          <Robot className="bob absolute -bottom-6 -left-3 h-24 w-20 sm:-bottom-8 sm:-left-6 sm:h-32 sm:w-24" />
+        </div>
+      </section>
+    </Band>
+  );
+};
 
 const TEASER = [
   ['estimer-appartement-lyon-criteres-prix', 'Estimation', 'Estimer son appartement à Lyon : les 8 critères qui font varier le prix'],
