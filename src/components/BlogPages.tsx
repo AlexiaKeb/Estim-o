@@ -11,37 +11,37 @@ export function renderInline(text: string): React.ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g).filter(Boolean).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) return <strong key={i} className="font-semibold text-stone-900">{part.slice(2, -2)}</strong>;
     const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (m) return <a key={i} href={m[2]} className="text-[#0f1f3d] underline underline-offset-2 hover:text-amber-700">{m[1]}</a>;
+    if (m) return <a key={i} href={m[2]} className="text-[#0f1f3d] underline underline-offset-2 hover:text-indigo-700">{m[1]}</a>;
     return <React.Fragment key={i}>{part}</React.Fragment>;
   });
 }
 
 export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="min-h-screen bg-stone-50 text-stone-800">
-    <header className="bg-white border-b border-stone-200">
+  <div className="min-h-screen bg-slate-50 text-slate-800">
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200/70">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
         <BrandLogo />
         <nav aria-label="Navigation principale" className="flex items-center gap-4 text-sm">
-          <a href="/blog" className="text-stone-600 hover:text-stone-900">Conseils</a>
-          <a href="/#simulateur" className="rounded-lg bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-semibold px-3.5 py-2">Estimer mon bien</a>
+          <a href="/blog" className="font-semibold text-slate-600 hover:text-slate-900">Conseils</a>
+          <a href="/#simulateur" className="rounded-xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white font-bold px-4 py-2.5 shadow-lg shadow-indigo-500/20">Estimer mon bien</a>
         </nav>
       </div>
     </header>
     {children}
     <a
       href="/#simulateur"
-      className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-amber-400 text-[#0f1f3d] font-bold text-center py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.12)]"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white font-bold text-center py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.12)]"
       style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
     >
       Estimer mon bien gratuitement →
     </a>
-    <footer className="border-t border-stone-200 bg-white mt-16 pb-16 sm:pb-0">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 text-xs text-stone-500 flex flex-wrap gap-x-5 gap-y-2 justify-between">
+    <footer className="bg-[#0b1020] mt-16 pb-16 sm:pb-0">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-xs text-slate-400 flex flex-wrap gap-x-5 gap-y-2 justify-between">
         <span>{BRAND.name} · Estimation immobilière à Lyon</span>
         <span className="flex gap-4">
-          <a href="/" className="hover:text-stone-800">Accueil</a>
-          <a href="/mentions-legales" className="hover:text-stone-800">Mentions légales</a>
-          <a href="/confidentialite" className="hover:text-stone-800">Confidentialité</a>
+          <a href="/" className="hover:text-white">Accueil</a>
+          <a href="/mentions-legales" className="hover:text-white">Mentions légales</a>
+          <a href="/confidentialite" className="hover:text-white">Confidentialité</a>
           <CreditLine />
         </span>
       </div>
@@ -50,13 +50,13 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 );
 
 export const BlogCta: React.FC<{ compact?: boolean }> = ({ compact }) => (
-  <aside aria-label="Estimer son bien" className="rounded-2xl bg-[#0f1f3d] text-white p-5 sm:p-7 border-l-4 border-amber-400 my-8">
-    <p className="text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1">Estimation gratuite</p>
+  <aside aria-label="Estimer son bien" className="rounded-3xl bg-[#0b1020] text-white p-6 sm:p-8 shadow-xl shadow-indigo-500/20 ring-1 ring-white/10 my-8">
+    <p className="text-cyan-300 text-[11px] font-bold uppercase tracking-wider mb-1">Estimation gratuite</p>
     <p className={`font-semibold leading-snug ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}>Combien vaut votre bien à Lyon et autour ?</p>
     <p className="text-sm sm:text-base text-slate-300 mt-2">
       Obtenez une fourchette en 2 minutes, fondée sur les ventes réelles autour de votre adresse. {AGENT.firstName} vous propose ensuite une visite gratuite et sans engagement.
     </p>
-    <a href="/#simulateur" className="mt-4 inline-block rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold px-5 py-3">
+    <a href="/#simulateur" className="mt-4 inline-block rounded-xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white font-bold px-5 py-3">
       Estimer mon bien
     </a>
   </aside>
@@ -64,7 +64,7 @@ export const BlogCta: React.FC<{ compact?: boolean }> = ({ compact }) => (
 
 const PostCard: React.FC<{ post: BlogPost }> = ({ post }) => (
   <article className="rounded-2xl bg-white border border-stone-200 p-5 hover:shadow-md transition-shadow flex flex-col">
-    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700">{post.category}</p>
+    <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">{post.category}</p>
     <h2 className="mt-1 text-lg font-semibold text-stone-900 leading-snug">
       <a href={`/blog/${post.slug}`} className="hover:underline">{post.title}</a>
     </h2>
@@ -142,7 +142,7 @@ export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ po
             {post.updated ? <> · mis à jour le <time dateTime={post.updated}>{formatPostDate(post.updated)}</time></> : null} · {post.readingMinutes} min de lecture
           </p>
           <p className="mt-6 text-lg text-stone-700 leading-relaxed">{renderInline(post.intro)}</p>
-          <a href="/#simulateur" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0f1f3d] font-bold px-5 py-3">
+          <a href="/#simulateur" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-500 to-cyan-500 hover:brightness-110 text-white font-bold px-5 py-3">
             Estimer mon bien en 2 minutes →
           </a>
 
