@@ -36,9 +36,11 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    const prevOverscroll = document.documentElement.style.overscrollBehaviorY;
+    document.documentElement.style.overscrollBehaviorY = 'contain';
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     window.addEventListener('keydown', onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); document.documentElement.style.overscrollBehaviorY = prevOverscroll; };
   }, [open]);
 
   const close = () => {
@@ -61,7 +63,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
         role="dialog"
         aria-modal="true"
         aria-label="Votre estimation avec l'assistant"
-        className={`${open ? 'flex' : 'hidden'} fixed inset-0 z-[44] items-stretch justify-center overflow-y-auto bg-[#0B0F1F]/70 p-0 sm:items-center sm:p-6`}
+        className={`${open ? 'flex' : 'hidden'} fixed inset-0 z-[44] items-stretch justify-center overflow-y-auto bg-[#0B0F1F]/70 p-0 overscroll-contain sm:items-center sm:p-6`}
         onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}
       >
         <div className="relative my-auto flex min-h-[100dvh] w-full max-w-4xl flex-col gap-4 bg-[#FFF7E6] px-4 pb-6 pt-[4.5rem] sm:min-h-0 sm:rounded-3xl sm:border-[3px] sm:border-[#0B0F1F] sm:px-8 sm:pb-8 sm:pt-8 sm:shadow-[8px_8px_0_#0B0F1F]">

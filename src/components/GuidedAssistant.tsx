@@ -129,33 +129,53 @@ const Chip: React.FC<{ onClick: () => void; children: React.ReactNode; strong?: 
   </button>
 );
 
+/** The visitor's progress is kept on the device (12 h) so an accidental swipe, refresh or closed tab never loses the form. */
+const DRAFT_KEY = 'estimo-assistant-draft-v1';
+const DRAFT_TTL_MS = 12 * 60 * 60 * 1000;
+export const clearAssistantDraft = () => {
+  try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignoré */ }
+};
+const loadDraft = (): any | null => {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || typeof d.t !== 'number' || Date.now() - d.t > DRAFT_TTL_MS) return null;
+    return d;
+  } catch {
+    return null;
+  }
+};
+
 export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenBooking, onLeadReady }) => {
-  const [inputs, setInputs] = useState<ValuationInputs>(DEFAULT_INPUTS);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [step, setStep] = useState<Step>('address');
+  const draft = useMemo(() => loadDraft(), []);
+
+  const [inputs, setInputs] = useState<ValuationInputs>(draft?.inputs ?? DEFAULT_INPUTS);
+  const [messages, setMessages] = useState<Msg[]>(draft?.messages ?? []);
+  const [step, setStep] = useState<Step>(draft?.step === 'computing' ? 'contact' : draft?.step ?? 'address');
   const [typing, setTyping] = useState(false);
-  const [result, setResult] = useState<ValuationResult | null>(null);
-  const [lead, setLead] = useState<Lead | null>(null);
-  const leadRef = useRef<Lead | null>(null);
-  const [timeframe, setTimeframe] = useState<Timeframe>('1-3 mois');
-  const [motive, setMotive] = useState<Motive>('Agrandissement');
-  const [contact, setContact] = useState({ name: '', phone: '', email: '', consent: false });
+  const [result, setResult] = useState<ValuationResult | null>(draft?.result ?? null);
+  const [lead, setLead] = useState<Lead | null>(draft?.lead ?? null);
+  const leadRef = useRef<Lead | null>(draft?.lead ?? null);
+  const [timeframe, setTimeframe] = useState<Timeframe>(draft?.timeframe ?? '1-3 mois');
+  const [motive, setMotive] = useState<Motive>(draft?.motive ?? 'Agrandissement');
+  const [contact, setContact] = useState({ name: draft?.contact?.name ?? '', phone: draft?.contact?.phone ?? '', email: draft?.contact?.email ?? '', consent: false });
   const [contactError, setContactError] = useState<string | null>(null);
-  const [addrText, setAddrText] = useState('');
-  const [picked, setPicked] = useState<AddressSuggestion | null>(null);
-  const [cityText, setCityText] = useState('');
-  const [postalText, setPostalText] = useState('');
-  const [surfaceText, setSurfaceText] = useState('');
-  const [landText, setLandText] = useState('');
-  const [land, setLand] = useState<number | null>(null);
-  const [jobText, setJobText] = useState('');
-  const [priceText, setPriceText] = useState('');
+  const [addrText, setAddrText] = useState<string>(draft?.addrText ?? '');
+  const [picked, setPicked] = useState<AddressSuggestion | null>(draft?.picked ?? null);
+  const [cityText, setCityText] = useState<string>(draft?.cityText ?? '');
+  const [postalText, setPostalText] = useState<string>(draft?.postalText ?? '');
+  const [surfaceText, setSurfaceText] = useState<string>(draft?.surfaceText ?? '');
+  const [landText, setLandText] = useState<string>(draft?.landText ?? '');
+  const [land, setLand] = useState<number | null>(draft?.land ?? null);
+  const [jobText, setJobText] = useState<string>(draft?.jobText ?? '');
+  const [priceText, setPriceText] = useState<string>(draft?.priceText ?? '');
   const [freeText, setFreeText] = useState('');
   const [slots, setSlots] = useState<Record<string, string[]> | null>(null);
   const [slotsFailed, setSlotsFailed] = useState(false);
-  const [qAnswers, setQAnswers] = useState<Record<string, any>>({});
+  const [qAnswers, setQAnswers] = useState<Record<string, any>>(draft?.qAnswers ?? {});
   const scrollRef = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
+  const started = useRef(Boolean(draft && draft.messages?.length));
   const lastSeed = useRef(0);
 
   const contactDone = step !== 'address' && step !== 'type' && step !== 'surface' && step !== 'rooms' && step !== 'timeframe' && step !== 'motive' && step !== 'contact' && step !== 'computing';
@@ -200,6 +220,32 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (early.includes(msg.rewind)) setResult(null);
     setStep(msg.rewind);
   };
+
+  // Save the progress (never the consent: it must be given again) and restore the parent's view of a lead already created
+  useEffect(() => {
+    const touched = messages.length > 2 || contact.name || contact.phone || contact.email || addrText || surfaceText;
+    if (!touched) return;
+    const id = window.setTimeout(() => {
+      try {
+        localStorage.setItem(
+          DRAFT_KEY,
+          JSON.stringify({ t: Date.now(), inputs, messages: messages.filter((m) => !m.result || result), step, timeframe, motive, contact: { name: contact.name, phone: contact.phone, email: contact.email }, addrText, picked, cityText, postalText, surfaceText, landText, land, jobText, priceText, result, lead, qAnswers }),
+        );
+      } catch {
+        /* storage full or blocked: the conversation still works */
+      }
+    }, 300);
+    return () => window.clearTimeout(id);
+  }, [inputs, messages, step, timeframe, motive, contact, addrText, picked, cityText, postalText, surfaceText, landText, land, jobText, priceText, result, lead, qAnswers]);
+
+  useEffect(() => {
+    if (!draft?.lead) return;
+    const l = draft.lead as Lead;
+    onLeadCaptured?.(l);
+    onLeadReady?.({ id: l.id, name: l.name, phone: l.phone, email: l.email, city: l.city, address: l.address || l.city, surface: l.surface, propertyType: l.propertyType, estimatedValue: l.estimatedValue, motive: l.motive, timeframe: l.timeframe, valuation: l.valuation ? { lowPrice: l.valuation.lowPrice, highPrice: l.valuation.highPrice } : undefined });
+    void loadSlots();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Opening message
   useEffect(() => {

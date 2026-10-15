@@ -31,6 +31,7 @@ import { INITIAL_LEADS } from './data/mockLeads';
 import { fetchCrmLeads, saveCrmLead } from './lib/supabaseService';
 import { LandingSimulator } from './components/LandingSimulator';
 import { CalendarBookingModal } from './components/CalendarBookingModal';
+import { clearAssistantDraft } from './components/GuidedAssistant';
 
 // After a redeploy an open tab can ask for a file that no longer exists: reload once to fetch the new version
 const lazyRetry = <T extends React.ComponentType<any>>(load: () => Promise<{ default: T }>) =>
@@ -473,6 +474,7 @@ export default function App() {
 
   // Handler when meeting is confirmed
   const handleConfirmBooking = (newLead: Lead) => {
+    clearAssistantDraft();
     setLeads((prev) => [newLead, ...prev.filter((l) => l.id !== newLead.id)]);
     setLatestConfirmedLead(newLead);
     setIsBookingOpen(false);
