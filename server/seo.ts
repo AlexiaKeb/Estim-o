@@ -32,9 +32,9 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   const path = rawPath.toLowerCase().replace(/\/+$/, "") || "/";
   if (path === "/") {
     return {
-      title: `Estimation immobilière Lyon offerte | ${BRAND.name}`,
+      title: `Estimation immobilière gratuite à Lyon | ${BRAND.name}`,
       description:
-        "Estimez votre bien à Lyon, Villeurbanne ou en Beaujolais en 2 minutes grâce aux ventes réelles (DVF). Visite offerte avec Céline Levrat.",
+        "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais en 2 minutes, d'après les ventes réelles (DVF). Visite offerte avec Céline Levrat.",
       path: "/",
       index: true,
       home: true,
@@ -59,7 +59,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   if (path === "/faq") {
     return {
       title: `Questions fréquentes sur l'estimation immobilière | ${BRAND.name}`,
-      description: "Estimation en ligne, visite offerte, avis de valeur sous 48h, documents à préparer : toutes les réponses à vos questions avant de vendre votre bien.",
+      description: "Estimation gratuite en ligne, visite offerte, avis de valeur sous 48h, documents à préparer : les réponses à vos questions avant de vendre votre bien.",
       path,
       index: true,
       faq: true,
@@ -107,14 +107,14 @@ function jsonLd(base: string): string {
       url: `${base}/`,
       image: `${base}/celine.jpg`,
       telephone: "+33603580316",
-      description: "Estimation immobilière offerte à Lyon, Villeurbanne et en Beaujolais, appuyée sur les ventes réelles, avec visite offerte.",
+      description: "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais, appuyée sur les ventes réelles, avec visite offerte.",
       areaServed: areas,
     },
     {
       "@type": "Service",
       "@id": `${base}/#service`,
       serviceType: "Estimation immobilière",
-      name: "Estimation immobilière offerte",
+      name: "Estimation immobilière gratuite",
       provider: { "@id": `${base}/#agent` },
       areaServed: areas,
       offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
@@ -200,7 +200,7 @@ function buildHead(req: Request, m: PageMeta): string {
     `<meta property="og:url" content="${esc(url)}" />`,
     `<meta property="og:image" content="${esc(image)}" />`,
     ...(cover ? [] : [`<meta property="og:image:width" content="1200" />`, `<meta property="og:image:height" content="630" />`]),
-    `<meta property="og:image:alt" content="${esc(m.post ? m.post.title : "Céline Levrat, conseillère immobilière à Lyon : estimation offerte")}" />`,
+    `<meta property="og:image:alt" content="${esc(m.post ? m.post.title : "Céline Levrat, conseillère immobilière à Lyon : estimation gratuite")}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${esc(m.title)}" />`,
     `<meta name="twitter:description" content="${esc(m.description)}" />`,
