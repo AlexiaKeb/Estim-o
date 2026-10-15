@@ -1,4 +1,5 @@
 import { splitName } from "../src/utils/names";
+import { htmlEscape, htmlToText, isHtmlBody, sanitizeEmailHtml } from "../src/utils/emailHtml";
 // Sends real e-mails over HTTPS (Resend or Brevo). SMTP ports are blocked on most free hosting plans,
 // so an HTTP API is the reliable option.
 
@@ -104,8 +105,10 @@ export interface TemplateInput {
 
 /** Plain, readable e-mail: the message, a signature, a legal footer with the unsubscribe link. */
 export function renderEmail(t: TemplateInput): { text: string; html: string } {
+  const rich = isHtmlBody(t.body);
+  const safeBody = rich ? sanitizeEmailHtml(t.body) : "";
   const text = [
-    t.body.trim(),
+    rich ? htmlToText(safeBody) : t.body.trim(),
     "",
     `${t.signatureName}`,
     t.signatureLine,
@@ -118,11 +121,19 @@ export function renderEmail(t: TemplateInput): { text: string; html: string } {
     .filter((l, i, a) => l !== "" || a[i - 1] !== "")
     .join("\n");
 
-  const paragraphs = t.body
-    .trim()
-    .split(/\n{2,}/)
-    .map((p) => `<p style="margin:0 0 14px;line-height:1.6">${esc(p).replace(/\n/g, "<br>")}</p>`)
-    .join("");
+  const paragraphs = rich
+    ? safeBody
+        .replace(/<p>/g, '<p style="margin:0 0 14px;line-height:1.6">')
+        .replace(/<h2>/g, '<h2 style="margin:0 0 12px;font-size:19px;line-height:1.35">')
+        .replace(/<ul>/g, '<ul style="margin:0 0 14px;padding-left:22px;line-height:1.6">')
+        .replace(/<ol>/g, '<ol style="margin:0 0 14px;padding-left:22px;line-height:1.6">')
+        .replace(/<li>/g, '<li style="margin:0 0 6px">')
+        .replace(/<a href=/g, '<a style="color:#2B4BFF" href=')
+    : t.body
+        .trim()
+        .split(/\n{2,}/)
+        .map((p) => `<p style="margin:0 0 14px;line-height:1.6">${esc(p).replace(/\n/g, "<br>")}</p>`)
+        .join("");
 
   const html = `<!doctype html><html lang="fr"><body style="margin:0;padding:24px;background:#f6f5f3;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1c1917">
 <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px">
@@ -139,12 +150,14 @@ ${t.bookingUrl ? `<p style="margin:20px 0 0"><a href="${esc(t.bookingUrl)}" styl
 export function fillVariables(text: string, lead: { nom?: string; adresse?: string | null; ville_bien?: string; type_bien?: string; valeur_estimee?: number | string | null; motif?: string | null }): string {
   const { first, last } = splitName(lead.nom || "");
   const price = Number(lead.valeur_estimee) > 0 ? `${Math.round(Number(lead.valeur_estimee)).toLocaleString("fr-FR")} €` : "";
+  // In a rich-text message the values are escaped so that a name can never inject HTML
+  const v = isHtmlBody(text) ? htmlEscape : (x: string) => x;
   return text
-    .replace(/\{Pr[ée]nom\}/gi, first)
-    .replace(/\{Nom\}/gi, last)
-    .replace(/\{Adresse\}/gi, (lead.adresse || lead.ville_bien || "").trim())
-    .replace(/\{Ville\}/gi, lead.ville_bien || "")
-    .replace(/\{TypeBien\}/gi, (lead.type_bien || "bien").toLowerCase())
-    .replace(/\{PrixEstime\}/gi, price)
-    .replace(/\{Motif\}/gi, lead.motif || "");
+    .replace(/\{Pr[ée]nom\}/gi, () => v(first))
+    .replace(/\{Nom\}/gi, () => v(last))
+    .replace(/\{Adresse\}/gi, () => v((lead.adresse || lead.ville_bien || "").trim()))
+    .replace(/\{Ville\}/gi, () => v(lead.ville_bien || ""))
+    .replace(/\{TypeBien\}/gi, () => v((lead.type_bien || "bien").toLowerCase()))
+    .replace(/\{PrixEstime\}/gi, () => v(price))
+    .replace(/\{Motif\}/gi, () => v(lead.motif || ""));
 }

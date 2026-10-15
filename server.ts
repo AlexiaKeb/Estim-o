@@ -29,6 +29,7 @@ import {
   setRevokedBefore,
   getRevokedBefore,
 } from "./server/auth";
+import { emailTextLength } from "./src/utils/emailHtml";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
 import { toLead, pickCrm, leadsToCsv, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
 import { notifyAdvisor, alertChannels } from "./server/alerts";
@@ -860,7 +861,7 @@ async function startServer() {
       return res.status(503).json({ success: false, error: "L'envoi d'e-mails n'est pas configuré sur ce serveur (voir RESEND_API_KEY et MAIL_FROM_EMAIL)." });
     }
     const { leadId, subject, message, step } = req.body || {};
-    if (!isUuidStr(leadId) || typeof message !== "string" || message.trim().length < 5) {
+    if (!isUuidStr(leadId) || typeof message !== "string" || emailTextLength(message) < 5) {
       return res.status(400).json({ success: false, error: "Message ou contact invalide. Enregistrez d'abord la fiche du contact." });
     }
     if ((await sentToday(client)) >= DAILY_LIMIT) {
@@ -894,7 +895,7 @@ async function startServer() {
     const rows: any[] = [];
     for (const it of Array.isArray(items) ? items : []) {
       const sendAt = new Date(it.sendAt);
-      if (isNaN(sendAt.getTime()) || sendAt.getTime() < now - 5 * 60 * 1000 || typeof it.message !== "string" || !it.message.trim()) {
+      if (isNaN(sendAt.getTime()) || sendAt.getTime() < now - 5 * 60 * 1000 || typeof it.message !== "string" || !emailTextLength(it.message)) {
         skipped++; // past or empty steps are never sent in a burst
         continue;
       }
@@ -931,7 +932,7 @@ async function startServer() {
     const rows: any[] = [];
     for (const it of list) {
       const when = new Date(it?.sendAt);
-      if (typeof it?.message !== "string" || it.message.trim().length < 5 || isNaN(when.getTime())) return res.status(400).json({ success: false, error: "Message ou date invalide." });
+      if (typeof it?.message !== "string" || emailTextLength(it.message) < 5 || isNaN(when.getTime())) return res.status(400).json({ success: false, error: "Message ou date invalide." });
       if (when.getTime() < now - 5 * 60 * 1000) { skipped++; continue; }
       for (const id of leadIds) {
         rows.push({
@@ -939,7 +940,7 @@ async function startServer() {
           step: typeof it.step === "string" ? it.step.slice(0, 80) : "Envoi groupé programmé",
           channel: "Email",
           subject: typeof it.subject === "string" ? it.subject.slice(0, 200) : null,
-          message: it.message.slice(0, 5000),
+          message: it.message.slice(0, 20000),
           send_at: when.toISOString(),
           status: "programme",
         });
@@ -1630,7 +1631,7 @@ async function startServer() {
         stage: t.stage,
         label: t.label.trim().slice(0, 80),
         subject: typeof t.subject === "string" ? t.subject.slice(0, 200) : "",
-        body: t.body.slice(0, 5000),
+        body: t.body.slice(0, 20000),
       }))
       .filter((t: any) => t.label && t.body.trim());
     const { id, sq } = await readSpend(client);

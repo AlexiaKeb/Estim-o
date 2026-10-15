@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { insertAtCursor } from '../utils/insertAtCursor';
 import { splitName } from '../utils/names';
+import { RichEmailEditor, RichEmailEditorHandle } from './RichEmailEditor';
+import { emailTextLength, htmlEscape, isHtmlBody, sanitizeEmailHtml } from '../utils/emailHtml';
 import { CalendarClock, Loader2, Mail, Plus, Save, Send, Trash2 } from 'lucide-react';
 import { Lead } from '../types';
 import { AGENT } from '../data/siteContent';
@@ -72,7 +73,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [heatF, setHeatF] = useState<'ALL' | 'HOT' | 'WARM' | 'COLD'>('ALL');
   const [onlyEmail, setOnlyEmail] = useState(false);
   const [limit, setLimit] = useState(50);
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const bodyRef = useRef<RichEmailEditorHandle>(null);
   const [tplName, setTplName] = useState('');
   const [tplMsg, setTplMsg] = useState<string | null>(null);
   const [subject, setSubject] = useState(TEMPLATES.lead[0].subject);
@@ -201,7 +202,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
     const label = tplName.trim();
     const subject = curSubject;
     const body = curBody;
-    if (!label || body.trim().length < 5) { setTplMsg('Donnez un nom au message et écrivez son contenu.'); return; }
+    if (!label || emailTextLength(body) < 5) { setTplMsg('Donnez un nom au message et écrivez son contenu.'); return; }
     const existing = current?.kind === 'custom' ? customs.find((c) => c.id === current.id) : undefined;
     const tpl: CustomTpl = { id: existing?.id || `t-${Date.now()}`, stage, label, subject, body };
     const next = existing ? customs.map((c) => (c.id === existing.id ? tpl : c)) : [...customs, tpl];
@@ -239,7 +240,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   };
 
   const sendNow = async () => {
-    if (!targets.length || !subject.trim() || body.trim().length < 5) return;
+    if (!targets.length || !subject.trim() || emailTextLength(body) < 5) return;
     if (!window.confirm(`Envoyer cet e-mail maintenant à ${targets.length} contact(s) ?`)) return;
     setBusy(true);
     setReport(null);
@@ -270,7 +271,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   };
 
   const schedule = async () => {
-    if (!targets.length || !date || !subject.trim() || body.trim().length < 5) return;
+    if (!targets.length || !date || !subject.trim() || emailTextLength(body) < 5) return;
     const sendAt = new Date(`${date}T${time || '09:30'}:00`);
     if (isNaN(sendAt.getTime()) || sendAt.getTime() < Date.now()) {
       setReport({ ok: false, text: 'Choisissez une date et une heure à venir.' });
@@ -304,7 +305,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   };
 
   const launchSequence = async () => {
-    const valid = steps.filter((st) => st.body.trim().length >= 5 && st.subject.trim());
+    const valid = steps.filter((st) => emailTextLength(st.body) >= 5 && st.subject.trim());
     if (!targets.length || !valid.length || valid.length !== steps.length) {
       setReport({ ok: false, text: 'Chaque message de la séquence doit avoir un objet et un texte.' });
       return;
@@ -356,15 +357,17 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?';
   const first = targets[0] || chosen[0];
-  const fill = (t: string) =>
-    t
-      .replace(/\{Pr[ée]nom\}/g, first ? splitName(first.name).first || 'Prénom' : 'Prénom')
-      .replace(/\{Nom\}/g, first ? splitName(first.name).last || 'NOM' : 'NOM')
-      .replace(/\{Adresse\}/g, first?.address || first?.city || 'adresse du bien')
-      .replace(/\{Ville\}/g, first?.city || 'Ville')
-      .replace(/\{TypeBien\}/g, (first?.propertyType || 'bien').toLowerCase())
-      .replace(/\{PrixEstime\}/g, first?.estimatedValue ? `${first.estimatedValue.toLocaleString('fr-FR')} €` : 'votre estimation')
-      .replace(/\{Motif\}/g, first?.motive || 'votre projet');
+  const fill = (t: string) => {
+    const e = isHtmlBody(t) ? htmlEscape : (x: string) => x;
+    return t
+      .replace(/\{Pr[ée]nom\}/g, () => e(first ? splitName(first.name).first || 'Prénom' : 'Prénom'))
+      .replace(/\{Nom\}/g, () => e(first ? splitName(first.name).last || 'NOM' : 'NOM'))
+      .replace(/\{Adresse\}/g, () => e(first?.address || first?.city || 'adresse du bien'))
+      .replace(/\{Ville\}/g, () => e(first?.city || 'Ville'))
+      .replace(/\{TypeBien\}/g, () => e((first?.propertyType || 'bien').toLowerCase()))
+      .replace(/\{PrixEstime\}/g, () => e(first?.estimatedValue ? `${first.estimatedValue.toLocaleString('fr-FR')} €` : 'votre estimation'))
+      .replace(/\{Motif\}/g, () => e(first?.motive || 'votre projet'));
+  };
   const stageStyle: Record<Stage, string> = {
     lead: 'bg-sky-500',
     r1: 'bg-amber-500',
@@ -555,10 +558,10 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
             </div>
             <div>
               <label htmlFor="bulk-body" className="text-xs font-bold uppercase tracking-wider text-stone-500">Message</label>
-              <textarea id="bulk-body" ref={bodyRef} rows={10} className={field} value={curBody} onChange={(e) => setCurBody(e.target.value)} />
+              <RichEmailEditor id="bulk-body" ref={bodyRef} value={curBody} onChange={(h) => setCurBody(h)} />
               <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px]">
                 <span className="text-stone-500">Insérer :</span>
-                {VARS.map((v) => <button key={v} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => insertAtCursor(bodyRef.current, v, curBody, setCurBody)} className="rounded-full border border-sky-200 bg-sky-50 text-sky-800 px-2.5 py-1 font-semibold hover:bg-sky-100">{v}</button>)}
+                {VARS.map((v) => <button key={v} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => bodyRef.current?.insertText(v)} className="rounded-full border border-sky-200 bg-sky-50 text-sky-800 px-2.5 py-1 font-semibold hover:bg-sky-100">{v}</button>)}
               </div>
             </div>
             <div className="flex flex-wrap items-end gap-2 rounded-2xl bg-stone-50 border border-stone-200 p-3">
@@ -575,7 +578,9 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
             <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Aperçu{first ? ` pour ${first.name}` : ''}</p>
             <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 shadow-inner min-h-[16rem]">
               <p className="text-sm font-bold text-stone-900 border-b border-stone-200 pb-2 mb-3">{fill(curSubject) || <span className="text-stone-300">Objet de l'e-mail</span>}</p>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-stone-700">{fill(curBody)}</p>
+              {isHtmlBody(curBody)
+                ? <div className="rich-email text-sm leading-relaxed text-stone-700" dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(fill(curBody)) }} />
+                : <p className="whitespace-pre-line text-sm leading-relaxed text-stone-700">{fill(curBody)}</p>}
               <p className="mt-4 text-[11px] text-stone-400">Votre signature, votre téléphone et le lien de désinscription sont ajoutés automatiquement.</p>
             </div>
           </div>

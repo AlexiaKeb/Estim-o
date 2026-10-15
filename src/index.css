@@ -215,3 +215,11 @@ html, body { overflow-x: clip; }
 .admin-da :is(div,section)[class~="bg-[#0B0F1F]"][class*="rounded-"]{box-shadow:6px 6px 0 #2B4BFF!important}
 .admin-da :is([class~="bg-amber-500"],[class~="bg-amber-400"]){color:#0B0F1F!important}
 .admin-da :is([class~="bg-amber-500"],[class~="bg-amber-400"]) .text-white{color:#0B0F1F!important}
+
+/* Texte riche des e-mails (éditeur et aperçu) */
+.rich-email p { margin: 0 0 .8em; }
+.rich-email h2 { margin: 0 0 .6em; font-size: 1.2em; font-weight: 800; line-height: 1.35; }
+.rich-email ul { margin: 0 0 .8em; padding-left: 1.4em; list-style: disc; }
+.rich-email ol { margin: 0 0 .8em; padding-left: 1.4em; list-style: decimal; }
+.rich-email li { margin: 0 0 .3em; }
+.rich-email a { color: #2B4BFF; text-decoration: underline; }
