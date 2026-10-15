@@ -105,6 +105,9 @@ export interface TemplateInput {
 
 /** Plain, readable e-mail: the message, a signature, a legal footer with the unsubscribe link. */
 export function renderEmail(t: TemplateInput): { text: string; html: string } {
+  // Signature: first name, then the family name in capitals (Céline LEVRAT)
+  const sig = splitName(t.signatureName);
+  t = { ...t, signatureName: [sig.first, sig.last].filter(Boolean).join(" ") || t.signatureName };
   const rich = isHtmlBody(t.body);
   const safeBody = rich ? sanitizeEmailHtml(t.body) : "";
   const text = [
