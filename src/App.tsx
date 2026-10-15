@@ -742,37 +742,6 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Public Client Funnel: linear progress, no jumping ahead */}
-              <nav aria-label="Progression" className="hidden sm:flex items-center gap-2 text-xs font-semibold">
-                {[
-                  { n: 1, label: 'Estimation', active: currentView === 'landing', done: currentView !== 'landing' },
-                  { n: 2, label: 'Échange avec Céline', active: currentView === 'chat', done: currentView === 'confirmation' || !!latestConfirmedLead },
-                  { n: 3, label: 'Rendez-vous', active: currentView === 'confirmation', done: false },
-                ].map((st, idx) => (
-                  <React.Fragment key={st.n}>
-                    {idx > 0 && <span className="w-6 h-px bg-stone-300" />}
-                    <button
-                      type="button"
-                      id={`client-nav-step-${st.n}`}
-                      disabled={!st.active && !st.done}
-                      onClick={() => setCurrentView(st.n === 1 ? 'landing' : st.n === 2 ? 'chat' : 'confirmation')}
-                      className={`flex items-center gap-2 transition-colors ${
-                        st.active ? 'text-[#0B0F1F] font-black' : st.done ? 'text-[#0B0F1F] hover:text-[#2B4BFF]' : 'text-stone-400 cursor-default'
-                      }`}
-                    >
-                      <span
-                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                          st.active ? 'bg-[#2B4BFF] text-white' : st.done ? 'bg-[#0B0F1F] text-white' : 'bg-white border-2 border-[#0B0F1F]/30 text-stone-500'
-                        }`}
-                      >
-                        {st.done && !st.active ? '✓' : st.n}
-                      </span>
-                      {st.label}
-                    </button>
-                  </React.Fragment>
-                ))}
-              </nav>
-
               {/* Public Right Area: Discreet Reassurance & Optional Pro Login */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white text-[11px] font-bold text-[#0B0F1F] border-2 border-[#0B0F1F]">
