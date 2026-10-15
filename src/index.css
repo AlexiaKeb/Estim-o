@@ -61,11 +61,11 @@ html, body { overflow-x: clip; }
 .admin-da .bg-emerald-500{background-color:#12B76A!important}
 .admin-da .bg-emerald-600{background-color:#12B76A!important}
 .admin-da .bg-emerald-700{background-color:#12B76A!important}
-.admin-da .bg-orange-100{background-color:#FFF3B8!important}
-.admin-da .bg-orange-50{background-color:#FFF3B8!important}
-.admin-da .bg-orange-50\/60{background-color:#FFF3B8!important}
-.admin-da .bg-orange-500{background-color:#FFD60A!important}
-.admin-da .bg-orange-600{background-color:#FFD60A!important}
+.admin-da .bg-orange-100{background-color:#FFE2C7!important}
+.admin-da .bg-orange-50{background-color:#FFE2C7!important}
+.admin-da .bg-orange-50\/60{background-color:#FFE2C7!important}
+.admin-da .bg-orange-500{background-color:#FF7A1A!important}
+.admin-da .bg-orange-600{background-color:#FF7A1A!important}
 .admin-da .bg-purple-50{background-color:#E4E9FF!important}
 .admin-da .bg-rose-100{background-color:#FFE1E1!important}
 .admin-da .bg-rose-100\/70{background-color:#FFE1E1!important}
@@ -121,7 +121,7 @@ html, body { overflow-x: clip; }
 .admin-da .border-emerald-200{border-color:#A8EBC8!important}
 .admin-da .border-emerald-300{border-color:#12B76A!important}
 .admin-da .border-emerald-500\/30{border-color:#12B76A!important}
-.admin-da .border-orange-200{border-color:#FFE97A!important}
+.admin-da .border-orange-200{border-color:#FFE2C7!important}
 .admin-da .border-purple-200{border-color:#B8C4FF!important}
 .admin-da .border-rose-100{border-color:#FFE1E1!important}
 .admin-da .border-rose-200{border-color:#FFB3B3!important}
@@ -164,8 +164,8 @@ html, body { overflow-x: clip; }
 .admin-da .text-emerald-800{color:#0B7A4B!important}
 .admin-da .text-emerald-900{color:#0B7A4B!important}
 .admin-da .text-emerald-950{color:#0B7A4B!important}
-.admin-da .text-orange-600{color:#8A6A00!important}
-.admin-da .text-orange-800{color:#8A6A00!important}
+.admin-da .text-orange-600{color:#B8500A!important}
+.admin-da .text-orange-800{color:#B8500A!important}
 .admin-da .text-purple-600{color:#2B4BFF!important}
 .admin-da .text-purple-700{color:#2B4BFF!important}
 .admin-da .text-rose-300{color:#FF8A8A!important}
@@ -210,3 +210,5 @@ html, body { overflow-x: clip; }
 @media (prefers-reduced-motion:reduce){.admin-da :is(button,a){transition:none}}
 .admin-da :is(div,section,article,aside,li)[class~="border"] :is(div,section,article,aside,li)[class~="border"]{box-shadow:none!important;border-width:2px!important}
 .admin-da :is(div,section)[class~="bg-[#0B0F1F]"][class*="rounded-"]{box-shadow:6px 6px 0 #2B4BFF!important}
+.admin-da :is([class~="bg-amber-500"],[class~="bg-amber-400"]){color:#0B0F1F!important}
+.admin-da :is([class~="bg-amber-500"],[class~="bg-amber-400"]) .text-white{color:#0B0F1F!important}
