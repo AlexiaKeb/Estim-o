@@ -154,6 +154,45 @@ export const BookingConfirmationView: React.FC<Props> = ({
     },
   ];
 
+  const faqBlock = (
+    <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+      <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+        <HelpCircle className="w-4 h-4 text-stone-700" />
+        Tout savoir sur le déroulement de votre visite
+      </h3>
+
+      <div className="space-y-2.5">
+        {faqItems.map((item, idx) => {
+          const isOpen = openFaqIndex === idx;
+          return (
+            <div
+              key={idx}
+              className="border border-stone-200 rounded-2xl overflow-hidden transition-all"
+            >
+              <button
+                type="button"
+                onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                className="w-full p-4 text-left flex items-center justify-between gap-3 text-xs font-bold text-stone-800 hover:bg-stone-50 transition-colors"
+              >
+                <span>{item.q}</span>
+                {isOpen ? (
+                  <ChevronUp className="w-4 h-4 text-stone-500 flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-stone-500 flex-shrink-0" />
+                )}
+              </button>
+              {isOpen && (
+                <div className="px-4 pb-4 text-xs text-stone-600 leading-relaxed border-t border-stone-100 pt-3 bg-stone-50/50">
+                  {item.a}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300 pb-12">
       <div className="text-center space-y-2">
@@ -308,7 +347,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
               <div className="text-center">
                 <span className="text-[11px] text-stone-500">
-                  Pour modifier ou décaler votre créneau, appelez Céline au <strong>06 03 58 03 16</strong>
+                  Pour modifier ou décaler votre créneau, appelez Céline au <strong className="whitespace-nowrap">06 03 58 03 16</strong>
                 </span>
               </div>
             </div>
@@ -328,6 +367,8 @@ export const BookingConfirmationView: React.FC<Props> = ({
               </p>
             </div>
           </div>
+
+          <div className="hidden lg:block">{faqBlock}</div>
         </div>
 
         {/* Right Col: Discovery Phase & Simple Info */}
@@ -387,43 +428,8 @@ export const BookingConfirmationView: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Interactive FAQ Accordion */}
-          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-4">
-            <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-stone-700" />
-              Tout savoir sur le déroulement de votre visite
-            </h3>
-
-            <div className="space-y-2.5">
-              {faqItems.map((item, idx) => {
-                const isOpen = openFaqIndex === idx;
-                return (
-                  <div
-                    key={idx}
-                    className="border border-stone-200 rounded-2xl overflow-hidden transition-all"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                      className="w-full p-4 text-left flex items-center justify-between gap-3 text-xs font-bold text-stone-800 hover:bg-stone-50 transition-colors"
-                    >
-                      <span>{item.q}</span>
-                      {isOpen ? (
-                        <ChevronUp className="w-4 h-4 text-stone-500 flex-shrink-0" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-stone-500 flex-shrink-0" />
-                      )}
-                    </button>
-                    {isOpen && (
-                      <div className="px-4 pb-4 text-xs text-stone-600 leading-relaxed border-t border-stone-100 pt-3 bg-stone-50/50">
-                        {item.a}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Same block, shown under the advisor on large screens (see left column) */}
+          <div className="lg:hidden">{faqBlock}</div>
         </div>
       </div>
 
