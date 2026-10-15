@@ -743,7 +743,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
                 onClick={() => onOpenBooking?.(bookingInfo())}
                 className="cta-pulse flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-4 py-4 text-base font-black text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5 sm:text-lg"
               >
-                <Lock className="h-5 w-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
+                <CalendarDays className="h-5 w-5 shrink-0" /> Obtenir mon vrai prix : je réserve ma visite
               </button>
               <p className="text-center text-xs font-semibold text-[#0B0F1F]/70">Visite offerte et sans engagement · avis de valeur sous 48h</p>
             </div>
@@ -966,15 +966,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
                 ))}
               </div>
             )}
-            <div className="flex flex-wrap gap-2">
-              <Chip strong disabled={slots === null && !slotsFailed} onClick={() => onOpenBooking?.(bookingInfo())}>
-                {days.length > 0 ? 'Voir tous les créneaux disponibles' : 'Réserver ma visite offerte'}
-              </Chip>
-            </div>
             {slotsFailed && (
-              <p className="text-sm text-stone-600">
+              <p className="text-sm text-white/85">
                 L'agenda est momentanément indisponible. Appelez {AGENT.firstName} au{' '}
-                <a className="underline font-semibold" href={AGENT.phoneHref}>{AGENT.phone}</a> : elle fixera la visite avec vous.
+                <a className="font-bold text-[#FFD60A] underline" href={AGENT.phoneHref}>{AGENT.phone}</a> : elle fixera la visite avec vous.
               </p>
             )}
           </div>
