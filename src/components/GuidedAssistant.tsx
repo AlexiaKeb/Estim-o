@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowRight, Bot, CalendarDays, Check, CheckCircle2, Loader2, Lock, Send, ShieldCheck, TrendingUp } from 'lucide-react';
+import { ArrowRight, Bot, CalendarDays, Check, CheckCircle2, Loader2, Lock, Send, ShieldCheck, TrendingUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Lead, ValuationInputs, ValuationResult } from '../types';
 import { AGENT } from '../data/siteContent';
@@ -932,40 +932,6 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       case 'offer':
         return (
           <div className="space-y-3">
-            <div className="flex flex-col items-center gap-1 pt-1 text-center">
-              <p className="text-lg font-black leading-tight text-[#FFD60A] sm:text-xl">Prenez rendez-vous avec {AGENT.firstName}</p>
-              <ArrowDown className="h-7 w-7 text-[#FFD60A] motion-safe:animate-bounce" aria-hidden="true" />
-            </div>
-            {slots === null && !slotsFailed && (
-              <div className="flex items-center gap-2 text-sm text-white/90" role="status">
-                <Loader2 className="w-4 h-4 animate-spin" /> Je regarde les disponibilités de {AGENT.firstName}…
-              </div>
-            )}
-            {days.length > 0 && (
-              <div className="rounded-2xl border border-[#0B0F1F] bg-[#FFF7E6] p-3 sm:p-4 space-y-3">
-                <p className="text-sm font-semibold text-[#0B0F1F] flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-[#2B4BFF]" />
-                  Disponibilités de {AGENT.firstName} pour votre visite sur place
-                </p>
-                {days.map((d) => (
-                  <div key={d.date} className="space-y-1.5">
-                    <div className="text-xs font-medium text-stone-600 capitalize">{d.label}</div>
-                    <div className="flex flex-wrap gap-2">
-                      {d.times.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => pickSlot(d.date, t)}
-                          className="rounded-lg bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white font-semibold text-sm px-4 py-2.5 transition-colors"
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
             {slotsFailed && (
               <p className="text-sm text-white/85">
                 L'agenda est momentanément indisponible. Appelez {AGENT.firstName} au{' '}

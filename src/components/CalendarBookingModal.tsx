@@ -454,18 +454,18 @@ export const CalendarBookingModal: React.FC<Props> = ({
 
         {/* Advisor direct contact ribbon */}
         <div className="bg-[#FFF7E6] border-b-[3px] border-[#0B0F1F] px-6 py-3 flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-stone-800">
+          <div className="flex min-w-0 items-center gap-2 text-stone-800">
             <div className="w-7 h-7 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center font-bold text-[11px] shadow-xs">
               C
             </div>
-            <div>
+            <div className="min-w-0">
               <span className="font-bold text-stone-900">Votre conseillère de proximité : Céline LEVRAT</span>
               <span className="text-stone-500 hidden sm:inline"> • Spécialiste Région Lyonnaise & Beaujolais</span>
             </div>
           </div>
           <a
             href="tel:0603580316"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-stone-300 text-stone-900 font-bold hover:bg-stone-900 hover:text-white transition-all shadow-xs"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg bg-white border border-stone-300 text-stone-900 font-bold hover:bg-stone-900 hover:text-white transition-all shadow-xs"
           >
             <PhoneCall className="w-3.5 h-3.5 text-[#2B4BFF]" />
             <span>06 03 58 03 16</span>
