@@ -415,16 +415,16 @@ export const ValuationEvidence: React.FC<{ result: import('../types').ValuationR
 
   if (result.dataSource !== 'dvf') {
     return (
-      <p className="mt-3 text-[11px] leading-relaxed text-stone-500 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+      <p className="mt-3 text-[11px] leading-relaxed text-white/75">
         Estimation indicative fondée sur un prix moyen de secteur. Les ventes comparables n'ont pas pu être consultées : la visite permet d'affiner.
       </p>
     );
   }
 
   return (
-    <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 text-[11px] text-stone-700">
-      <div className="flex items-start gap-2">
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 mt-0.5 shrink-0" />
+    <div className="mt-3 text-[12px] text-white/85">
+      <div className="flex items-center gap-3">
+        <Robot className="bob h-10 w-8 shrink-0" />
         <p className="leading-relaxed">
           Calculée à partir de <strong>{result.sampleSize} ventes réelles</strong> de biens comparables
           {result.radiusM ? ` dans un rayon de ${result.radiusM} m` : ` à ${result.city}`}, entre {fmtMonth(result.periodFrom)} et {fmtMonth(result.periodTo)}{' '}
@@ -438,24 +438,24 @@ export const ValuationEvidence: React.FC<{ result: import('../types').ValuationR
             id="btn-toggle-comparables"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="mt-2 font-semibold text-emerald-800 underline underline-offset-2"
+            className="mt-2 font-bold text-[#FFD60A] underline underline-offset-2"
           >
             {open ? 'Masquer les ventes comparables' : 'Voir quelques ventes comparables'}
           </button>
           {open && (
-            <ul className="mt-2 divide-y divide-emerald-200/70">
+            <ul className="mt-2 divide-y divide-white/20">
               {result.comparables.map((c, i) => (
                 <li key={i} className="py-1.5 flex justify-between gap-3">
                   <span className="min-w-0">
                     <span className="block truncate capitalize">{c.street.toLowerCase()}</span>
-                    <span className="text-stone-500">
+                    <span className="text-white/60">
                       {c.month} · {c.surface} m²{c.rooms ? ` · ${c.rooms} p.` : ''}
                       {c.distanceM !== null ? ` · à ${c.distanceM} m` : ''}
                     </span>
                   </span>
                   <span className="text-right tabular-nums shrink-0">
                     <span className="block font-semibold">{c.price.toLocaleString('fr-FR')} €</span>
-                    <span className="text-stone-500">{c.ppm2.toLocaleString('fr-FR')} €/m²</span>
+                    <span className="text-white/60">{c.ppm2.toLocaleString('fr-FR')} €/m²</span>
                   </span>
                 </li>
               ))}

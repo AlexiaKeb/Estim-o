@@ -9,7 +9,7 @@ import { getAttribution, trackConversion } from '../utils/tracking';
 import { renderRichText } from '../utils/richText';
 import { AddressSearch, AddressSuggestion } from './AddressSearch';
 import { ValuationEvidence } from './LandingSections';
-import { Robot } from './Mascots';
+import { Human, Robot } from './Mascots';
 
 type Timeframe = Lead['timeframe'];
 type Motive = Lead['motive'];
@@ -707,7 +707,9 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="flex items-end gap-3 sm:gap-4">
+          <Human className="bob w-20 shrink-0 sm:w-28" />
+          <div className="min-w-0 flex-1 space-y-2 pb-1">
           <button
             type="button"
             onClick={() => onOpenBooking?.(bookingInfo())}
@@ -716,14 +718,13 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             <Lock className="h-5 w-5" /> Débloquer l'avis de valeur réel avec {AGENT.firstName}
           </button>
           <p className="text-center text-xs font-semibold text-white/80">Visite offerte et sans engagement · avis de valeur sous 48h</p>
+          </div>
         </div>
 
         <div className="text-center text-xs font-medium text-white/70">
           ~{fmt(result.avgM2)} €/m² · {result.propertyType} de {result.surface} m² à {result.city}
         </div>
-        <div className="rounded-2xl bg-[#FFF7E6] p-1 text-[#0B0F1F]">
-          <ValuationEvidence result={result} />
-        </div>
+        <ValuationEvidence result={result} />
       </div>
     ) : null;
 
