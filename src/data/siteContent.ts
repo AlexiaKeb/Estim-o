@@ -67,7 +67,7 @@ export const KEY_FIGURES: KeyFigure[] = [];
 
 export const FAQ: Array<{ q: string; a: string }> = [
   {
-    q: 'La visite sur place est-elle réellement gratuite et sans engagement ?',
+    q: 'La visite sur place est-elle réellement offerte et sans engagement ?',
     a: "Absolument. La visite à votre domicile est 100 % offerte et ne vous engage à rien. Céline vient analyser les atouts de votre bien sur place et vous indiquera simplement les quelques documents utiles à préparer (taxe foncière, métrage, diagnostics si disponibles).",
   },
   {
@@ -88,7 +88,7 @@ export const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: "La visite m'engage-t-elle à vous confier la vente de mon bien ?",
-    a: "Non, aucunement. La visite et la remise de l'avis de valeur sont 100 % gratuites et sans obligation d'exclusivité ni de mandat de vente. Vous restez totalement libre de la suite.",
+    a: "Non, aucunement. La visite et la remise de l'avis de valeur sont 100 % offertes et sans obligation d'exclusivité ni de mandat de vente. Vous restez totalement libre de la suite.",
   },
   {
     q: "Que se passe-t-il après avoir validé l'étape en ligne ?",
@@ -96,7 +96,7 @@ export const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Faut-il avoir un projet de vente immédiat pour demander une estimation ?',
-    a: "Pas du tout. Que vous souhaitiez vendre prochainement, anticiper une succession, arbitrer un patrimoine ou simplement connaître la valeur actuelle de votre logement, l'estimation reste gratuite et confidentielle.",
+    a: "Pas du tout. Que vous souhaitiez vendre prochainement, anticiper une succession, arbitrer un patrimoine ou simplement connaître la valeur actuelle de votre logement, l'estimation reste offerte et confidentielle.",
   },
   {
     q: "J'ai déjà une estimation d'une autre agence : quel est l'intérêt d'un second avis ?",

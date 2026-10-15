@@ -98,7 +98,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
           </form>
 
           <ul className="flex flex-wrap gap-3 text-sm font-bold">
-            {['Estimation en 2 minutes', '100 % gratuit', 'Sans engagement'].map((t) => (
+            {['Estimation en 2 minutes', '100 % offert', 'Sans engagement'].map((t) => (
               <li key={t} className="flex items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFF7E6] px-4 py-1.5 text-[#0B0F1F]">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-[#2B4BFF]" />
                 {t}
@@ -134,7 +134,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
         <div className="marquee2 flex w-max gap-10 whitespace-nowrap text-sm font-black uppercase tracking-wide">
           {[0, 1].map((k) => (
             <span key={k} className="flex gap-10">
-              {['Estimation en 2 minutes', '100 % gratuit', 'Sans engagement', 'Région Lyonnaise & Beaujolais', 'Estimation en 2 minutes', '100 % gratuit', 'Sans engagement', 'Région Lyonnaise & Beaujolais'].map((t, i) => (
+              {['Estimation en 2 minutes', '100 % offert', 'Sans engagement', 'Région Lyonnaise & Beaujolais', 'Estimation en 2 minutes', '100 % offert', 'Sans engagement', 'Région Lyonnaise & Beaujolais'].map((t, i) => (
                 <span key={i} className="flex items-center gap-10">{t}<span className="text-[#FFD60A]">★</span></span>
               ))}
             </span>
@@ -243,7 +243,7 @@ export const WhyOnSite: React.FC = () => (
         </div>
         <div className="pop-card relative flex items-start gap-4 rounded-3xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] p-7 text-[#0B0F1F] shadow-[6px_6px_0_#FFF7E6]">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black uppercase tracking-wider text-[#2B4BFF]">Gratuite · sans engagement</p>
+            <p className="text-xs font-black uppercase tracking-wider text-[#2B4BFF]">Offerte · sans engagement</p>
             <h3 className="mt-1 text-2xl font-black">L'expertise sur place par {AGENT.firstName}</h3>
             <ul className="mt-4 space-y-2.5 font-semibold">
               <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#2B4BFF]" />Analyse de la vue, de l'exposition et des travaux</li>
@@ -351,7 +351,7 @@ export const FinalCta: React.FC = () => (
         <h2 className="text-4xl font-black tracking-tight [text-wrap:balance] sm:text-6xl">Prêt à connaître la valeur réelle de votre bien&nbsp;?</h2>
         <p className="mx-auto mt-5 max-w-xl text-lg font-medium text-white/95 lg:mx-0 sm:text-xl">2 minutes pour la simulation en ligne, une visite offerte pour valider. {AGENT.firstName} s'occupe de tout.</p>
         <button type="button" onClick={scrollToSimulator} className={`group mt-8 ${BTN}`}>
-          Lancer mon estimation gratuite
+          Lancer mon estimation offerte
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </button>
       </div>
@@ -389,7 +389,7 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
           onClick={onBook}
           className="flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-sm shadow-[3px_3px_0_#0B0F1F]"
         >
-          Réserver ma visite gratuite
+          Réserver ma visite offerte
         </button>
       ) : (
         <button type="button" onClick={scrollToSimulator} className="flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#2B4BFF] text-white font-black py-3 text-sm shadow-[3px_3px_0_#0B0F1F]">

@@ -33,7 +33,7 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-[#FFD60A] text-[#0B0F1F] border-t-[3px] border-[#0B0F1F] font-black text-center py-4"
       style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
     >
-      Estimer mon bien gratuitement →
+      Estimer mon bien, offert →
     </a>
     <footer className="bg-[#0B0F1F] mt-16 pb-16 sm:pb-0">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-xs text-white/70 flex flex-wrap gap-x-5 gap-y-2 justify-between">
@@ -51,10 +51,10 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
 export const BlogCta: React.FC<{ compact?: boolean }> = ({ compact }) => (
   <aside aria-label="Estimer son bien" className="rounded-2xl bg-[#2B4BFF] text-white p-5 sm:p-7 border-l-4 border-[#FFD60A] my-8">
-    <p className="text-[#FFD60A] text-[11px] font-bold uppercase tracking-wider mb-1">Estimation gratuite</p>
+    <p className="text-[#FFD60A] text-[11px] font-bold uppercase tracking-wider mb-1">Estimation offerte</p>
     <p className={`font-semibold leading-snug ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}>Combien vaut votre bien à Lyon et autour ?</p>
     <p className="text-sm sm:text-base text-slate-300 mt-2">
-      Obtenez une fourchette en 2 minutes, fondée sur les ventes réelles autour de votre adresse. {AGENT.firstName} vous propose ensuite une visite gratuite et sans engagement.
+      Obtenez une fourchette en 2 minutes, fondée sur les ventes réelles autour de votre adresse. {AGENT.firstName} vous propose ensuite une visite offerte et sans engagement.
     </p>
     <a href="/#simulateur" className="mt-4 inline-block rounded-xl bg-[#FFD60A] hover:brightness-95 text-[#0B0F1F] border-[3px] border-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] font-black px-5 py-3">
       Estimer mon bien

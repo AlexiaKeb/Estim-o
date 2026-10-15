@@ -64,7 +64,7 @@ export const MentionsLegales: React.FC = () => (
     </Section>
     {LEGAL.mediator && (
       <Section title="Médiation de la consommation">
-        <p>En cas de litige, vous pouvez recourir gratuitement au médiateur suivant : {LEGAL.mediator}.</p>
+        <p>En cas de litige, vous pouvez recourir sans frais au médiateur suivant : {LEGAL.mediator}.</p>
       </Section>
     )}
     <Section title="Nature des estimations">

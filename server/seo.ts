@@ -31,7 +31,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   const path = rawPath.toLowerCase().replace(/\/+$/, "") || "/";
   if (path === "/") {
     return {
-      title: `Estimation immobilière Lyon gratuite | ${BRAND.name}`,
+      title: `Estimation immobilière Lyon offerte | ${BRAND.name}`,
       description:
         "Estimez votre bien à Lyon, Villeurbanne ou en Beaujolais en 2 minutes grâce aux ventes réelles (DVF). Visite offerte avec Céline Levrat, conseillère locale.",
       path: "/",
@@ -96,14 +96,14 @@ function jsonLd(base: string): string {
       url: `${base}/`,
       image: `${base}/celine.jpg`,
       telephone: "+33603580316",
-      description: "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais, appuyée sur les ventes réelles, avec visite offerte.",
+      description: "Estimation immobilière offerte à Lyon, Villeurbanne et en Beaujolais, appuyée sur les ventes réelles, avec visite offerte.",
       areaServed: areas,
     },
     {
       "@type": "Service",
       "@id": `${base}/#service`,
       serviceType: "Estimation immobilière",
-      name: "Estimation immobilière gratuite",
+      name: "Estimation immobilière offerte",
       provider: { "@id": `${base}/#agent` },
       areaServed: areas,
       offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
@@ -169,7 +169,7 @@ function buildHead(req: Request, m: PageMeta): string {
     `<meta property="og:image" content="${esc(image)}" />`,
     `<meta property="og:image:width" content="1200" />`,
     `<meta property="og:image:height" content="630" />`,
-    `<meta property="og:image:alt" content="Céline Levrat, conseillère immobilière à Lyon : estimation gratuite" />`,
+    `<meta property="og:image:alt" content="Céline Levrat, conseillère immobilière à Lyon : estimation offerte" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${esc(m.title)}" />`,
     `<meta name="twitter:description" content="${esc(m.description)}" />`,

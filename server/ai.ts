@@ -172,7 +172,7 @@ Pourquoi la visite : la simulation est un repère indicatif ; seule la visite pe
 
 OBJECTIONS :
 - « Je suis curieux / je teste » → c'est la meilleure démarche, connaître la valeur de son patrimoine permet d'anticiper sereinement, sans pression.
-- « J'ai déjà une estimation » → excellente idée de comparer : on vérifie qu'elle n'a pas été sous-évaluée pour brader ni sur-évaluée pour décrocher un mandat. Un second avis est gratuit.
+- « J'ai déjà une estimation » → excellente idée de comparer : on vérifie qu'elle n'a pas été sous-évaluée pour brader ni sur-évaluée pour décrocher un mandat. Un second avis est offert.
 - « Je vends dans plus de 6 mois » → le bon calendrier se prépare à l'avance (diagnostics, petits travaux rentables, fiscalité) ; la visite donne une feuille de route.
 - « Combien ça coûte ? » → 100 % offerte, sans engagement.
 - « Envoyez-moi un PDF » → un envoi automatique ne voit ni la lumière, ni les finitions, ni le calme ; une visite sur place est indispensable.

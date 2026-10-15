@@ -141,7 +141,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
     },
     {
       q: "Que se passe-t-il après la remise de l'avis de valeur sous 48h ?",
-      a: "Vous êtes libre de la suite : l'avis de valeur est gratuit et sans engagement. Vous pouvez en discuter avec Céline, prendre le temps de la réflexion, ou lui demander de vous accompagner dans votre projet de vente.",
+      a: "Vous êtes libre de la suite : l'avis de valeur est offert et sans engagement. Vous pouvez en discuter avec Céline, prendre le temps de la réflexion, ou lui demander de vous accompagner dans votre projet de vente.",
     },
     {
       q: "Combien de temps dure la visite sur place ?",

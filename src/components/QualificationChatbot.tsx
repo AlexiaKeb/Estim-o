@@ -836,7 +836,7 @@ Valorisation indicative : ${collectedData.estimatedValue ? Number(collectedData.
                 <Calendar className="w-3.5 h-3.5 text-stone-300" />
                 <span>
                   {viewMode === 'prospect'
-                    ? 'Choisir mon créneau de visite gratuite'
+                    ? 'Choisir mon créneau de visite offerte'
                     : 'Proposer un créneau de visite sur place'}
                 </span>
               </button>

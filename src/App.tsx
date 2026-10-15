@@ -878,7 +878,7 @@ export default function App() {
               {BRAND.name} – Céline LEVRAT – Expertise Immobilière
             </span>
             <span>•</span>
-            <span>Estimation gratuite et sans engagement</span>
+            <span>Estimation offerte et sans engagement</span>
             <span>•</span>
             <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
             <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>

@@ -54,7 +54,7 @@ export const MetaAdStudio: React.FC = () => {
           title: `Angle IA : ${aiMotive}`,
           hook: data.hook,
           primaryText: data.body,
-          ctaText: data.cta || 'Estimer mon bien gratuitement →',
+          ctaText: data.cta || 'Estimer mon bien, offert →',
           targetAudience: data.audienceTargeting || `Propriétaires 35-65 ans à ${aiCity}`,
           imagePrompt: data.creativeVisualAngle || 'Visuel immobilier soigné avec lumière naturelle',
           cplTarget: 18,

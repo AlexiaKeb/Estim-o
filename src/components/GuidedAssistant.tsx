@@ -898,7 +898,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             )}
             <div className="flex flex-wrap gap-2">
               <Chip strong disabled={slots === null && !slotsFailed} onClick={() => onOpenBooking?.(bookingInfo())}>
-                {days.length > 0 ? 'Voir tous les créneaux disponibles' : 'Réserver ma visite gratuite'}
+                {days.length > 0 ? 'Voir tous les créneaux disponibles' : 'Réserver ma visite offerte'}
               </Chip>
               {!qAnswers.ownership && <Chip onClick={startQuestions}>Préparer le rendez-vous (3 questions)</Chip>}
             </div>
@@ -931,7 +931,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             Assistant Estimation de {AGENT.firstName}
             <span className="text-[10px] font-bold bg-white/15 border border-white/20 rounded-full px-2 py-0.5 text-[#FFD60A]">IA</span>
           </div>
-          <div className="text-xs text-slate-300">100 % gratuit · Données DVF officielles · Réponse en 2 min</div>
+          <div className="text-xs text-slate-300">100 % offert · Données DVF officielles · Réponse en 2 min</div>
         </div>
         <a href={AGENT.phoneHref} className="text-xs text-slate-200 hover:text-white underline underline-offset-4 whitespace-nowrap">
           {AGENT.phone}

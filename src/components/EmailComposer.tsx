@@ -46,7 +46,7 @@ function templatesFor(lead: Lead): Array<{ id: string; label: string; subject: s
       id: 'contact',
       label: "Suite à la demande d'estimation",
       subject: 'Votre estimation à {Ville}',
-      body: "Bonjour {Prénom},\n\nJe vous remercie d'avoir demandé l'estimation de votre {TypeBien} à {Ville}. Je me permets de revenir vers vous pour en discuter et, si vous le souhaitez, convenir d'une visite gratuite et sans engagement.\n\nQuand seriez-vous disponible pour en parler ?",
+      body: "Bonjour {Prénom},\n\nJe vous remercie d'avoir demandé l'estimation de votre {TypeBien} à {Ville}. Je me permets de revenir vers vous pour en discuter et, si vous le souhaitez, convenir d'une visite offerte et sans engagement.\n\nQuand seriez-vous disponible pour en parler ?",
     },
     {
       id: 'rdv',

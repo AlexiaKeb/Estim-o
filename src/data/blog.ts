@@ -174,7 +174,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         h2: 'Ce que fait la visite',
         paragraphs: [
-          "C'est là que la valeur se précise. Sur place, on regarde ce que les chiffres ne voient pas, on choisit les ventes réellement comparables et on justifie chaque écart avec la moyenne du secteur. Vous obtenez un avis argumenté, que vous pouvez défendre face aux acheteurs. C'est le principe de notre simulateur : une fourchette fondée sur les ventes autour de votre adresse, que la visite vient affiner, gratuitement et sans engagement. Pour comprendre la différence entre les deux approches, lisez [estimation en ligne ou par un agent](/blog/estimation-en-ligne-ou-agent-immobilier).",
+          "C'est là que la valeur se précise. Sur place, on regarde ce que les chiffres ne voient pas, on choisit les ventes réellement comparables et on justifie chaque écart avec la moyenne du secteur. Vous obtenez un avis argumenté, que vous pouvez défendre face aux acheteurs. C'est le principe de notre simulateur : une fourchette fondée sur les ventes autour de votre adresse, que la visite vient affiner, offertement et sans engagement. Pour comprendre la différence entre les deux approches, lisez [estimation en ligne ou par un agent](/blog/estimation-en-ligne-ou-agent-immobilier).",
         ],
       },
     ],
@@ -195,7 +195,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         h2: 'Ce que fait bien une estimation en ligne',
         list: [
-          'elle est immédiate et gratuite, sans rendez-vous ;',
+          'elle est immédiate et offerte, sans rendez-vous ;',
           "elle s'appuie sur des données objectives, comme les ventes enregistrées autour de l'adresse ;",
           'elle donne un ordre de grandeur pour décider si le projet vaut la peine de poursuivre ;',
           'elle permet de comparer facilement plusieurs hypothèses.',
@@ -219,7 +219,7 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         h2: 'Une vigilance utile : le conflit d\'intérêts',
         paragraphs: [
-          "Une estimation gratuite est souvent aussi une démarche commerciale : un prix trop haut peut séduire pour obtenir un mandat, un prix trop bas peut faciliter une vente rapide. Demandez toujours les ventes comparables qui justifient le chiffre, et n'hésitez pas à comparer deux avis.",
+          "Une estimation offerte est souvent aussi une démarche commerciale : un prix trop haut peut séduire pour obtenir un mandat, un prix trop bas peut faciliter une vente rapide. Demandez toujours les ventes comparables qui justifient le chiffre, et n'hésitez pas à comparer deux avis.",
         ],
       },
       {

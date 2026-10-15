@@ -842,7 +842,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
             <div className="pt-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
                 <ShieldCheck className="w-4 h-4 text-[#2B4BFF]" />
-                🔒 Rendez-vous gratuit, confidentiel et sans engagement
+                🔒 Rendez-vous offert, confidentiel et sans engagement
               </div>
 
               <button
