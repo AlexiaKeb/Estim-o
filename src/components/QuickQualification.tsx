@@ -29,14 +29,16 @@ type Step =
   | { key: 'expectedPrice'; kind: 'price'; ask: string };
 
 const STEPS: Step[] = [
-  { key: 'ownership', kind: 'single', ask: 'Pour commencer : vous êtes…', options: [['seul', 'Seul propriétaire'], ['plusieurs', 'Plusieurs propriétaires'], ['pas_encore', 'Pas encore propriétaire']] },
-  { key: 'profession', kind: 'text', ask: 'Quel est votre métier ?', placeholder: 'Ex : infirmière, artisan, retraité…' },
-  { key: 'mandate', kind: 'single', ask: 'Avez-vous déjà reçu une estimation, ou signé un mandat de vente ?', options: [['aucun', 'Non, aucune'], ['estimations', "Estimation reçue, sans mandat"], ['simple', 'Oui, mandat simple'], ['exclusif', 'Oui, mandat exclusif']] },
-  { key: 'occupancy', kind: 'single', ask: 'Votre bien est…', options: [['occupe', 'Occupé par moi'], ['libre', 'Libre'], ['loue', 'Loué']] },
-  { key: 'condition', kind: 'single', ask: 'Dans quel état est-il ?', options: [['refait', 'Refait à neuf'], ['bon', 'Bon état général'], ['rafraichir', 'À rafraîchir'], ['travaux', 'Travaux importants à prévoir']] },
-  { key: 'purchase', kind: 'single', ask: 'Un achat est-il lié à votre vente ?', options: [['aucun', 'Non, je ne rachète pas'], ['recherche', 'Je cherche mon prochain bien'], ['trouve', "J'ai déjà trouvé"]] },
-  { key: 'expectedPrice', kind: 'price', ask: 'Dernière question : quel prix espérez-vous ? (facultatif)' },
+  { key: 'ownership', kind: 'single', ask: "Pour commencer tout en douceur : ce bien, vous le partagez avec quelqu'un (conjoint, famille) ou il est à vous seul ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
+  { key: 'profession', kind: 'text', ask: "Pour que Céline s'adapte à votre emploi du temps et à votre rythme, qu'aimeriez-vous partager sur votre quotidien ? Une activité, une situation… ce que vous voulez, sans obligation.", placeholder: 'Ce que vous souhaitez partager' },
+  { key: 'mandate', kind: 'single', ask: "Avez-vous déjà eu l'occasion d'échanger avec d'autres professionnels au sujet de ce bien ? C'est tout à fait normal de comparer.", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
+  { key: 'occupancy', kind: 'single', ask: 'Et ce logement, comment vit-il aujourd\'hui ?', options: [['occupe', "J'y habite"], ['libre', 'Il est vide'], ['loue', 'Il est loué']] },
+  { key: 'purchase', kind: 'single', ask: 'Votre projet, est-ce aussi de trouver un nouveau chez-vous ?', options: [['aucun', 'Non, pas pour le moment'], ['recherche', 'Oui, je suis en pleine recherche'], ['trouve', "Oui, j'ai déjà une piste"]] },
+  { key: 'expectedPrice', kind: 'price', ask: "Si vous y avez déjà réfléchi, avez-vous une idée du prix que vous aimeriez en tirer ? Aucune obligation : Céline en parlera avec vous, sur place, en toute transparence." },
 ];
+
+const SKIP = 'Je préfère passer';
+const ACKS = ['Merci, c\'est très précieux.', 'Merci beaucoup, c\'est noté.', 'Je vous remercie pour votre confiance.', 'Très bien, merci de ce partage.', 'Parfait, merci.'];
 
 interface Msg { from: 'bot' | 'user'; text: string }
 
@@ -46,7 +48,7 @@ const field = 'w-full rounded-xl border-[3px] border-white bg-white px-4 py-3 te
 
 /** Conversational complementary questions shown once the visit is confirmed: the robot asks, the visitor taps. Fully optional. */
 export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmitted }) => {
-  const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: "Votre rendez-vous est confirmé ! Quelques questions rapides, si vous le souhaitez, pour que Céline connaisse déjà bien votre projet." }]);
+  const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: "Bonjour, ravi de vous accueillir ! Votre rendez-vous est bien enregistré. Si vous le souhaitez, j'aimerais mieux comprendre votre projet pour que Céline puisse venir préparée et vous consacrer le meilleur de son temps. Cela ne prend qu'une minute, et vous pouvez passer toute question qui vous mettrait mal à l'aise." }]);
   const [idx, setIdx] = useState(-1); // -1 = intro shown, waiting for "C'est parti"
   const [typing, setTyping] = useState(false);
   const [answers, setAnswers] = useState<QuickAnswers>({});
@@ -95,7 +97,7 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
   const finish = (final: QuickAnswers) => {
     const has = Object.values(final).some((v) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== ''));
     setIdx(STEPS.length);
-    botSays(has ? 'Merci ! Vos réponses sont transmises à Céline : elle pourra préparer votre rendez-vous.' : 'Pas de souci, Céline vous posera ces questions sur place. À très bientôt !');
+    botSays(has ? "Merci infiniment pour votre confiance. Céline aura tout cela en tête pour préparer votre rendez-vous, et vous pourrez en parler librement avec elle. À très bientôt !" : 'Aucun souci, vous faites exactement comme vous le souhaitez. Céline fera connaissance avec vous directement lors du rendez-vous. À très bientôt !');
     if (has) {
       onSubmitted(final);
       pending.current = final;
@@ -113,11 +115,12 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
     const next = from + 1;
     if (next >= STEPS.length) return finish(final);
     setIdx(next);
-    botSays(STEPS[next].ask);
+    const ack = userText === SKIP ? 'Aucun souci, on laisse cela de côté.' : ACKS[from % ACKS.length];
+    botSays(`${ack} ${STEPS[next].ask}`);
   };
 
   const start = () => {
-    setMsgs((m) => [...m, { from: 'user', text: "C'est parti" }]);
+    setMsgs((m) => [...m, { from: 'user', text: 'Avec plaisir' }]);
     setIdx(0);
     botSays(STEPS[0].ask);
   };
@@ -130,8 +133,8 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
     if (idx === -1)
       return (
         <div className="flex flex-wrap gap-2">
-          <button type="button" id="btn-quick-start" className={chipStrong} onClick={start}>C'est parti</button>
-          <button type="button" className={chip} onClick={() => finish({})}>Plus tard</button>
+          <button type="button" id="btn-quick-start" className={chipStrong} onClick={start}>Avec plaisir</button>
+          <button type="button" className={chip} onClick={() => finish({})}>Plus tard, merci</button>
         </div>
       );
     if (!step) return null;
@@ -141,7 +144,7 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
           {step.options.map(([v, l]) => (
             <button key={v} type="button" className={chip} onClick={() => advance({ ...answers, [step.key]: v } as QuickAnswers, l, idx)}>{l}</button>
           ))}
-          <button type="button" className="px-2 text-xs font-semibold text-white/70 underline underline-offset-2" onClick={() => advance(answers, 'Je passe', idx)}>Passer</button>
+          <button type="button" className="px-2 text-xs font-semibold text-white/70 underline underline-offset-2" onClick={() => advance(answers, SKIP, idx)}>Je préfère passer</button>
         </div>
       );
     if (step.kind === 'multi')
@@ -159,7 +162,7 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
           </div>
           <div className="flex gap-2">
             <button type="button" className={chipStrong} onClick={() => advance({ ...answers, extras: multi.length ? multi : undefined }, multi.length ? step.options.filter(([v]) => multi.includes(v)).map(([, l]) => l).join(', ') : 'Aucun en particulier', idx)}>Valider</button>
-            <button type="button" className="px-2 text-xs font-semibold text-white/70 underline underline-offset-2" onClick={() => advance(answers, 'Je passe', idx)}>Passer</button>
+            <button type="button" className="px-2 text-xs font-semibold text-white/70 underline underline-offset-2" onClick={() => advance(answers, SKIP, idx)}>Je préfère passer</button>
           </div>
         </div>
       );
@@ -170,12 +173,12 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
           onSubmit={(e) => {
             e.preventDefault();
             const v = text.trim().slice(0, 80);
-            advance(v ? { ...answers, profession: v } : answers, v || 'Je passe', idx);
+            advance(v ? { ...answers, profession: v } : answers, v || SKIP, idx);
           }}
         >
-          <input id="quick-job" className={`${field} min-w-[10rem] flex-1`} maxLength={80} placeholder={step.placeholder} value={text} onChange={(e) => setText(e.target.value)} aria-label="Votre métier" />
+          <input id="quick-job" className={`${field} min-w-[10rem] flex-1`} maxLength={80} placeholder={step.placeholder} value={text} onChange={(e) => setText(e.target.value)} aria-label="Ce que vous souhaitez partager" />
           <button type="submit" className={chipStrong}>Valider</button>
-          <button type="button" className={chip} onClick={() => advance(answers, 'Je passe', idx)}>Passer</button>
+          <button type="button" className={chip} onClick={() => advance(answers, SKIP, idx)}>Je préfère passer</button>
         </form>
       );
     return (
@@ -184,12 +187,12 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
         onSubmit={(e) => {
           e.preventDefault();
           const price = Number(text.replace(/[^\d]/g, ''));
-          advance(price >= 20000 ? { ...answers, expectedPrice: price } : answers, price >= 20000 ? `${price.toLocaleString('fr-FR')} €` : 'Je passe', idx);
+          advance(price >= 20000 ? { ...answers, expectedPrice: price } : answers, price >= 20000 ? `${price.toLocaleString('fr-FR')} €` : SKIP, idx);
         }}
       >
         <input id="quick-price" className={`${field} min-w-[10rem] flex-1`} inputMode="numeric" placeholder={low && high ? `Ex : ${Math.round((low + high) / 2 / 1000) * 1000}` : 'Ex : 350000'} value={text} onChange={(e) => setText(e.target.value.replace(/[^\d\s]/g, ''))} aria-label="Prix espéré en euros" />
         <button type="submit" className={chipStrong}>Valider</button>
-        <button type="button" className={chip} onClick={() => advance(answers, 'Je passe', idx)}>Passer</button>
+        <button type="button" className={chip} onClick={() => advance(answers, SKIP, idx)}>Je préfère passer</button>
       </form>
     );
   })();
