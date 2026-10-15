@@ -33,7 +33,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
     return {
       title: `Estimation immobilière Lyon offerte | ${BRAND.name}`,
       description:
-        "Estimez votre bien à Lyon, Villeurbanne ou en Beaujolais en 2 minutes grâce aux ventes réelles (DVF). Visite offerte avec Céline Levrat, conseillère locale.",
+        "Estimez votre bien à Lyon, Villeurbanne ou en Beaujolais en 2 minutes grâce aux ventes réelles (DVF). Visite offerte avec Céline Levrat.",
       path: "/",
       index: true,
       home: true,
@@ -70,8 +70,9 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
     if (post) return { title: post.metaTitle.length + BRAND.name.length + 3 <= 68 ? `${post.metaTitle} | ${BRAND.name}` : post.metaTitle, description: post.description, path, index: true, post };
     return { title: `Article introuvable | ${BRAND.name}`, description: BRAND.tagline, path, index: false, status: 404 };
   }
-  // Espace conseiller et pages inconnues : jamais indexés
-  return { title: BRAND.name, description: BRAND.tagline, path, index: false };
+  // Espace conseiller : jamais indexé. Toute autre adresse inconnue répond « 404 » (et non un faux 200) pour ne pas polluer Google
+  if (AGENT_PATHS.has(path)) return { title: BRAND.name, description: BRAND.tagline, path, index: false };
+  return { title: `Page introuvable | ${BRAND.name}`, description: BRAND.tagline, path, index: false, status: 404 };
 }
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -132,7 +133,7 @@ function articleLd(base: string, post: BlogPost): string {
       datePublished: post.date,
       dateModified: post.updated || post.date,
       inLanguage: "fr-FR",
-      image: `${base}/og-image.png`,
+      image: post.coverUrl && /^https:\/\//i.test(post.coverUrl) ? post.coverUrl : `${base}/og-image.png`,
       mainEntityOfPage: url,
       author: { "@type": "Person", name: AGENT.name, url: `${base}/` },
       publisher: { "@type": "Organization", name: BRAND.name, url: `${base}/`, logo: { "@type": "ImageObject", url: `${base}/favicon.svg` } },
@@ -152,7 +153,8 @@ function articleLd(base: string, post: BlogPost): string {
 function buildHead(req: Request, m: PageMeta): string {
   const base = siteBase(req);
   const url = `${base}${m.path === "/" ? "/" : m.path}`;
-  const image = `${base}/og-image.png`;
+  const cover = m.post?.coverUrl && /^https:\/\//i.test(m.post.coverUrl) ? m.post.coverUrl : null;
+  const image = cover || `${base}/og-image.png`;
   const robots = m.index ? "index,follow,max-image-preview:large" : "noindex,nofollow";
   const tags = [
     `<title>${esc(m.title)}</title>`,
@@ -163,13 +165,14 @@ function buildHead(req: Request, m: PageMeta): string {
     `<meta property="og:site_name" content="${esc(BRAND.name)}" />`,
     `<meta property="og:type" content="${m.post ? "article" : "website"}" />`,
     m.post ? `<meta property="article:published_time" content="${m.post.date}" />` : "",
+    m.post ? `<meta property="article:modified_time" content="${m.post.updated || m.post.date}" />` : "",
+    m.post ? `<meta property="article:author" content="${esc(AGENT.name)}" />` : "",
     `<meta property="og:title" content="${esc(m.title)}" />`,
     `<meta property="og:description" content="${esc(m.description)}" />`,
     `<meta property="og:url" content="${esc(url)}" />`,
     `<meta property="og:image" content="${esc(image)}" />`,
-    `<meta property="og:image:width" content="1200" />`,
-    `<meta property="og:image:height" content="630" />`,
-    `<meta property="og:image:alt" content="Céline Levrat, conseillère immobilière à Lyon : estimation offerte" />`,
+    ...(cover ? [] : [`<meta property="og:image:width" content="1200" />`, `<meta property="og:image:height" content="630" />`]),
+    `<meta property="og:image:alt" content="${esc(m.post ? m.post.title : "Céline Levrat, conseillère immobilière à Lyon : estimation offerte")}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${esc(m.title)}" />`,
     `<meta name="twitter:description" content="${esc(m.description)}" />`,
@@ -215,7 +218,8 @@ export function robotsTxt(base: string): string {
 }
 
 export function sitemapXml(base: string, posts: BlogPost[]): string {
-  const today = new Date().toISOString().slice(0, 10);
+  const latest = posts.reduce((d, p) => ((p.updated || p.date) > d ? p.updated || p.date : d), "2026-10-01");
+  const today = latest;
   const urls: Array<[string, string, string]> = [
     ["/", "1.0", "weekly"],
     ["/mentions-legales", "0.2", "yearly"],

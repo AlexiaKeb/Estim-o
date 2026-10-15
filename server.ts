@@ -6,6 +6,7 @@ import { BLOG_POSTS, blocksOf } from "./src/data/blog";
 import { getAllPosts, invalidateArticles, sanitizeArticle, slugify, readingMinutes, imageKind, randomName } from "./server/articles";
 import { ZONE, checkZone, zoneFromCoords } from "./server/zone";
 import crypto from "crypto";
+import compression from "compression";
 import {
   requireAgent,
   rateLimit,
@@ -279,6 +280,9 @@ const AGENT_PROFILE = {
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
+
+  // Smaller pages and scripts: faster loading (a Core Web Vitals / ranking signal)
+  app.use(compression());
 
   app.use(
     express.json({
