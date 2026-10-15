@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { OPEN_ASSISTANT_EVENT, LandingHero, HowItWorks, WhyOnSite, SocialProof, ZoneSection, BlogTeaser, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
+import { Robot } from './Mascots';
 import { GuidedAssistant, AssistantSeed } from './GuidedAssistant';
 
 interface Props {
@@ -63,9 +64,16 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
         className={`${open ? 'flex' : 'hidden'} fixed inset-0 z-[44] items-stretch justify-center overflow-y-auto bg-[#0B0F1F]/70 p-0 sm:items-center sm:p-6`}
         onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}
       >
-        <div className="relative my-auto flex min-h-[100dvh] w-full max-w-4xl flex-col gap-4 bg-[#FFF7E6] px-4 pb-6 pt-14 sm:min-h-0 sm:rounded-3xl sm:border-[3px] sm:border-[#0B0F1F] sm:px-8 sm:pb-8 sm:pt-8 sm:shadow-[8px_8px_0_#0B0F1F]">
+        <div className="relative my-auto flex min-h-[100dvh] w-full max-w-4xl flex-col gap-4 bg-[#FFF7E6] px-4 pb-6 pt-[4.5rem] sm:min-h-0 sm:rounded-3xl sm:border-[3px] sm:border-[#0B0F1F] sm:px-8 sm:pb-8 sm:pt-8 sm:shadow-[8px_8px_0_#0B0F1F]">
           <button type="button" onClick={close} aria-label="Fermer" id="btn-close-assistant" className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-xl font-black leading-none text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F]">×</button>
-          <div className="space-y-2 text-center sm:px-10">
+          <div className="pointer-events-none absolute left-3 top-2 z-10 flex items-start gap-2 sm:left-5 sm:top-4" aria-hidden="true">
+            <Robot className="bob h-16 w-12 sm:h-24 sm:w-[4.5rem]" />
+            <span className="bubble relative mt-1 hidden rounded-2xl border-[3px] border-[#0B0F1F] bg-white px-3 py-1.5 text-xs font-extrabold text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] lg:block">
+              Je vous guide !
+              <span className="absolute -left-[9px] top-3 h-3.5 w-3.5 rotate-45 border-b-[3px] border-l-[3px] border-[#0B0F1F] bg-white" />
+            </span>
+          </div>
+          <div className="space-y-2 text-center sm:px-10 lg:px-44">
             <h2 className="text-2xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance] sm:text-3xl">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
             <p className="text-sm font-medium text-[#0B0F1F]/80 sm:text-base">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
           </div>
