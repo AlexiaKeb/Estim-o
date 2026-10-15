@@ -112,6 +112,8 @@ export interface LeadTask {
 
 export interface Lead {
   id: string;
+  /** Proof of the visitor's consent (wording shown, version, page). The server adds the date. */
+  consent?: { wording: string; version: string; page?: string; at?: string };
   name: string;
   phone: string;
   email: string;

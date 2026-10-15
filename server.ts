@@ -1491,6 +1491,15 @@ async function startServer() {
       // Seller-journey context for the CRM, written once when the lead is created (never overwrites the advisor's edits)
       const initialCrm: Record<string, any> = {};
       for (const k of ["notes", "tasks", "activities", "valuation"]) if (leadData[k]) initialCrm[k] = leadData[k];
+      if (leadData.consent && typeof leadData.consent === "object" && typeof leadData.consent.wording === "string") {
+        initialCrm.consent = {
+          wording: leadData.consent.wording.slice(0, 1200),
+          version: String(leadData.consent.version || "").slice(0, 40),
+          page: String(leadData.consent.page || "").slice(0, 200),
+          at: new Date().toISOString(),
+          ip: String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim().slice(0, 64),
+        };
+      }
       if (leadData.attribution && typeof leadData.attribution === "object") {
         const a: Record<string, string> = {};
         for (const k of ["gclid", "gbraid", "wbraid", "utmSource", "utmMedium", "utmCampaign", "utmTerm", "utmContent", "landingPage", "capturedAt"]) {

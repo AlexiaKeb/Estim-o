@@ -110,6 +110,10 @@ const fmt = (n: number) => n.toLocaleString('fr-FR');
 let uid = 0;
 const nextId = () => `m-${Date.now()}-${uid++}`;
 
+/** Wording of the consent box, kept with each lead as proof (version to bump whenever the text changes). */
+const CONSENT_VERSION = '2026-10-v2';
+const CONSENT_TEXT = `Je consens expressément à ce que ${AGENT.name}, conseillère immobilière indépendante, utilise mon nom, mon numéro de téléphone et mon adresse e-mail pour m'envoyer mon estimation, me contacter par téléphone ou par e-mail au sujet de mon projet immobilier et me proposer une visite, ainsi que quelques e-mails utiles liés à cette estimation. Je peux retirer mon consentement à tout moment, sans frais, en un clic dans chaque e-mail ou en contactant ${AGENT.firstName}. Mes données ne sont jamais revendues et sont conservées 3 ans après notre dernier échange.`;
+
 const Chip: React.FC<{ onClick: () => void; children: React.ReactNode; strong?: boolean; disabled?: boolean }> = ({ onClick, children, strong, disabled }) => (
   <button
     type="button"
@@ -347,7 +351,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (name.length < 2) return setContactError('Indiquez votre prénom et votre nom.');
     if (!isValidFrPhone(phone)) return setContactError('Indiquez un numéro de téléphone français valide (ex : 06 12 34 56 78) : Céline doit pouvoir vous joindre.');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setContactError('Indiquez une adresse e-mail valide.');
-    if (!contact.consent) return setContactError('Merci de cocher la case de consentement pour continuer.');
+    if (!contact.consent) return setContactError('Pour obtenir votre estimation, cochez la case : votre accord est nécessaire pour que Céline puisse utiliser vos coordonnées.');
     setContactError(null);
 
     userSays(`${name} · ${phone} · ${email}`, 'contact');
@@ -376,6 +380,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
       meetingBooked: false,
       createdAt: "À l'instant",
       attribution: getAttribution(),
+      consent: { wording: CONSENT_TEXT, version: CONSENT_VERSION, page: typeof window !== 'undefined' ? window.location.pathname : '' },
       valuation: res
         ? {
             dataSource: res.dataSource,
@@ -794,11 +799,11 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               <input id="input-prospect-phone" className={field} placeholder="Téléphone" type="tel" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} aria-label="Téléphone" />
               <input id="input-prospect-email" className={field} placeholder="E-mail" type="email" autoComplete="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} aria-label="E-mail" />
             </div>
-            <label className="flex items-start gap-2.5 text-xs text-white/90 leading-relaxed cursor-pointer">
+            <label className="flex items-start gap-3 text-xs text-white/90 leading-relaxed cursor-pointer">
               <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[#FFD60A]" checked={contact.consent} onChange={(e) => setContact({ ...contact, consent: e.target.checked })} />
               <span>
-                J'accepte que mes coordonnées servent à m'envoyer mon estimation et à être recontacté(e) à ce sujet par {AGENT.name}. Mes données ne sont jamais revendues et je peux me désinscrire à tout moment.{' '}
-                <a href="/confidentialite" target="_blank" rel="noreferrer" className="underline">Confidentialité</a>
+                {CONSENT_TEXT}{' '}
+                <a href="/confidentialite" target="_blank" rel="noreferrer" className="font-bold underline">Politique de confidentialité</a>
               </span>
             </label>
             {contactError && <p role="alert" className="text-sm font-bold text-[#FFD60A]">{contactError}</p>}
