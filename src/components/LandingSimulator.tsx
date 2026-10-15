@@ -82,7 +82,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
       </div>
 
       <div className="pt-2 pb-0">
-        <HowItWorks />
+        <HowItWorks onStart={handleHeroStart} />
         <WhyOnSite />
         <SocialProof />
         <ZoneSection />

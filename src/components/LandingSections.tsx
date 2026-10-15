@@ -45,8 +45,10 @@ const AgentAvatar: React.FC<{ size?: number }> = ({ size = 56 }) =>
 // Palette unique, couleurs franches (aucun dégradé) : bleu #2B4BFF, jaune #FFD60A, encre #0B0F1F, crème #FFF7E6.
 const BTN = 'inline-flex items-center justify-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-7 py-4 text-base font-black text-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#0B0F1F] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_#0B0F1F] focus:outline-none focus-visible:ring-4 focus-visible:ring-white';
 
-/** Above the fold: one promise, one field to start, the robot and the human face to face. */
-export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?: string; city?: string }) => void }> = ({ onStart }) => {
+type StartAddress = { address: string; postalCode?: string; city?: string };
+
+/** The address field + "Estimer" button that opens the assistant pop-up (hero and "how it works" section). */
+const AddressStartForm: React.FC<{ idPrefix: string; onStart: (a: StartAddress) => void; className?: string }> = ({ idPrefix, onStart, className = '' }) => {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<AddressSuggestion | null>(null);
 
@@ -56,6 +58,34 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
     else onStart({ address: text.trim() });
   };
 
+  return (
+    <form onSubmit={start} className={`flex w-full flex-col gap-3 rounded-3xl border-[3px] border-[#0B0F1F] bg-white p-3 text-left text-[#0B0F1F] shadow-[7px_7px_0_#0B0F1F] sm:flex-row ${className}`} aria-label="Démarrer l'estimation">
+      <label htmlFor={`${idPrefix}-address`} className="sr-only">Adresse du bien</label>
+      <AddressSearch
+        id={`${idPrefix}-address`}
+        size="lg"
+        value={text}
+        onChange={(t) => {
+          setText(t);
+          setPicked(null);
+        }}
+        onSelect={(sg) => {
+          setPicked(sg);
+          setText(sg.label);
+        }}
+        placeholder="Saisissez l'adresse de votre bien"
+        className="min-w-0 flex-1"
+      />
+      <button type="submit" id={`btn-${idPrefix}-start`} className={`group ${BTN}`}>
+        Estimer
+        <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+      </button>
+    </form>
+  );
+};
+
+/** Above the fold: one promise, one field to start, the robot and the human face to face. */
+export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?: string; city?: string }) => void }> = ({ onStart }) => {
   return (
     <div className="relative left-1/2 -translate-x-1/2 w-screen overflow-hidden bg-[#2B4BFF] text-white">
       <div aria-hidden className="spin-slow pointer-events-none absolute -right-10 top-24 hidden h-14 w-14 rounded-xl border-[5px] border-[#0B0F1F] bg-[#FFF7E6] lg:block" />
@@ -75,28 +105,7 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
             Obtenez une estimation basée sur les ventes réelles de votre quartier, affinée sur place par {AGENT.firstName}, votre conseillère de proximité.
           </p>
 
-          <form onSubmit={start} className="flex max-w-2xl flex-col gap-3 rounded-3xl border-[3px] border-[#0B0F1F] bg-white p-3 text-[#0B0F1F] shadow-[7px_7px_0_#0B0F1F] sm:flex-row" aria-label="Démarrer l'estimation">
-            <label htmlFor="hero-address" className="sr-only">Adresse du bien</label>
-            <AddressSearch
-              id="hero-address"
-              size="lg"
-              value={text}
-              onChange={(t) => {
-                setText(t);
-                setPicked(null);
-              }}
-              onSelect={(s) => {
-                setPicked(s);
-                setText(s.label);
-              }}
-              placeholder="Saisissez l'adresse de votre bien"
-              className="min-w-0 flex-1"
-            />
-            <button type="submit" id="btn-hero-start" className={`group ${BTN}`}>
-              Estimer
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </button>
-          </form>
+          <AddressStartForm idPrefix="hero" onStart={onStart} className="max-w-2xl" />
 
           <ul className="flex flex-wrap gap-2 text-[13px] font-bold sm:flex-nowrap sm:text-sm">
             {['Estimation en 2 minutes', '100 % offert', 'Sans engagement'].map((t) => (
@@ -191,7 +200,7 @@ export const STEPS = [
   },
 ];
 
-export const HowItWorks: React.FC = () => (
+export const HowItWorks: React.FC<{ onStart: (a: StartAddress) => void }> = ({ onStart }) => (
   <Band tone="yellow">
     <section aria-labelledby="how-title">
       <div className="mx-auto max-w-3xl text-center">
@@ -210,11 +219,8 @@ export const HowItWorks: React.FC = () => (
           </li>
         ))}
       </ol>
-      <div className="mt-12 text-center">
-        <button type="button" id="btn-how-start" onClick={scrollToSimulator} className="group inline-flex items-center justify-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#2B4BFF] px-8 py-4 text-base font-black text-white shadow-[5px_5px_0_#0B0F1F] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_#0B0F1F] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_#0B0F1F]">
-          Estimer mon bien
-          <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-        </button>
+      <div className="mx-auto mt-12 max-w-2xl">
+        <AddressStartForm idPrefix="how" onStart={onStart} />
       </div>
     </section>
   </Band>
