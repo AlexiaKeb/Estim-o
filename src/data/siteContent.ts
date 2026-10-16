@@ -8,6 +8,13 @@ export const BRAND = {
   tagline: 'Estimation immobilière à Lyon',
 };
 
+// Réseaux sociaux de Céline (s'ouvrent dans un nouvel onglet)
+export const SOCIALS = [
+  { id: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/celinelevrat_novea/' },
+  { id: 'linkedin', label: 'LinkedIn', url: 'https://www.linkedin.com/in/celine-levrat/' },
+  { id: 'facebook', label: 'Facebook', url: 'https://www.facebook.com/celinelevratNovea' },
+] as const;
+
 export const AGENT = {
   name: 'Céline Levrat',
   firstName: 'Céline',

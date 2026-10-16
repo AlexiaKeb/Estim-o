@@ -24,7 +24,10 @@ import {
   LogOut,
   Sliders,
   Settings,
-  ChevronRight
+  ChevronRight,
+  Instagram,
+  Linkedin,
+  Facebook
 } from 'lucide-react';
 import { ValuationInputs, ValuationResult, Lead, AgentPrivacySettings } from './types';
 import { INITIAL_LEADS } from './data/mockLeads';
@@ -65,7 +68,7 @@ const AgentAuthModal = lazyRetry(() => import('./components/AgentAuthModal').the
 const StatsView = lazyRetry(() => import('./components/StatsView').then((m) => ({ default: m.StatsView })));
 const ArticlesView = lazyRetry(() => import('./components/ArticlesView').then((m) => ({ default: m.ArticlesView })));
 const CalendarHealth = lazyRetry(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
-import { BRAND } from './data/siteContent';
+import { BRAND, SOCIALS } from './data/siteContent';
 import { CreditLine } from './components/CreditLine';
 
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator' | 'articles' | 'stats';
@@ -913,6 +916,21 @@ export default function App() {
             <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
             <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
             <a href="tel:+33603580316" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
+            <span className="flex items-center gap-2" id="footer-socials">
+              {SOCIALS.map((s) => (
+                <a
+                  key={s.id}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${s.label} de Céline Levrat (s'ouvre dans un nouvel onglet)`}
+                  title={s.label}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/70 text-white transition-colors hover:border-[#FFD60A] hover:bg-[#FFD60A] hover:text-[#0B0F1F]"
+                >
+                  {s.id === 'instagram' ? <Instagram className="h-4 w-4" /> : s.id === 'linkedin' ? <Linkedin className="h-4 w-4" /> : <Facebook className="h-4 w-4" />}
+                </a>
+              ))}
+            </span>
           </div>
 
           <div className="flex items-center gap-4 text-white/70">

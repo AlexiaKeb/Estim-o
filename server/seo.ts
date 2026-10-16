@@ -1,7 +1,7 @@
 import type { Request } from "express";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AGENT, BRAND, FAQ, FAQ_HOME_COUNT } from "../src/data/siteContent";
+import { AGENT, BRAND, FAQ, FAQ_HOME_COUNT, SOCIALS } from "../src/data/siteContent";
 import { getPost, BlogPost } from "../src/data/blog";
 import { BlogIndex, BlogArticle, BlogNotFound, FaqPage } from "../src/components/BlogPages";
 
@@ -107,6 +107,7 @@ function jsonLd(base: string): string {
       url: `${base}/`,
       image: `${base}/celine.jpg`,
       telephone: "+33603580316",
+      sameAs: SOCIALS.map((s) => s.url),
       description: "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais, appuyée sur les ventes réelles, avec visite offerte.",
       areaServed: areas,
     },
