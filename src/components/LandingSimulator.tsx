@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ValuationInputs, ValuationResult, Lead } from '../types';
 import { OPEN_ASSISTANT_EVENT, LandingHero, HowItWorks, WhyOnSite, SocialProof, ZoneSection, BlogTeaser, FaqSection, FinalCta, StickyMobileCta } from './LandingSections';
 import { Robot } from './Mascots';
-import { GuidedAssistant, AssistantSeed } from './GuidedAssistant';
+import { GuidedAssistant, AssistantSeed, clearAssistantDraft } from './GuidedAssistant';
 
 interface Props {
   onValuationComplete: (inputs: ValuationInputs, result: ValuationResult) => void;
@@ -20,16 +20,29 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
   const [leadInfo, setLeadInfo] = useState<Partial<Lead> | null>(null);
 
   const [open, setOpen] = useState(false);
+  const [session, setSession] = useState(0);
+  const leadRef = useRef<Partial<Lead> | null>(null);
+  leadRef.current = leadInfo;
+
+  // Opening the pop-up after a finished estimate starts a brand-new one
+  const openFresh = () => {
+    if (leadRef.current) {
+      clearAssistantDraft();
+      setLeadInfo(null);
+      setSession((n) => n + 1);
+    }
+    setOpen(true);
+  };
 
   // Opened by every CTA (event) and by blog links (/#simulateur)
   useEffect(() => {
-    const show = () => setOpen(true);
+    const show = () => { if (!open) openFresh(); };
     const onHash = () => { if (window.location.hash === '#simulateur') show(); };
     window.addEventListener(OPEN_ASSISTANT_EVENT, show);
     window.addEventListener('hashchange', onHash);
     onHash();
     return () => { window.removeEventListener(OPEN_ASSISTANT_EVENT, show); window.removeEventListener('hashchange', onHash); };
-  }, []);
+  }, [open]);
 
   // Scroll lock + Escape while the pop-up is open
   useEffect(() => {
@@ -49,8 +62,8 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
   };
 
   const handleHeroStart = (a: { address: string; postalCode?: string; city?: string }) => {
+    if (!open) openFresh();
     setSeed({ ...a, nonce: Date.now() });
-    setOpen(true);
   };
 
   return (
@@ -79,7 +92,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
             <h2 className="text-2xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance] sm:text-3xl">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
             <p className="text-sm font-medium text-[#0B0F1F]/80 sm:text-base">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
           </div>
-          <GuidedAssistant seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={(l) => { onOpenBooking?.(l); }} onLeadReady={setLeadInfo} />
+          <GuidedAssistant key={session} seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={(l) => { onOpenBooking?.(l); }} onLeadReady={setLeadInfo} />
         </div>
       </div>
 

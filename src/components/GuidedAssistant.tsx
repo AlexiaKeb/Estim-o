@@ -141,6 +141,8 @@ const loadDraft = (): any | null => {
     if (!raw) return null;
     const d = JSON.parse(raw);
     if (!d || typeof d.t !== 'number' || Date.now() - d.t > DRAFT_TTL_MS) return null;
+    // A finished estimate is never brought back: a new visit starts a new estimate
+    if (d.result || d.lead) return null;
     return d;
   } catch {
     return null;
@@ -225,6 +227,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
   useEffect(() => {
     const touched = messages.length > 2 || contact.name || contact.phone || contact.email || addrText || surfaceText;
     if (!touched) return;
+    if (result || lead) { clearAssistantDraft(); return; }
     const id = window.setTimeout(() => {
       try {
         localStorage.setItem(
