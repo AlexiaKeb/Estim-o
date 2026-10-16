@@ -1,3 +1,4 @@
+import { leadChannel } from "../src/utils/channel";
 // Maps Supabase rows (leads + conversations + rendez_vous) to the Lead shape used by the CRM screens.
 
 // Keys the advisor's screen may write (PATCH). Everything else in `crm` (valuation, qualification,
@@ -156,7 +157,8 @@ function csvCell(v: unknown): string {
 export function leadsToCsv(leads: ReturnType<typeof toLead>[]): string {
   const rows = leads.map((l) => {
     const a = l.attribution || {};
-    const source = [a.utmSource || (a.gclid ? "Google Ads" : ""), a.utmCampaign, a.utmTerm].filter(Boolean).join(" / ");
+    const ch = leadChannel(a);
+    const source = [ch.label, ch.detail].filter(Boolean).join(" / ");
     return [
       l.createdAtIso ? String(l.createdAtIso).slice(0, 16).replace("T", " ") : "",
       l.name, l.phone, l.email, l.address || "", l.city, l.propertyType, l.surface || "",

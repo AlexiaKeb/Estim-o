@@ -1,4 +1,5 @@
 import { PreVisitBrief } from './PreVisitBrief';
+import { leadChannel } from '../utils/channel';
 import { stageOf, frDate } from '../utils/stage';
 import { CommissionFields, type CommissionResult } from './CommissionCalculator';
 import { SecurityPanel } from './SecurityPanel';
@@ -1041,6 +1042,18 @@ export const CrmPipelineView: React.FC<Props> = ({
                       </a>
                     </div>
                   </div>
+
+                  {/* Origine du lead */}
+                  {(() => {
+                    const ch = leadChannel(selectedLeadDrawer.attribution);
+                    return (
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between sm:col-span-2" id="lead-origin">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase">Origine du lead</span>
+                        <div className="text-xs font-bold text-slate-900 my-1">{ch.label}</div>
+                        {ch.detail && <div className="text-[11px] text-slate-600">{ch.detail}</div>}
+                      </div>
+                    );
+                  })()}
 
                   {/* Copy Address */}
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between">

@@ -1,3 +1,4 @@
+import { CHANNELS, leadChannel } from '../utils/channel';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Loader2, Euro, TrendingUp, Users, CalendarCheck, FileSignature, BadgeCheck } from 'lucide-react';
 import { Lead } from '../types';
@@ -27,7 +28,7 @@ const isSold = (l: Lead) => Boolean(l.mandate?.soldDate);
 const hasMandate = (l: Lead) => l.mandate?.status === 'signed' || isSold(l);
 const hasVisit = (l: Lead) => l.meetingBooked || Boolean(l.visit2?.date) || hasMandate(l);
 const saleFee = (l: Lead) => l.mandate?.saleFee || 0;
-const isAds = (l: Lead) => Boolean(l.attribution?.gclid || /google/i.test(l.attribution?.utmSource || ''));
+const isAds = (l: Lead) => leadChannel(l.attribution).key === 'ads';
 
 const Step: React.FC<{ icon: React.ReactNode; label: string; value: number; sub: string; tone: string }> = ({ icon, label, value, sub, tone }) => (
   <div className={`flex-1 min-w-[130px] rounded-2xl border p-4 ${tone}`}>
@@ -255,18 +256,15 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
         <section aria-labelledby="src-title" className={`${card} p-5 sm:p-6`}>
           <h2 id="src-title" className="text-base font-bold text-stone-900">D'où viennent les leads ?</h2>
           <div className="mt-4 space-y-4">
-            {([
-              ['Publicité Google', s.ads, 'bg-sky-500'],
-              ['Autres (direct, blog, bouche à oreille)', s.inPeriod.filter((l) => !isAds(l)), 'bg-stone-400'],
-            ] as Array<[string, Lead[], string]>).map(([label, arr, bar]) => (
-              <div key={label}>
-                <div className="flex justify-between text-sm"><span className="font-semibold text-stone-900">{label}</span><span className="font-extrabold">{arr.length}</span></div>
+            {CHANNELS.map(({ key, label, bar }) => ({ key, label, bar, arr: s.inPeriod.filter((l) => leadChannel(l.attribution).key === key) })).filter((c) => c.arr.length > 0 || c.key === 'ads' || c.key === 'direct').map(({ key, label, bar, arr }) => (
+              <div key={key}>
+                <div className="flex justify-between text-sm"><span className="font-semibold text-stone-900">{label}</span><span className="font-extrabold">{arr.length} <span className="text-xs font-semibold text-stone-500">({pct(arr.length, L)})</span></span></div>
                 <div className="h-2 rounded-full bg-stone-100 mt-1.5 overflow-hidden"><div className={`h-full ${bar}`} style={{ width: `${(arr.length / maxBar) * 100}%` }} /></div>
                 <p className="text-[11px] text-stone-500 mt-1">{arr.filter(hasVisit).length} estimation(s) • {arr.filter(hasMandate).length} mandat(s) • {arr.filter(isSold).length} vente(s)</p>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-[11px] text-stone-500">Les leads d'une annonce Google sont repérés automatiquement (clic publicitaire).</p>
+          <p className="mt-4 text-[11px] text-stone-500">L'origine est relevée automatiquement (clic publicitaire, lien balisé ou site d'où vient le visiteur). Les leads reçus avant cette mise à jour apparaissent en « non renseigné ».</p>
         </section>
 
         {/* Archivés */}

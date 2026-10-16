@@ -17,6 +17,7 @@ export interface Attribution {
   utmTerm?: string;
   utmContent?: string;
   landingPage?: string;
+  referrer?: string;
   capturedAt?: string;
 }
 
@@ -55,7 +56,13 @@ export function captureAttribution(): void {
       const v = p.get(param);
       if (v) (found as any)[key] = v.slice(0, 200);
     }
-    if (Object.keys(found).length === 0) return; // on garde la première origine connue
+    const hasParams = Object.keys(found).length > 0;
+    // Première origine connue de la visite : on ne l'écrase que par un clic publicitaire / un lien balisé
+    if (!hasParams && window.sessionStorage.getItem(KEY)) return;
+    try {
+      const host = document.referrer ? new URL(document.referrer).hostname : '';
+      if (host && host !== window.location.hostname) found.referrer = host.slice(0, 100);
+    } catch { /* ignoré */ }
     found.landingPage = window.location.pathname;
     found.capturedAt = new Date().toISOString();
     window.sessionStorage.setItem(KEY, JSON.stringify(found));

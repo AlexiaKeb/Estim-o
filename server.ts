@@ -29,6 +29,7 @@ import {
   setRevokedBefore,
   getRevokedBefore,
 } from "./server/auth";
+import { leadChannel } from "./src/utils/channel";
 import { emailTextLength, isHtmlBody, plainToHtml, sanitizeEmailHtml } from "./src/utils/emailHtml";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
 import { toLead, pickCrm, leadsToCsv, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
@@ -1539,7 +1540,7 @@ async function startServer() {
       }
       if (leadData.attribution && typeof leadData.attribution === "object") {
         const a: Record<string, string> = {};
-        for (const k of ["gclid", "gbraid", "wbraid", "utmSource", "utmMedium", "utmCampaign", "utmTerm", "utmContent", "landingPage", "capturedAt"]) {
+        for (const k of ["gclid", "gbraid", "wbraid", "utmSource", "utmMedium", "utmCampaign", "utmTerm", "utmContent", "landingPage", "referrer", "capturedAt"]) {
           const v = leadData.attribution[k];
           if (typeof v === "string" && v) a[k] = v.slice(0, 200);
         }
@@ -1574,7 +1575,7 @@ async function startServer() {
       }
 
       await rescoreLead(client, inserted.id, { timeframe: leadData.timeframe, motive: leadData.motive });
-      const fromAds = Boolean(leadData.attribution?.gclid || /google/i.test(String(leadData.attribution?.utmSource || "")));
+      const channel = leadChannel(initialCrm.attribution);
       void notifyAdvisor({
         title: `🔔 Nouveau lead : ${String(base.nom).toUpperCase()}`,
         lines: [
@@ -1582,7 +1583,7 @@ async function startServer() {
           `🏠 ${[base.type_bien, base.surface ? `${base.surface} m²` : "", base.ville_bien ? `à ${base.ville_bien}` : ""].filter(Boolean).join(" ")}`,
           ...(optional.valeur_estimee ? [`💰 Estimation : ${Math.round(optional.valeur_estimee).toLocaleString("fr-FR")} €`] : []),
           ...(leadData.timeframe || leadData.motive ? [`🎯 Projet : ${[leadData.motive, leadData.timeframe].filter(Boolean).join(" • ")}`] : []),
-          `📍 Origine : ${fromAds ? "publicité Google" : "site (direct, blog…)"}`,
+          `📍 Origine : ${channel.label}${channel.detail ? ` (${channel.detail})` : ""}`,
         ],
         link: BASE_URL ? `${BASE_URL}/agent` : undefined,
         linkLabel: "Ouvrir le tableau de bord",

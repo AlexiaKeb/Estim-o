@@ -153,7 +153,7 @@ export interface Lead {
   /** Créneau choisi dans la conversation : présélectionné dans la fenêtre de réservation */
   preferredSlot?: { date: string; time: string };
   /** Origine du clic (annonce Google, campagne) */
-  attribution?: { gclid?: string; gbraid?: string; wbraid?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string; utmTerm?: string; utmContent?: string; landingPage?: string; capturedAt?: string };
+  attribution?: { gclid?: string; gbraid?: string; wbraid?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string; utmTerm?: string; utmContent?: string; landingPage?: string; referrer?: string; capturedAt?: string };
   /** How the price shown to the seller was computed (kept for the advisor) */
   valuation?: {
     dataSource?: 'dvf' | 'baseline';
