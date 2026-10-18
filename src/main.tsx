@@ -13,9 +13,9 @@ const path = window.location.pathname.replace(/\/+$/, '').toLowerCase();
 // Les pages secondaires (blog, pages légales) sont chargées à la demande : la page d'accueil reste légère.
 // Le blog est déjà dans le HTML envoyé par le serveur : le contenu s'affiche avant même le chargement du script.
 async function pageFor(p: string): Promise<ReactElement> {
-  if (p === '/mentions-legales' || p === '/confidentialite') {
+  if (p === '/mentions-legales' || p === '/confidentialite' || p === '/honoraires') {
     const m = await import('./components/LegalPages.tsx');
-    return p === '/mentions-legales' ? <m.MentionsLegales /> : <m.Confidentialite />;
+    return p === '/mentions-legales' ? <m.MentionsLegales /> : p === '/honoraires' ? <m.Honoraires /> : <m.Confidentialite />;
   }
   if (p === '/contact') {
     const m = await import('./components/BlogPages.tsx');

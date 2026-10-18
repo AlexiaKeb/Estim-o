@@ -976,6 +976,7 @@ export default function App() {
             <span className="hidden sm:inline">•</span>
                         <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
             <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
+            <a href="/honoraires" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Honoraires</a>
             <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
             <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
             <span className="flex items-center gap-2" id="footer-socials">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AGENT, BRAND, LEGAL, DIGITALE_SCHOOL_URL } from '../data/siteContent';
+import { AGENT, BRAND, LEGAL, DIGITALE_SCHOOL_URL, FEES, FEES_DATE } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -56,14 +56,19 @@ export const MentionsLegales: React.FC = () => (
       <p>
         <strong>{LEGAL.company}</strong>, {LEGAL.form}.<br />
         Siège social : {LEGAL.address}.<br />
-        SIRET : {LEGAL.siret}.<br />
+        SIRET : {LEGAL.siret} · {LEGAL.rcs}.<br />
         {LEGAL.cartePro}.<br />
+        {LEGAL.rcp}.<br />
+        {LEGAL.garantie}.<br />
         {LEGAL.fonds}.
       </p>
       <p>
         Activité de transaction sur immeubles et fonds de commerce, soumise à la loi n° 70-9 du 2 janvier 1970
         (loi Hoguet).
       </p>
+    </Section>
+    <Section title="Honoraires">
+      <p>Le barème des honoraires de transaction de l'agence mandante est consultable sur la page <a className="underline" href="/honoraires">Barème d'honoraires</a>.</p>
     </Section>
     <Section title="Conception du site">
       <p>
@@ -159,6 +164,39 @@ export const Confidentialite: React.FC = () => (
         données de votre navigateur permet de refaire ce choix.
       </p>
     </Section>
+    <p className="mt-8 text-sm"><a className="underline text-stone-800" href="/mentions-legales">Mentions légales</a></p>
+  </Shell>
+);
+
+export const Honoraires: React.FC = () => (
+  <Shell title="Barème d'honoraires">
+    <p className="mt-3 text-sm text-stone-600">Grille d'honoraires « Transaction » de {LEGAL.company}, barème du {FEES_DATE}. Montants toutes taxes comprises (TVA à 20 % incluse).</p>
+    {FEES.map((t) => (
+      <section key={t.title} className="mt-8">
+        <h2 className="text-lg font-bold text-stone-900 mb-3">{t.title}</h2>
+        <div className="overflow-hidden rounded-xl border border-stone-300 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-stone-800 text-left text-white">
+                <th scope="col" className="px-4 py-2 font-semibold">Montant de la transaction</th>
+                <th scope="col" className="px-4 py-2 font-semibold">Honoraires T.T.C.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {t.rows.map(([range, fee]) => (
+                <tr key={range} className="border-t border-stone-200 odd:bg-white even:bg-stone-50">
+                  <td className="px-4 py-2 text-stone-700">{range}</td>
+                  <td className="px-4 py-2 font-semibold text-stone-900">{fee}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-stone-500">
+          Sauf convention contraire, les honoraires sont à la charge de {t.payer} et les pourcentages sont calculés sur le prix de vente affiché T.T.C. (incluant une TVA à 20 %).
+        </p>
+      </section>
+    ))}
     <p className="mt-8 text-sm"><a className="underline text-stone-800" href="/mentions-legales">Mentions légales</a></p>
   </Shell>
 );

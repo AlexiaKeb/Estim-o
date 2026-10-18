@@ -65,6 +65,9 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
       contact: true,
     };
   }
+  if (path === "/honoraires") {
+    return { title: `Barème d'honoraires | ${BRAND.name}`, description: "Barème des honoraires de transaction de l'agence mandante, toutes taxes comprises.", path, index: true };
+  }
   if (path === "/mentions-legales") {
     return {
       title: `Mentions légales | ${BRAND.name}`,
@@ -285,6 +288,7 @@ export function sitemapXml(base: string, posts: BlogPost[]): string {
     ["/confidentialite", "0.2", "yearly"],
     ["/faq", "0.7", "monthly"],
     ["/contact", "0.5", "yearly"],
+    ["/honoraires", "0.3", "yearly"],
     ["/blog", "0.8", "weekly"],
     ...posts.map((p) => [`/blog/${p.slug}`, "0.7", "monthly"] as [string, string, string]),
   ];

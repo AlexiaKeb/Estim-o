@@ -38,6 +38,9 @@ export const LEGAL = {
   company: 'NOVEA IMMOBILIER transaction',
   form: 'SAS (société par actions simplifiée) au capital de 5 441,00 €',
   address: '10 chemin du Vieux Moulin, 69270 Saint-Romain-au-Mont-d\'Or',
+  rcs: 'RCS Lyon 902 615 194',
+  rcp: 'Responsabilité civile professionnelle : contrat n° 120137405, MMA Assurance (14 boulevard Marie et Alexandre Oyon, 72030 Le Mans)',
+  garantie: 'Garantie financière de 200 000 € : Galian Assurances',
   siret: '902 615 194',
   cartePro:
     'Carte professionnelle « Transaction » n° CPI 69012021000000167, délivrée par la Chambre de Commerce et d\'Industrie de Lyon',
@@ -125,5 +128,40 @@ export const FAQ: Array<{ q: string; a: string }> = [
   {
     q: 'Que deviennent mes données personnelles ?',
     a: "Vos informations restent strictement confidentielles. Elles servent uniquement à vous transmettre votre estimation et à planifier le rendez-vous si vous le souhaitez. Elles ne sont jamais revendues à des tiers.",
+  },
+];
+
+/** Barème d'honoraires « Transaction » de l'agence mandante (affichage obligatoire). */
+export const FEES_DATE = '7 janvier 2026';
+export const FEES: Array<{ title: string; payer: string; rows: Array<[string, string]> }> = [
+  {
+    title: "Ventes de locaux à usage d'habitation",
+    payer: 'le vendeur',
+    rows: [
+      ['Entre 0 € et 50 000 €', 'Forfait de 3 600 €'],
+      ['Entre 50 001 € et 100 000 €', '8,00 %'],
+      ['Entre 100 001 € et 200 000 €', '7,00 %'],
+      ['Entre 200 001 € et 250 000 €', '6,00 %'],
+      ['Entre 250 001 € et 300 000 €', '5,50 %'],
+      ['Plus de 300 000 €', '5,00 %'],
+    ],
+  },
+  {
+    title: "Vente d'immeubles, de locaux à usage professionnel, commercial, industriel et cession de bail",
+    payer: "l'acquéreur",
+    rows: [
+      ['Entre 0 € et 100 000 €', 'Forfait de 8 000 €'],
+      ['Entre 100 001 € et 200 000 €', '8 %'],
+      ['Entre 200 001 € et 1 000 000 €', '7 %'],
+      ['Plus de 1 000 000 €', '5,5 %'],
+    ],
+  },
+  {
+    title: 'Vente de terrains à bâtir',
+    payer: 'le vendeur',
+    rows: [
+      ['Entre 0 € et 500 000 €', '10,00 %'],
+      ['Plus de 500 000 €', '7,00 %'],
+    ],
   },
 ];
