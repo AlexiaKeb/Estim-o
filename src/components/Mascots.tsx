@@ -52,6 +52,17 @@ export const Human: React.FC<{ className?: string }> = ({ className = '' }) => (
   </div>
 );
 
+/** Visage de Céline en pastille ronde (photo recadrée sur le visage, éclaircie). */
+export const CelineFace: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <span className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#0B0F1F] bg-[#FFD60A] font-black text-[#0B0F1F] ${className}`}>
+    {AGENT.photoUrl ? (
+      <img src={AGENT.photoUrl} alt={`${AGENT.name}, conseillère immobilière`} width={96} height={96} className="h-full w-full object-cover" style={{ transformOrigin: '57% 32%', transform: 'translate(-7%, 18%) scale(2.5)', filter: 'brightness(1.3) contrast(1.08)' }} />
+    ) : (
+      AGENT.firstName[0]
+    )}
+  </span>
+);
+
 /** Étincelle qui pétille quand l'IA et l'humaine se rejoignent. */
 export const Spark: React.FC<{ className?: string }> = ({ className = '' }) => (
   <svg viewBox="0 0 60 60" className={className} aria-hidden="true" xmlns="http://www.w3.org/2000/svg">

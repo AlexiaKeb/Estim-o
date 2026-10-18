@@ -1,4 +1,5 @@
 import { trackConversion } from '../utils/tracking';
+import { CelineFace } from './Mascots';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Lead } from '../types';
 import { syncLeadToSupabase, invokeBookAppointmentEdgeFunction, fetchCalSlotsDetailed } from '../lib/supabaseService';
@@ -452,9 +453,7 @@ export const CalendarBookingModal: React.FC<Props> = ({
         {/* Advisor direct contact ribbon */}
         <div className="bg-[#FFF7E6] border-b-[3px] border-[#0B0F1F] px-6 py-3 flex items-center justify-between gap-3 text-xs">
           <div className="flex min-w-0 items-center gap-2 text-stone-800">
-            <div className="w-7 h-7 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center font-bold text-[11px] shadow-xs">
-              C
-            </div>
+            <CelineFace className="h-9 w-9" />
             <div className="min-w-0">
               <span className="block font-bold text-stone-900">Votre conseillère de proximité : Céline LEVRAT</span>
               <span className="text-stone-500 hidden sm:block">Spécialiste Région Lyonnaise & Beaujolais</span>

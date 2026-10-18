@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lead } from '../types';
 import { QuickQualification } from './QuickQualification';
+import { Human } from './Mascots';
 import { 
   Calendar, 
   Clock, 
@@ -305,50 +306,36 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
       {/* 2. SINGLE COLUMN: advisor, complementary questions, preparation, sector, FAQ */}
       <div className="space-y-6">
-        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-              Votre conseillère dédiée
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-[#FFF7E6] text-[#2B4BFF] border border-[#0B0F1F] text-[10px] font-bold">
-              Dossier attribué
-            </span>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-[#FFD60A] border-[3px] border-[#0B0F1F] flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
-                C
+        <section aria-labelledby="advisor-title" id="advisor-card" className="rounded-3xl border-[3px] border-[#0B0F1F] bg-[#2B4BFF] p-5 text-white shadow-[8px_8px_0_#0B0F1F] sm:p-8">
+          <div className="flex flex-col items-center gap-6 md:flex-row md:items-end md:gap-10">
+            <Human className="w-40 shrink-0 sm:w-48" />
+            <div className="w-full min-w-0 flex-1 space-y-4 text-center md:text-left">
+              <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                <span id="advisor-title" className="text-xs font-black uppercase tracking-wider text-[#FFD60A]">Votre conseillère dédiée</span>
+                <span className="rounded-full border-2 border-[#0B0F1F] bg-[#FFF7E6] px-2.5 py-0.5 text-[10px] font-black text-[#2B4BFF]">Dossier attribué</span>
               </div>
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#FFF7E6]0 border-2 border-white" title="En ligne" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-stone-900">Céline LEVRAT</h3>
-              <p className="text-xs font-medium text-[#2B4BFF]">Experte immobilière locale</p>
-            </div>
-          </div>
-
-          <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 rounded-2xl p-4 border border-stone-200/70 italic">
-            « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste. »
-          </p>
-
-          <div className="space-y-2 pt-1 sm:flex sm:items-center sm:gap-5 sm:space-y-0">
-            <a
-              href="tel:0603580316"
-              className="w-full sm:w-auto sm:shrink-0 py-3 px-4 sm:px-8 rounded-2xl bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
-            >
-              <PhoneCall className="w-4 h-4 text-[#FFD60A]" />
-              <span className="flex flex-col items-center leading-tight"><span>Appeler Céline</span><span>06 03 58 03 16</span></span>
-            </a>
-
-            <div className="text-center sm:text-left">
-              <span className="text-[11px] text-stone-500">
-                Pour modifier ou décaler votre créneau, appelez Céline au <strong className="whitespace-nowrap">06 03 58 03 16</strong>
-              </span>
+              <div>
+                <h3 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">Céline LEVRAT</h3>
+                <p className="mt-1 text-base font-bold text-white/85">Experte immobilière locale</p>
+              </div>
+              <p className="rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFF7E6] p-4 text-left text-sm font-medium italic leading-relaxed text-[#0B0F1F]">
+                « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste. »
+              </p>
+              <div className="flex flex-col items-center gap-3 sm:flex-row md:justify-start">
+                <a
+                  href="tel:0603580316"
+                  className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-6 py-3.5 text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5 sm:w-auto"
+                >
+                  <PhoneCall className="h-6 w-6" />
+                  <span className="flex flex-col items-start leading-tight"><span className="text-sm font-black">Appeler Céline</span><span className="text-lg font-black tracking-wide">06 03 58 03 16</span></span>
+                </a>
+                <p className="text-sm font-semibold text-white/90 sm:max-w-xs sm:text-left">
+                  Pour modifier ou décaler votre créneau, appelez Céline au <strong className="whitespace-nowrap">06 03 58 03 16</strong>
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Optional robot-led complementary questions about the property */}
         <QuickQualification
