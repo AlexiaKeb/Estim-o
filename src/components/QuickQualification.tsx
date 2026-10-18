@@ -38,7 +38,7 @@ const STEPS: Step[] = [
 const SKIP = 'Je préfère passer';
 const ACKS = ['Merci.', "C'est noté.", 'Très bien.', "Merci, c'est noté.", 'Parfait.'];
 
-interface Msg { from: 'bot' | 'user'; text: string }
+interface Msg { from: 'bot' | 'user'; text: string; step?: number }
 
 const chip = 'rounded-full border-[3px] border-white bg-white px-4 py-2.5 text-sm font-bold text-[#0B0F1F] transition-colors hover:bg-[#FFF7E6]';
 const chipStrong = 'rounded-full border-[3px] border-white bg-[#FFD60A] px-4 py-2.5 text-sm font-black text-[#0B0F1F] transition-colors hover:brightness-95';
@@ -106,7 +106,7 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
   };
 
   const advance = (final: QuickAnswers, userText: string | null, from: number) => {
-    if (userText) setMsgs((m) => [...m, { from: 'user', text: userText }]);
+    if (userText) setMsgs((m) => [...m, { from: 'user', text: userText, step: from }]);
     setAnswers(final);
     setText('');
     setMulti([]);
@@ -115,6 +115,24 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
     setIdx(next);
     const ack = userText === SKIP ? 'Pas de souci.' : ACKS[from % ACKS.length];
     botSays(`${ack} ${STEPS[next].ask}`);
+  };
+
+  // Lets the visitor change an earlier answer: go back to that question, forget it and the answers after it
+  const rewind = (at: number) => {
+    if (typing) return;
+    const m = msgs[at];
+    if (!m || m.step === undefined) return;
+    const stepNo = m.step;
+    const kept: QuickAnswers = { ...answers };
+    for (let i = stepNo; i < STEPS.length; i++) delete (kept as any)[STEPS[i].key];
+    const previous = (answers as any)[STEPS[stepNo].key];
+    setMsgs(msgs.slice(0, at));
+    setAnswers(kept);
+    setMulti([]);
+    setText(typeof previous === 'string' ? previous : '');
+    pending.current = null;
+    setState('chat');
+    setIdx(stepNo);
   };
 
   const start = () => {
@@ -207,7 +225,10 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
 
       <div ref={logRef} className="max-h-[22rem] space-y-3 overflow-y-auto bg-[#FFF7E6] px-4 py-4 sm:px-5" aria-live="polite">
         {msgs.map((m, i) => (
-          <div key={i} className={`flex ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={i} className={`flex items-center gap-2 ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {m.from === 'user' && m.step !== undefined && !typing && (
+              <button type="button" onClick={() => rewind(i)} className="shrink-0 text-xs font-bold text-[#0B0F1F]/60 underline underline-offset-2 hover:text-[#2B4BFF]" aria-label={`Modifier ma réponse : ${m.text}`}>Modifier</button>
+            )}
             <p className={`bubble max-w-[85%] rounded-2xl px-4 py-2.5 text-sm font-medium leading-snug ${m.from === 'user' ? 'rounded-br-md bg-[#2B4BFF] text-white' : 'rounded-bl-md border-[3px] border-[#0B0F1F] bg-white text-[#0B0F1F]'}`}>{m.text}</p>
           </div>
         ))}
