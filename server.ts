@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import fs from "fs";
 import { renderSeo, robotsTxt, sitemapXml, siteBase } from "./server/seo";
@@ -283,6 +283,14 @@ const AGENT_PROFILE = {
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
+
+  // Former domain of the advisor: permanent (301) redirection to the new site, keeping the path (works in HTTPS too)
+  const OLD_HOSTS = new Set(["celinelevrat.fr", "www.celinelevrat.fr"]);
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].split(":")[0].trim().toLowerCase();
+    if (OLD_HOSTS.has(host)) return res.redirect(301, `https://agent-estimation.fr${req.originalUrl}`);
+    next();
+  });
 
   // Smaller pages and scripts: faster loading (a Core Web Vitals / ranking signal)
   app.use(compression());
