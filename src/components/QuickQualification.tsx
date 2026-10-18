@@ -29,12 +29,12 @@ type Step =
   | { key: 'expectedPrice'; kind: 'price'; ask: string };
 
 const STEPS: Step[] = [
-  { key: 'ownership', kind: 'single', ask: "Ce bien est-il à vous seul, ou le partagez-vous avec quelqu'un (conjoint, famille) ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
-  { key: 'profession', kind: 'text', ask: "Pour que Céline s'adapte à vos disponibilités, que faites-vous au quotidien ? Quelques mots suffisent, vous pouvez aussi passer.", placeholder: 'Ce que vous souhaitez partager' },
-  { key: 'mandate', kind: 'single', ask: "Avez-vous déjà échangé avec d'autres professionnels au sujet de ce bien ?", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
-  { key: 'occupancy', kind: 'single', ask: 'Ce logement est-il occupé, vide ou loué ?', options: [['occupe', "J'y habite"], ['libre', 'Il est vide'], ['loue', 'Il est loué']] },
-  { key: 'purchase', kind: 'single', ask: 'Souhaitez-vous aussi acheter un nouveau bien ?', options: [['aucun', 'Non, pas pour le moment'], ['recherche', 'Oui, je suis en pleine recherche'], ['trouve', "Oui, j'ai déjà une piste"]] },
-  { key: 'expectedPrice', kind: 'price', ask: "Avez-vous une idée du prix que vous visez ? C'est facultatif : Céline en parlera avec vous lors de la visite." },
+  { key: 'ownership', kind: 'single', ask: "Êtes-vous seul(e) propriétaire de ce bien, ou avec quelqu'un ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
+  { key: 'profession', kind: 'text', ask: "Que faites-vous dans la vie ? C'est facultatif : cela aide Céline à s'adapter à vos horaires.", placeholder: 'Ce que vous souhaitez partager' },
+  { key: 'mandate', kind: 'single', ask: "Avez-vous déjà fait estimer ce bien, ou signé un mandat avec une agence ?", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
+  { key: 'occupancy', kind: 'single', ask: 'Le logement est-il occupé, vide ou loué ?', options: [['occupe', "J'y habite"], ['libre', 'Il est vide'], ['loue', 'Il est loué']] },
+  { key: 'purchase', kind: 'single', ask: 'Avez-vous un projet d'achat ?', options: [['aucun', 'Non, pas pour le moment'], ['recherche', 'Oui, je suis en pleine recherche'], ['trouve', "Oui, j'ai déjà une piste"]] },
+  { key: 'expectedPrice', kind: 'price', ask: "Quel prix espérez-vous en tirer ? C'est facultatif, Céline en parlera avec vous lors de la visite." },
 ];
 
 const SKIP = 'Je préfère passer';
@@ -48,7 +48,7 @@ const field = 'w-full rounded-xl border-[3px] border-white bg-white px-4 py-3 te
 
 /** Conversational complementary questions shown once the visit is confirmed: the robot asks, the visitor taps. Fully optional. */
 export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmitted }) => {
-  const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: "Bonjour, votre rendez-vous est bien enregistré. Si vous le souhaitez, quelques questions sur votre projet permettront à Céline de préparer la visite. Cela prend une minute, et vous pouvez passer n'importe quelle question." }]);
+  const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: "Bonjour, votre rendez-vous est bien enregistré. Quelques questions rapides aideront Céline à préparer la visite. Vous pouvez passer celles que vous voulez." }]);
   const [idx, setIdx] = useState(-1); // -1 = intro shown, waiting for "C'est parti"
   const [typing, setTyping] = useState(false);
   const [answers, setAnswers] = useState<QuickAnswers>({});
