@@ -40,6 +40,17 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
       home: true,
     };
   }
+  // Landing page of the ads: the home page, with the estimate assistant opened straight away (canonical = home page)
+  if (path === "/estimation") {
+    return {
+      title: `Estimation immobilière gratuite à Lyon | ${BRAND.name}`,
+      description:
+        "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais en 2 minutes, d'après les ventes réelles (DVF). Visite offerte avec Céline Levrat.",
+      path: "/",
+      index: true,
+      home: true,
+    };
+  }
   if (path === "/mentions-legales") {
     return {
       title: `Mentions légales | ${BRAND.name}`,

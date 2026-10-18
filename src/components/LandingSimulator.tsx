@@ -41,6 +41,8 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
     window.addEventListener(OPEN_ASSISTANT_EVENT, show);
     window.addEventListener('hashchange', onHash);
     onHash();
+    // Ads landing page: /estimation opens the assistant straight away
+    if (window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/estimation') show();
     return () => { window.removeEventListener(OPEN_ASSISTANT_EVENT, show); window.removeEventListener('hashchange', onHash); };
   }, [open]);
 
@@ -58,6 +60,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
 
   const close = () => {
     setOpen(false);
+    if (window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/estimation') history.replaceState(null, '', '/' + window.location.search);
     if (window.location.hash === '#simulateur') history.replaceState(null, '', window.location.pathname + window.location.search);
   };
 
