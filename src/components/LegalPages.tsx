@@ -46,7 +46,11 @@ export const MentionsLegales: React.FC = () => (
         Immatriculée au {LEGAL.rsac}.<br />
         Assurance responsabilité civile professionnelle : {LEGAL.agentRcp}.
       </p>
-      <p>L'agent commercial ne peut recevoir aucun engagement ni aucun versement de fonds, effets ou valeurs.</p>
+      <p>
+        Céline LEVRAT n'est pas titulaire d'une carte professionnelle : elle exerce en qualité d'agent commercial, sous couvert de la
+        carte professionnelle et de l'attestation d'habilitation délivrées par {LEGAL.company} (voir « Agence mandante » ci-dessous).
+        L'agent commercial ne peut recevoir aucun engagement ni aucun versement de fonds, effets ou valeurs.
+      </p>
       <p><Contact /></p>
     </Section>
     <Section title="Directrice de la publication">
