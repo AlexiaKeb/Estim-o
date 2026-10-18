@@ -84,7 +84,7 @@ export const BlogIndex: React.FC<{ posts: BlogPost[] }> = ({ posts }) => (
         Conseils pour estimer et vendre son bien à Lyon
       </h1>
       <p className="mt-3 text-stone-600 max-w-2xl">
-        Prix, documents, diagnostics, étapes de la vente : des explications claires pour préparer votre projet, rédigées par {AGENT.name}, conseillère immobilière à Lyon.
+        Prix, documents, diagnostics, étapes de la vente : des explications claires pour préparer votre projet, rédigées par {AGENT.displayName}, conseillère immobilière à Lyon.
       </p>
       <div className="mt-8 grid sm:grid-cols-2 gap-5">
         {posts.map((p) => <PostCard key={p.slug} post={p} />)}
@@ -142,7 +142,7 @@ export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ po
         <article>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#0B0F1F] leading-tight [text-wrap:balance]">{post.title}</h1>
           <p className="mt-3 text-sm text-stone-500">
-            Par {AGENT.name} · <time dateTime={post.date}>{formatPostDate(post.date)}</time>
+            Par {AGENT.displayName} · <time dateTime={post.date}>{formatPostDate(post.date)}</time>
             {post.updated ? <> · mis à jour le <time dateTime={post.updated}>{formatPostDate(post.updated)}</time></> : null} · {post.readingMinutes} min de lecture
           </p>
           <p className="mt-6 text-lg text-stone-700 leading-relaxed">{renderInline(post.intro)}</p>
@@ -169,7 +169,7 @@ export const BlogArticle: React.FC<{ post: BlogPost; all?: BlogPost[] }> = ({ po
           <aside aria-label="À propos de l'auteure" className="mt-10 flex items-center gap-4 rounded-2xl bg-white border border-stone-200 p-4">
             <img src={AGENT.photoUrl} alt={AGENT.name} width={72} height={72} loading="lazy" className="w-[72px] h-[72px] rounded-full object-cover" />
             <p className="text-sm text-stone-600">
-              <strong className="text-stone-900">{AGENT.name}</strong>, conseillère immobilière indépendante à Lyon. Elle accompagne les propriétaires de Lyon, Villeurbanne et du Beaujolais, de l'estimation à la vente. Ces informations sont générales et ne remplacent pas l'avis d'un professionnel pour votre situation.
+              <strong className="text-stone-900">{AGENT.displayName}</strong>, conseillère immobilière indépendante à Lyon. Elle accompagne les propriétaires de Lyon, Villeurbanne et du Beaujolais, de l'estimation à la vente. Ces informations sont générales et ne remplacent pas l'avis d'un professionnel pour votre situation.
             </p>
           </aside>
         </article>

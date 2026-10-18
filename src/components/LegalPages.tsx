@@ -126,7 +126,7 @@ export const Confidentialite: React.FC = () => (
   <Shell title="Politique de confidentialité">
     <Section title="Qui traite vos données ?">
       <p>
-        Le responsable du traitement est {AGENT.name}, agent commercial indépendant, mandataire de {LEGAL.company}
+        Le responsable du traitement est {AGENT.displayName}, agent commercial indépendant, mandataire de {LEGAL.company}
         ({LEGAL.address}, SIRET {LEGAL.siret}). <Contact />
       </p>
     </Section>
@@ -158,7 +158,7 @@ export const Confidentialite: React.FC = () => (
     </Section>
     <Section title="Qui reçoit vos données ?">
       <p>
-        {AGENT.name} et {LEGAL.company}. Prestataires techniques agissant pour notre compte : Render (hébergement),
+        {AGENT.displayName} et {LEGAL.company}. Prestataires techniques agissant pour notre compte : Render (hébergement),
         Supabase (base de données), Cal.com (prise de rendez-vous), Anthropic (génération des réponses de
         l'assistant et de la fiche de préparation), un service d'envoi d'e-mails, et Google (mesure des annonces, si
         vous l'acceptez). Certains sont situés hors de l'Union européenne ; les transferts s'appuient sur les

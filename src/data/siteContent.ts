@@ -17,6 +17,8 @@ export const SOCIALS = [
 
 export const AGENT = {
   name: 'Céline Levrat',
+  // Affichage : nom de famille en majuscules
+  displayName: 'Céline LEVRAT',
   firstName: 'Céline',
   agency: 'Agent Estimation',
   city: 'Lyon',
