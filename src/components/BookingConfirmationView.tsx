@@ -23,7 +23,6 @@ import {
   Smartphone,
   CalendarPlus,
   FileCheck2,
-  Award,
   ChevronRight
 } from 'lucide-react';
 
@@ -378,17 +377,6 @@ export const BookingConfirmationView: React.FC<Props> = ({
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Team Evaluation Highlight */}
-          <div className="p-4 rounded-2xl bg-[#FFF7E6] text-[#0B0F1F] border-[3px] border-[#0B0F1F] space-y-1.5 mt-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#0B0F1F]">
-              <Award className="w-4 h-4 text-[#2B4BFF]" />
-              <span>Votre avis de valeur</span>
-            </div>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez ensuite un avis de valeur au plus juste du marché local.
-            </p>
           </div>
         </div>
 

@@ -71,6 +71,41 @@ const CalendarHealth = lazyRetry(() => import('./components/CalendarHealth').the
 import { BRAND, SOCIALS } from './data/siteContent';
 import { CreditLine } from './components/CreditLine';
 
+// Confirmation page: its own address (/confirmation) so a refresh keeps it; /confirmation?demo=1 shows a sample for tests
+const CONFIRMED_KEY = 'estimo-confirmed-lead-v1';
+const CONFIRMED_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const onConfirmationPath = () => typeof window !== 'undefined' && window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/confirmation';
+const DEMO_CONFIRMED_LEAD = {
+  id: 'demo-confirmation',
+  name: 'Alexia KEBIR',
+  phone: '06 12 34 56 78',
+  email: 'exemple@email.fr',
+  address: '12 rue de la République, 69002 Lyon',
+  city: 'Lyon',
+  propertyType: 'Appartement',
+  surface: 80,
+  estimatedValue: 420000,
+  motive: 'Agrandissement',
+  timeframe: '1-3 mois',
+  status: 'HOT',
+  score: 60,
+  meetingBooked: true,
+  meetingDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
+  meetingTime: '10:30',
+  valuation: { lowPrice: 396000, highPrice: 441000 },
+} as unknown as Lead;
+const loadConfirmedLead = (): Lead | null => {
+  if (!onConfirmationPath()) return null;
+  try {
+    if (new URLSearchParams(window.location.search).get('demo')) return DEMO_CONFIRMED_LEAD;
+    const raw = window.localStorage.getItem(CONFIRMED_KEY);
+    const d = raw ? JSON.parse(raw) : null;
+    if (d && d.lead && typeof d.t === 'number' && Date.now() - d.t < CONFIRMED_TTL_MS) return d.lead as Lead;
+  } catch { /* ignoré */ }
+  return null;
+};
+const BOOT_CONFIRMED_LEAD = loadConfirmedLead();
+
 type NavView = 'landing' | 'chat' | 'confirmation' | 'pipeline' | 'nurture' | 'calculator' | 'articles' | 'stats';
 
 export default function App() {
@@ -86,7 +121,7 @@ export default function App() {
   const [logoClicks, setLogoClicks] = useState(0);
 
   // Active view - Default to CRM Pipeline Dashboard
-  const [currentView, setCurrentView] = useState<NavView>('landing');
+  const [currentView, setCurrentView] = useState<NavView>(BOOT_CONFIRMED_LEAD ? 'confirmation' : 'landing');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Privacy & Stealth Settings
@@ -322,7 +357,7 @@ export default function App() {
   // Booking modal
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingLeadInfo, setBookingLeadInfo] = useState<Partial<Lead> | null>(null);
-  const [latestConfirmedLead, setLatestConfirmedLead] = useState<Lead | null>(null);
+  const [latestConfirmedLead, setLatestConfirmedLead] = useState<Lead | null>(BOOT_CONFIRMED_LEAD);
   // The one lead of the current seller journey: created once by the simulator, reused by chat and booking
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
 
@@ -496,6 +531,13 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Leaving the confirmation (or opening /confirmation without a booking) brings the address back to the home page
+  useEffect(() => {
+    if (currentView !== 'confirmation' && onConfirmationPath()) {
+      try { window.history.replaceState(null, '', '/'); } catch { /* ignoré */ }
+    }
+  }, [currentView]);
+
   // Handler when meeting is confirmed
   const handleConfirmBooking = (newLead: Lead) => {
     clearAssistantDraft();
@@ -508,6 +550,10 @@ export default function App() {
       setCurrentView('pipeline');
     } else {
       showToast(`✅ Merci ${newLead.name}, votre rendez-vous d'estimation est confirmé !`);
+      try {
+        window.localStorage.setItem(CONFIRMED_KEY, JSON.stringify({ t: Date.now(), lead: newLead }));
+        window.history.pushState(null, '', '/confirmation');
+      } catch { /* l'adresse reste celle de l'accueil */ }
       setCurrentView('confirmation');
     }
   };

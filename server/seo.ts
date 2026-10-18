@@ -51,6 +51,10 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
       home: true,
     };
   }
+  // Confirmation page (after a booking): served so a refresh keeps it, never indexed
+  if (path === "/confirmation") {
+    return { title: `Confirmation de votre rendez-vous | ${BRAND.name}`, description: "Confirmation de votre visite d'estimation avec Céline Levrat.", path, index: false };
+  }
   if (path === "/mentions-legales") {
     return {
       title: `Mentions légales | ${BRAND.name}`,
