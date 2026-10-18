@@ -42,7 +42,7 @@ export const LEGAL = {
   // À compléter : numéro d'immatriculation de Céline au RSAC (agent commercial) et greffe
   rsac: '',
   // À compléter : e-mail de contact et nom du médiateur de la consommation de NOVEA
-  contactEmail: '',
+  contactEmail: 'cel@novea-immobilier.fr',
   mediator: '',
 };
 
