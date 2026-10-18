@@ -36,6 +36,7 @@ import { LandingSimulator } from './components/LandingSimulator';
 import { CalendarBookingModal } from './components/CalendarBookingModal';
 // Part of the booking flow: loaded with the page so the confirmation always opens, even right after a site update
 import { BookingConfirmationView } from './components/BookingConfirmationView';
+import { CreditLine } from './components/CreditLine';
 import { clearAssistantDraft } from './components/GuidedAssistant';
 
 // After a redeploy an open tab can ask for a file that no longer exists: reload once to fetch the new version
@@ -987,20 +988,10 @@ export default function App() {
         </section>
       )}
 
-      {/* Footer : logo à gauche, menu à droite */}
+      {/* Footer : menu centré et crédit */}
       <footer className="bg-[#0B0F1F] py-8 pb-24 sm:pb-8 mt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <a href="/" className="flex items-center gap-2.5 select-none" aria-label={`${BRAND.name} : retour à l'accueil`}>
-            <span className="w-9 h-9 rounded-xl bg-[#2B4BFF] border-[3px] border-white text-white flex items-center justify-center">
-              <Building2 className="w-[18px] h-[18px]" />
-            </span>
-            <span>
-              <span className="block text-sm font-bold text-white tracking-tight leading-tight">{BRAND.name}</span>
-              <span className="block text-[11px] text-white/60 leading-tight">{BRAND.tagline}</span>
-            </span>
-          </a>
-
-          <nav aria-label="Liens du site" className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-white/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
+          <nav aria-label="Liens du site" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/80">
             <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
             <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
             <a href="/honoraires" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Honoraires</a>
@@ -1029,6 +1020,7 @@ export default function App() {
               </button>
             ) : null}
           </nav>
+          <CreditLine />
         </div>
       </footer>
     </div>
