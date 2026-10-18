@@ -2,7 +2,7 @@
 // and every point can be explained to the advisor. (The AI chat never sets the score.)
 
 export type Ownership = "seul" | "plusieurs" | "pas_encore" | "succession";
-export type Mandate = "aucun" | "estimations" | "simple" | "exclusif";
+export type Mandate = "aucun" | "estimations" | "simple" | "exclusif" | "en_cours";
 export type Occupancy = "occupe" | "libre" | "loue";
 
 export interface Qualification {
@@ -55,7 +55,10 @@ export function computeScore(i: ScoreInput): ScoreResult {
 
   if (i.mandate === "aucun") add("Aucun mandat de vente en cours", 15);
   else if (i.mandate === "estimations") add("A reçu des estimations, aucun mandat signé", 12);
-  else if (i.mandate === "simple") add("Mandat simple signé ailleurs", 5);
+  else if (i.mandate === "en_cours") {
+    add("Mandat en cours ailleurs (simple ou exclusif : à vérifier)", -5);
+    blockers.push("Un mandat est en cours chez une autre agence : vérifier s'il est simple ou exclusif et sa date de fin.");
+  } else if (i.mandate === "simple") add("Mandat simple signé ailleurs", 5);
   else if (i.mandate === "exclusif") {
     add("Mandat exclusif signé ailleurs", -20);
     blockers.push("Mandat exclusif en cours chez une autre agence : impossible de le prendre avant son terme.");
@@ -89,7 +92,7 @@ export function computeScore(i: ScoreInput): ScoreResult {
 }
 
 const OWNERSHIP: Ownership[] = ["seul", "plusieurs", "pas_encore", "succession"];
-const MANDATE: Mandate[] = ["aucun", "estimations", "simple", "exclusif"];
+const MANDATE: Mandate[] = ["aucun", "estimations", "simple", "exclusif", "en_cours"];
 const OCCUPANCY: Occupancy[] = ["occupe", "libre", "loue"];
 const CONDITION = ["refait", "bon", "rafraichir", "travaux"];
 const PURCHASE = ["aucun", "recherche", "trouve"];

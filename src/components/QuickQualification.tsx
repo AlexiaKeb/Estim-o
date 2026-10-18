@@ -3,7 +3,7 @@ import { Robot } from './Mascots';
 
 export interface QuickAnswers {
   ownership?: 'seul' | 'plusieurs' | 'pas_encore' | 'succession';
-  mandate?: 'aucun' | 'estimations' | 'simple' | 'exclusif';
+  mandate?: 'aucun' | 'estimations' | 'simple' | 'exclusif' | 'en_cours';
   occupancy?: 'occupe' | 'libre' | 'loue';
   condition?: 'refait' | 'bon' | 'rafraichir' | 'travaux';
   purchase?: 'aucun' | 'recherche' | 'trouve';
@@ -31,7 +31,7 @@ type Step =
 const STEPS: Step[] = [
   { key: 'ownership', kind: 'single', ask: "Êtes-vous seul(e) propriétaire de ce bien, ou avec quelqu'un ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['succession', "C'est une succession"], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
   { key: 'profession', kind: 'text', ask: "Quel est votre métier ? C'est facultatif : cela aide Céline à s'adapter à vos horaires.", placeholder: 'Ce que vous souhaitez partager' },
-  { key: 'mandate', kind: 'single', ask: "Avez-vous déjà fait estimer ce bien, ou signé un mandat avec une agence ?", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
+  { key: 'mandate', kind: 'single', ask: "Avez-vous déjà fait estimer ce bien, ou signé un mandat avec une agence ?", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['en_cours', 'Un mandat est en cours']] },
   { key: 'expectedPrice', kind: 'price', ask: "Dernière question, facultative : avez-vous un prix en tête ?" },
 ];
 

@@ -144,7 +144,7 @@ export interface Lead {
   /** E-mails of the follow-up sequence are sent automatically on their dates */
   autoRelances?: boolean;
   /** Quick answers given by the seller */
-  qualification?: { ownership?: 'seul' | 'plusieurs' | 'pas_encore' | 'succession'; mandate?: 'aucun' | 'estimations' | 'simple' | 'exclusif'; occupancy?: 'occupe' | 'libre' | 'loue'; expectedPrice?: number | null; profession?: string; condition?: string; purchase?: string; extras?: string[] };
+  qualification?: { ownership?: 'seul' | 'plusieurs' | 'pas_encore' | 'succession'; mandate?: 'aucun' | 'estimations' | 'simple' | 'exclusif' | 'en_cours'; occupancy?: 'occupe' | 'libre' | 'loue'; expectedPrice?: number | null; profession?: string; condition?: string; purchase?: string; extras?: string[] };
   /** Why the score is what it is (transparent rules) */
   scoreReasons?: Array<{ label: string; points: number }>;
   blockers?: string[];
