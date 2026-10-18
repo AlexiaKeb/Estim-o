@@ -984,7 +984,7 @@ async function startServer() {
     const ids = [...new Set(rows.map((r) => r.lead_id).filter(Boolean))];
     const { data: leads } = ids.length ? await client.from("leads").select("id, nom").in("id", ids) : { data: [] as any[] };
     const names = new Map<string, string>((leads || []).map((l: any) => [l.id, l.nom]));
-    res.json({ items: rows.filter((r) => names.has(r.lead_id)).map((r) => ({ id: r.id, leadName: names.get(r.lead_id), step: r.step || "", subject: r.subject || "", sendAt: r.send_at })) });
+    res.json({ items: rows.filter((r) => names.has(r.lead_id)).map((r) => ({ id: r.id, leadName: names.get(r.lead_id), step: r.step || "", abandon: r.step === AUTO_FOLLOWUP_STEP, subject: r.subject || "", sendAt: r.send_at })) });
   });
   app.delete("/api/relances/scheduled/:id", requireAgent, async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();
@@ -1056,6 +1056,7 @@ async function startServer() {
           id: r.id,
           leadName: names.get(r.lead_id) || "Contact",
           recipient: r.recipient || "",
+          abandon: r.step === AUTO_FOLLOWUP_STEP,
           channel: r.channel,
           subject: leadBy.get(r.lead_id) ? fillVariables(r.subject || "", leadBy.get(r.lead_id)) : r.subject || "",
           message: r.message,

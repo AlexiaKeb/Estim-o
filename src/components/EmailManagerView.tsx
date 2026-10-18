@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { splitName } from '../utils/names';
+import { AbandonBadge } from './AbandonBadge';
 import { AutoFollowupCard } from './AutoFollowupCard';
 import { RichEmailEditor, RichEmailEditorHandle } from './RichEmailEditor';
 import { emailTextLength, htmlEscape, isHtmlBody, sanitizeEmailHtml } from '../utils/emailHtml';
@@ -68,8 +69,9 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   const [steps, setSteps] = useState<Array<{ delay: number; subject: string; body: string }>>([]);
   const [active, setActive] = useState(0);
   const [view, setView] = useState<'compose' | 'follow'>('compose');
-  const [upcoming, setUpcoming] = useState<Array<{ id: string; leadName: string; subject: string; sendAt: string }> | null>(null);
-  const [sentLogs, setSentLogs] = useState<Array<{ id: string; leadName: string; subject: string; status: string; sentAt: string }> | null>(null);
+  const [upcoming, setUpcoming] = useState<Array<{ id: string; leadName: string; subject: string; sendAt: string; abandon?: boolean }> | null>(null);
+  const [sentLogs, setSentLogs] = useState<Array<{ id: string; leadName: string; subject: string; status: string; sentAt: string; abandon?: boolean }> | null>(null);
+  const [onlyAbandon, setOnlyAbandon] = useState(false);
   // The message the advisor opened in the "Envoyés" list (what was really sent)
   const [openSent, setOpenSent] = useState<string | null>(null);
   // Filters and selection in the "Envoyés" list
@@ -344,10 +346,11 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
 
   const loadFollow = () => {
     fetch('/api/relances/scheduled', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setUpcoming(d.items || [])).catch(() => setUpcoming([]));
-    fetch('/api/relances/history', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setSentLogs((d.logs || []).map((l: any) => ({ id: l.id, leadName: l.leadName, subject: l.subject, status: l.status, sentAt: l.sentAt })))).catch(() => setSentLogs([]));
+    fetch('/api/relances/history', { credentials: 'same-origin' }).then((r) => r.json()).then((d) => setSentLogs((d.logs || []).map((l: any) => ({ id: l.id, leadName: l.leadName, subject: l.subject, status: l.status, sentAt: l.sentAt, abandon: Boolean(l.abandon) })))).catch(() => setSentLogs([]));
   };
   useEffect(() => { if (view === 'follow') loadFollow(); }, [view]);
   const shownLogs = (sentLogs || []).filter((l) => {
+    if (onlyAbandon && !l.abandon) return false;
     if (sStatus !== 'all' && l.status !== sStatus) return false;
     if (sPeriod !== 'all' && Date.now() - new Date(l.sentAt).getTime() > Number(sPeriod) * 86400000) return false;
     const needle = sq.trim().toLowerCase();
@@ -491,8 +494,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
             {upcoming === null ? <Loader2 className="w-4 h-4 animate-spin" /> : upcoming.length === 0 ? <p className="text-sm text-stone-400">Rien de programmé.</p> : (
               <ul className="divide-y divide-stone-100 max-h-[32rem] overflow-y-auto">
                 {upcoming.map((u) => (
-                  <li key={u.id} className="py-2 flex items-center gap-2 text-sm">
-                    <div className="min-w-0 flex-1"><p className="font-semibold text-stone-900 truncate uppercase">{u.leadName}</p><p className="text-xs text-stone-500 truncate">{u.subject || 'Sans objet'} • {new Date(u.sendAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p></div>
+                  <li key={u.id} className={`py-2 flex items-center gap-2 text-sm ${u.abandon ? 'border-l-4 border-[#DC2626] bg-red-50/60 pl-2' : ''}`}>
+                    <div className="min-w-0 flex-1"><p className="font-semibold text-stone-900 truncate uppercase">{u.leadName} {u.abandon && <AbandonBadge className="ml-1 align-middle" />}</p><p className="text-xs text-stone-500 truncate">{u.subject || 'Sans objet'} • {new Date(u.sendAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p></div>
                     <button type="button" onClick={() => cancelScheduled(u.id)} className="text-xs underline text-rose-700 shrink-0">Annuler</button>
                   </li>
                 ))}
@@ -509,6 +512,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
                   {([['all', 'Tous'], ['envoye', 'Envoyés'], ['erreur', 'Échecs'], ['annule', 'Annulés']] as const).map(([k, l]) => (
                     <button key={k} type="button" onClick={() => setSStatus(k)} className={`rounded-full px-3 py-1 font-bold ${sStatus === k ? 'bg-[#0B0F1F] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{l}</button>
                   ))}
+                  <button type="button" id="filter-abandon" aria-pressed={onlyAbandon} onClick={() => setOnlyAbandon((v) => !v)} className={`rounded-full border-2 border-[#DC2626] px-3 py-1 font-bold ${onlyAbandon ? 'bg-[#DC2626] text-white' : 'bg-white text-[#B91C1C] hover:bg-red-50'}`}>Mails d'abandon</button>
                   <span className="mx-1 text-stone-300">|</span>
                   {([['all', 'Tout'], ['30', '30 jours'], ['7', '7 jours']] as const).map(([k, l]) => (
                     <button key={k} type="button" onClick={() => setSPeriod(k)} className={`rounded-full px-3 py-1 font-bold ${sPeriod === k ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 hover:bg-sky-100'}`}>{l}</button>
@@ -531,11 +535,11 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
                   const det = sentDetail[l.id];
                   const isOpen = openSent === l.id;
                   return (
-                  <li key={l.id} className="py-2 text-sm">
+                  <li key={l.id} className={`py-2 text-sm ${l.abandon ? 'border-l-4 border-[#DC2626] bg-red-50/60 pl-2' : ''}`}>
                     <div className="flex items-start gap-2">
                     <input type="checkbox" aria-label={`Sélectionner le message à ${l.leadName}`} className="mt-1 h-4 w-4 shrink-0 accent-[#2B4BFF]" checked={sSel.has(l.id)} onChange={() => setSSel((prev) => { const n = new Set(prev); if (n.has(l.id)) n.delete(l.id); else n.add(l.id); return n; })} />
                     <button type="button" onClick={() => toggleSent(l.id)} aria-expanded={isOpen} className="min-w-0 flex-1 text-left rounded-lg hover:bg-stone-50 -mx-1 px-1">
-                      <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
+                      <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.abandon && <AbandonBadge className="ml-1 align-middle" />} {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
                       <p className="text-xs text-stone-500 truncate">{l.subject || 'Sans objet'} • {new Date(l.sentAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} • <span className="font-bold text-sky-700">{isOpen ? 'Masquer' : 'Voir le message'}</span></p>
                     </button>
                     <button type="button" onClick={() => void deleteSent([l.id])} disabled={sBusy} aria-label={`Supprimer le message à ${l.leadName}`} title="Supprimer ce message de la liste" className="shrink-0 rounded-full p-1.5 text-stone-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>

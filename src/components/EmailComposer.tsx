@@ -1,3 +1,4 @@
+import { AbandonBadge, isAbandonStep } from './AbandonBadge';
 import React, { useEffect, useMemo, useState } from 'react';
 import { X, Send, Loader2, CheckCircle2, AlertCircle, Mail, Settings } from 'lucide-react';
 import { Lead } from '../types';
@@ -20,6 +21,7 @@ interface MailStatus {
 
 interface Sent {
   id: string;
+  step?: string | null;
   subject: string | null;
   message: string;
   status: string;
@@ -221,7 +223,7 @@ export const EmailComposer: React.FC<Props> = ({ lead, onClose, onSent }) => {
               <ul className="space-y-1.5 text-sm">
                 {history.map((h) => (
                   <li key={h.id} className="flex items-start justify-between gap-3">
-                    <span className="truncate text-stone-800">{fillPreview(h.subject || '(sans objet)', lead)}</span>
+                    <span className="truncate text-stone-800">{isAbandonStep(h.step) && <AbandonBadge className="mr-1.5 align-middle" />}{fillPreview(h.subject || '(sans objet)', lead)}</span>
                     <span className={`shrink-0 text-xs ${h.status === 'envoye' ? 'text-emerald-700' : 'text-rose-700'}`}>
                       {h.status === 'envoye' ? `envoyé ${h.sent_at ? new Date(h.sent_at).toLocaleDateString('fr-FR') : ''}` : `échec : ${h.error || ''}`}
                     </span>

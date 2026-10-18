@@ -1,3 +1,4 @@
+import { AbandonBadge } from './AbandonBadge';
 import React, { useState, useEffect, useRef } from 'react';
 import { insertAtCursor } from '../utils/insertAtCursor';
 import { Lead, ScheduledMessage } from '../types';
@@ -42,6 +43,7 @@ interface DispatchLog {
   sentAt: string;
   status: 'envoye' | 'erreur' | 'annule';
   error?: string | null;
+  abandon?: boolean;
 }
 
 interface MailStatus {
@@ -1305,6 +1307,7 @@ export const NurtureEngineView: React.FC<Props> = ({
                           </span>
 
                           <span className="font-bold text-slate-900">{log.leadName}</span>
+                          {log.abandon && <AbandonBadge />}
                           <span className="text-slate-500 font-mono text-[11px]">({log.recipient})</span>
                         </div>
 

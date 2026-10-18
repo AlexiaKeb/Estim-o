@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Loader2, MailCheck } from 'lucide-react';
+import { AbandonBadge } from './AbandonBadge';
 import { RichEmailEditor, RichEmailEditorHandle } from './RichEmailEditor';
 import { AutoFollowupConfig, DEFAULT_AUTO_FOLLOWUP } from '../data/autoFollowup';
 
@@ -35,11 +36,11 @@ export const AutoFollowupCard: React.FC = () => {
 
   if (!cfg) return <div className="mb-4"><Loader2 className="w-4 h-4 animate-spin" /></div>;
   return (
-    <section id="auto-followup" className="mb-4 rounded-2xl border-[3px] border-[#0B0F1F] bg-white p-4 shadow-[4px_4px_0_#0B0F1F]">
+    <section id="auto-followup" className="mb-4 rounded-2xl border-[3px] border-[#DC2626] bg-white p-4 shadow-[4px_4px_0_#DC2626]">
       <div className="flex flex-wrap items-center gap-3">
         <MailCheck className="w-5 h-5 text-[#2B4BFF]" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-bold text-stone-900">Relance automatique après l'estimation</h2>
+          <h2 className="text-base font-bold text-stone-900"><AbandonBadge className="mr-2 align-middle" />Relance automatique après l'estimation</h2>
           <p className="text-xs text-stone-600">Un seul e-mail, envoyé peu après l'estimation aux visiteurs qui ont reçu leur fourchette de prix mais n'ont pas pris rendez-vous. Il n'est pas envoyé si un rendez-vous est pris entre-temps.</p>
         </div>
         <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-bold text-stone-800">
