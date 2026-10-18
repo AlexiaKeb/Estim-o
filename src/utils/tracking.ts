@@ -32,7 +32,7 @@ const GA_ID: string = env.VITE_GA_ID || 'G-Q1DCVQ9HS9';
 const GTM_ID: string = env.VITE_GTM_ID || 'GTM-5HGX9ZBL';
 const LABELS: Record<string, string> = {
   lead: env.VITE_GOOGLE_ADS_LEAD_LABEL || 'VGQmCKK2iqEdEMuPmP9E',
-  booking: env.VITE_GOOGLE_ADS_BOOKING_LABEL || '',
+  booking: env.VITE_GOOGLE_ADS_BOOKING_LABEL || 'WU6kCOfKjaEdEMuPmP9E',
 };
 
 export const trackingConfigured = Boolean(ADS_ID || GA_ID || GTM_ID);
