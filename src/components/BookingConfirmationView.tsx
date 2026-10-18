@@ -14,10 +14,8 @@ import {
   ArrowRight, 
   FileText, 
   Home, 
-  HelpCircle, 
   ExternalLink,
   ChevronDown,
-  ChevronUp,
   AlertCircle,
   Smartphone,
   CalendarPlus,
@@ -130,34 +128,34 @@ export const BookingConfirmationView: React.FC<Props> = ({
   ];
 
   const faqBlock = (
-    <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-4">
-      <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-        <HelpCircle className="w-4 h-4 text-stone-700" />
-        Tout savoir sur le déroulement de votre visite
-      </h3>
+    <section aria-labelledby="visit-faq-title" id="visit-faq" className="space-y-5 pt-2">
+      <div>
+        <span className="text-xs font-black uppercase tracking-wider text-[#2B4BFF]">Questions fréquentes</span>
+        <h3 id="visit-faq-title" className="mt-1 text-2xl font-black leading-tight tracking-tight text-[#0B0F1F] sm:text-3xl">Tout savoir sur le déroulement de votre visite</h3>
+      </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-4">
         {faqItems.map((item, idx) => {
           const isOpen = openFaqIndex === idx;
           return (
-            <div
-              key={idx}
-              className="border border-stone-200 rounded-2xl overflow-hidden transition-all"
-            >
-              <button
-                type="button"
-                onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                className="w-full p-4 text-left flex items-center justify-between gap-3 text-xs font-bold text-stone-800 hover:bg-stone-50 transition-colors"
-              >
-                <span>{item.q}</span>
-                {isOpen ? (
-                  <ChevronUp className="w-4 h-4 text-stone-500 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-stone-500 flex-shrink-0" />
-                )}
-              </button>
+            <div key={idx} className={`rounded-2xl border-[3px] border-[#0B0F1F] shadow-[5px_5px_0_#0B0F1F] ${isOpen ? 'bg-[#FFD60A]' : 'bg-white'}`}>
+              <h4>
+                <button
+                  type="button"
+                  id={`visit-faq-btn-${idx}`}
+                  aria-expanded={isOpen}
+                  aria-controls={`visit-faq-panel-${idx}`}
+                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                  className="flex w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left text-sm font-black text-[#0B0F1F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#2B4BFF] sm:text-base"
+                >
+                  <span>{item.q}</span>
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] transition-transform ${isOpen ? 'rotate-180 bg-white' : 'bg-[#FFD60A]'}`}>
+                    <ChevronDown className="h-5 w-5" />
+                  </span>
+                </button>
+              </h4>
               {isOpen && (
-                <div className="px-4 pb-4 text-xs text-stone-600 leading-relaxed border-t border-stone-100 pt-3 bg-stone-50/50">
+                <div id={`visit-faq-panel-${idx}`} role="region" aria-labelledby={`visit-faq-btn-${idx}`} className="px-5 pb-5 text-sm font-medium leading-relaxed text-[#0B0F1F] sm:text-base">
                   {item.a}
                 </div>
               )}
@@ -165,7 +163,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
           );
         })}
       </div>
-    </div>
+    </section>
   );
 
   return (
