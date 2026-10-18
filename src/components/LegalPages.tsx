@@ -60,11 +60,13 @@ export const MentionsLegales: React.FC = () => (
       <p>
         <strong>{LEGAL.company}</strong>, {LEGAL.form}.<br />
         Siège social : {LEGAL.address}.<br />
-        SIRET : {LEGAL.siret} · {LEGAL.rcs}.<br />
+        SIRET : {LEGAL.siret} · {LEGAL.rcs} · {LEGAL.tva}.<br />
         {LEGAL.cartePro}.<br />
         {LEGAL.rcp}.<br />
-        {LEGAL.garantie}.<br />
-        {LEGAL.fonds}.
+        {LEGAL.fonds}.<br />
+        Agence de rattachement : {LEGAL.agencyAddress}. Tél. : <a className="underline" href={LEGAL.agencyPhoneHref}>{LEGAL.agencyPhone}</a> · E-mail :{' '}
+        <a className="underline" href={`mailto:${LEGAL.agencyEmail}`}>{LEGAL.agencyEmail}</a> · Site :{' '}
+        <a className="underline" href={LEGAL.agencyWebsite} target="_blank" rel="noopener noreferrer">www.novea-immobilier.fr<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span></a>.
       </p>
       <p>
         Activité de transaction sur immeubles et fonds de commerce, soumise à la loi n° 70-9 du 2 janvier 1970
@@ -83,11 +85,26 @@ export const MentionsLegales: React.FC = () => (
     <Section title="Hébergement">
       <p>Render Services, Inc., 525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis.</p>
     </Section>
-    {LEGAL.mediator && (
-      <Section title="Médiation de la consommation">
-        <p>En cas de litige, vous pouvez recourir sans frais au médiateur suivant : {LEGAL.mediator}.</p>
-      </Section>
-    )}
+    <Section title="Médiation de la consommation">
+      <p>
+        En cas de différend, en tant que consommateur, vous pouvez adresser une réclamation écrite au mandataire. Si la
+        réponse ne vous satisfait pas, ou en l'absence de réponse sous 30 jours, vous pouvez saisir le médiateur de la
+        consommation compétent, inscrit sur la liste des médiateurs agréés par la Commission d'évaluation et de contrôle
+        de la médiation.
+      </p>
+      <p>
+        Médiateur : <strong>{LEGAL.mediator.name}</strong>, {LEGAL.mediator.address}. Site :{' '}
+        <a className="underline" href={LEGAL.mediator.url} target="_blank" rel="noopener noreferrer">{LEGAL.mediator.url.replace('https://', '')}<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span></a>.
+      </p>
+    </Section>
+    <Section title="Démarchage téléphonique">
+      <p>
+        Le consommateur peut s'opposer à l'utilisation de ses coordonnées téléphoniques à des fins de prospection
+        commerciale en s'inscrivant sur la liste d'opposition au démarchage téléphonique sur le site{' '}
+        <a className="underline" href="https://www.bloctel.gouv.fr" target="_blank" rel="noopener noreferrer">bloctel.gouv.fr<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span></a>{' '}
+        ou par courrier : Worldline - Service Bloctel - CS 61311 - 41013 Blois Cedex.
+      </p>
+    </Section>
     <Section title="Nature des estimations">
       <p>
         L'estimation affichée en ligne est un ordre de grandeur calculé à partir des ventes publiées

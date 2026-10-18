@@ -39,20 +39,27 @@ export const LEGAL = {
   form: 'SAS (société par actions simplifiée) au capital de 5 441,00 €',
   address: '10 chemin du Vieux Moulin, 69270 Saint-Romain-au-Mont-d\'Or',
   rcs: 'RCS Lyon 902 615 194',
-  rcp: 'Responsabilité civile professionnelle : contrat n° 120137405, MMA Assurance (14 boulevard Marie et Alexandre Oyon, 72030 Le Mans)',
-  garantie: 'Garantie financière de 200 000 € : Galian Assurances',
+  tva: 'TVA intracommunautaire : FR93902615194',
+  rcp: "Assurance de responsabilité civile professionnelle : GALIAN (89 rue de La Boétie, 75008 Paris), garanties valables sur le territoire français",
   siret: '902 615 194',
   cartePro:
-    'Carte professionnelle « Transaction » n° CPI 69012021000000167, délivrée par la Chambre de Commerce et d\'Industrie de Lyon',
-  fonds: 'Sans maniement de fonds',
-  // À compléter : numéro d'immatriculation de Céline au RSAC (agent commercial) et greffe
+    "Carte professionnelle « Transactions sur immeubles et fonds de commerce » n° CPI 69012021000000167, délivrée par la CCI Lyon Métropole (place de la Bourse, Lyon)",
+  fonds:
+    "L'agence ne peut ni recevoir ni détenir d'autres fonds, effets ou valeurs que ceux représentatifs de sa rémunération dans le cadre de son activité de transaction",
+  // Agence de rattachement de Céline
+  agencyAddress: '7 rue Sainte-Clotilde, 69001 Lyon',
+  agencyPhone: '+33 4 72 08 00 27',
+  agencyPhoneHref: 'tel:+33472080027',
+  agencyEmail: 'agencelyon4@novea-immobilier.fr',
+  agencyWebsite: 'https://www.novea-immobilier.fr',
+  // Immatriculation de Céline au registre spécial des agents commerciaux (le numéro est son SIREN)
   rsac: 'RSAC de Lyon n° 800 580 540',
   // Céline : entreprise individuelle (agent commercial)
   agentSiret: '800 580 540 00063',
   agentRcp: 'RCP n° H278359750',
-  // À compléter : e-mail de contact et nom du médiateur de la consommation de NOVEA
   contactEmail: 'cel@novea-immobilier.fr',
-  mediator: '',
+  // Médiation de la consommation (agence mandante)
+  mediator: { name: 'MEDIMMOCONSO', address: '1 allée du Parc Mesemena, 44500 La Baule-Escoublac', url: 'https://medimmoconso.fr' },
 };
 
 /** 30 -> "30 minutes", 60 -> "1 heure", 90 -> "1 h 30" */
