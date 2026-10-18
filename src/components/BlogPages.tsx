@@ -1,7 +1,7 @@
 import React from 'react';
 import { AGENT, BRAND, FAQ, LEGAL, SOCIALS } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
-import { CreditLine } from './CreditLine';
+import { SiteFooter } from './SiteFooter';
 import { Human } from './Mascots';
 import { BlogPost, ArticleBlock, blocksOf, formatPostDate, getPost } from '../data/blog';
 
@@ -36,20 +36,9 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     >
       Estimer mon bien, offert →
     </a>
-    <footer className="bg-[#0B0F1F] mt-16 pb-16 sm:pb-0">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-[11px] sm:text-xs text-center sm:text-left text-white/70 flex flex-wrap gap-x-5 gap-y-2 justify-center sm:justify-between">
-        <span>{BRAND.name} · Estimation immobilière à Lyon</span>
-        <span className="flex flex-wrap justify-center gap-x-4 gap-y-1">
-          <a href="/" className="hover:text-[#FFD60A]">Accueil</a>
-          <a href="/faq" className="hover:text-[#FFD60A]">Questions fréquentes</a>
-          <a href="/contact" className="hover:text-[#FFD60A]">Contact</a>
-          <a href="/mentions-legales" className="hover:text-[#FFD60A]">Mentions légales</a>
-          <a href="/honoraires" className="hover:text-[#FFD60A]">Honoraires</a>
-          <a href="/confidentialite" className="hover:text-[#FFD60A]">Confidentialité</a>
-          <CreditLine />
-        </span>
-      </div>
-    </footer>
+    <div className="mt-16">
+      <SiteFooter />
+    </div>
   </div>
 );
 

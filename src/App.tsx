@@ -24,10 +24,7 @@ import {
   LogOut,
   Sliders,
   Settings,
-  ChevronRight,
-  Instagram,
-  Linkedin,
-  Facebook
+  ChevronRight
 } from 'lucide-react';
 import { ValuationInputs, ValuationResult, Lead, AgentPrivacySettings } from './types';
 import { INITIAL_LEADS } from './data/mockLeads';
@@ -36,7 +33,7 @@ import { LandingSimulator } from './components/LandingSimulator';
 import { CalendarBookingModal } from './components/CalendarBookingModal';
 // Part of the booking flow: loaded with the page so the confirmation always opens, even right after a site update
 import { BookingConfirmationView } from './components/BookingConfirmationView';
-import { CreditLine } from './components/CreditLine';
+import { SiteFooter } from './components/SiteFooter';
 import { clearAssistantDraft } from './components/GuidedAssistant';
 
 // After a redeploy an open tab can ask for a file that no longer exists: reload once to fetch the new version
@@ -69,7 +66,7 @@ const AgentAuthModal = lazyRetry(() => import('./components/AgentAuthModal').the
 const StatsView = lazyRetry(() => import('./components/StatsView').then((m) => ({ default: m.StatsView })));
 const ArticlesView = lazyRetry(() => import('./components/ArticlesView').then((m) => ({ default: m.ArticlesView })));
 const CalendarHealth = lazyRetry(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
-import { BRAND, SOCIALS } from './data/siteContent';
+import { BRAND } from './data/siteContent';
 
 // Confirmation page: its own address (/confirmation) so a refresh keeps it; /confirmation?demo=1 shows a sample for tests
 const CONFIRMED_KEY = 'estimo-confirmed-lead-v1';
@@ -964,65 +961,33 @@ export default function App() {
         )}
       </Suspense>
 
-      {/* Réseaux sociaux : bandeau bien visible au-dessus du pied de page */}
-      {!isAgentMode && (
-        <section id="footer-socials" aria-label="Réseaux sociaux de Céline" className="border-t-[3px] border-[#0B0F1F] bg-white">
-          <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-4 px-4 py-6 sm:flex-row sm:gap-8 sm:px-6 lg:px-8">
-            <p className="text-lg font-black text-[#0B0F1F]">Suivez Céline sur les réseaux</p>
-            <div className="flex flex-wrap justify-center gap-3">
-              {SOCIALS.map((s) => (
-                <a
-                  key={s.id}
-                  href={s.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-4 py-2 text-sm font-black text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] transition-transform hover:-translate-y-0.5"
-                >
-                  {s.id === 'instagram' ? <Instagram className="h-5 w-5" /> : s.id === 'linkedin' ? <Linkedin className="h-5 w-5" /> : <Facebook className="h-5 w-5" />}
-                  {s.label}
-                  <span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Footer : menu centré et crédit */}
-      <footer className="bg-[#0B0F1F] py-8 pb-24 sm:pb-8 mt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
-          <nav aria-label="Liens du site" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/80">
-            <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
-            <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
-            <a href="/honoraires" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Honoraires</a>
-            <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
-            <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
-            {isAgentMode ? (
-              <span className="text-[#FFD60A] font-medium flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Session Conseiller Active
-              </span>
-            ) : !privacySettings.hidePublicLoginButton ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (isAgentAuthenticated) {
-                    setIsAgentMode(true);
-                    setCurrentView('pipeline');
-                  } else {
-                    setIsAuthModalOpen(true);
-                  }
-                }}
-                className="text-stone-400 hover:text-white flex items-center gap-1 transition-colors"
-              >
-                <Lock className="w-3 h-3" />
-                <span>Espace conseillers</span>
-              </button>
-            ) : null}
-          </nav>
-          <CreditLine />
-        </div>
-      </footer>
+      <SiteFooter
+        hideSocials={isAgentMode}
+        extra={
+          isAgentMode ? (
+            <span className="text-[#FFD60A] font-medium flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Session Conseiller Active
+            </span>
+          ) : !privacySettings.hidePublicLoginButton ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (isAgentAuthenticated) {
+                  setIsAgentMode(true);
+                  setCurrentView('pipeline');
+                } else {
+                  setIsAuthModalOpen(true);
+                }
+              }}
+              className="text-stone-400 hover:text-white flex items-center gap-1 transition-colors"
+            >
+              <Lock className="w-3 h-3" />
+              <span>Espace conseillers</span>
+            </button>
+          ) : null
+        }
+      />
     </div>
   );
 }
