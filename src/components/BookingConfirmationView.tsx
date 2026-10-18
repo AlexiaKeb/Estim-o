@@ -21,7 +21,6 @@ import {
   AlertCircle,
   Smartphone,
   CalendarPlus,
-  Compass,
   FileCheck2,
   Award,
   ChevronRight
@@ -304,133 +303,109 @@ export const BookingConfirmationView: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* 2. TWO COLUMNS: DEDICATED ADVISOR PROFILE + INTERACTIVE CHECKLIST */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Col: Conseillère Référente Card (Trust & Human Touch) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-              <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                Votre conseillère dédiée
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-[#FFF7E6] text-[#2B4BFF] border border-[#0B0F1F] text-[10px] font-bold">
-                Dossier attribué
-              </span>
+      {/* 2. SINGLE COLUMN: advisor, complementary questions, preparation, sector, FAQ */}
+      <div className="space-y-6">
+        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+              Votre conseillère dédiée
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-[#FFF7E6] text-[#2B4BFF] border border-[#0B0F1F] text-[10px] font-bold">
+              Dossier attribué
+            </span>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-[#FFD60A] border-[3px] border-[#0B0F1F] flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
+                C
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#FFF7E6]0 border-2 border-white" title="En ligne" />
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-[#FFD60A] border-[3px] border-[#0B0F1F] flex items-center justify-center font-black text-stone-950 text-2xl shadow-md border-2 border-white">
-                  C
-                </div>
-                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#FFF7E6]0 border-2 border-white" title="En ligne" />
-              </div>
-
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-stone-900">Céline LEVRAT</h3>
-                <p className="text-xs font-medium text-[#2B4BFF]">Experte immobilière locale</p>
-              </div>
-            </div>
-
-            <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 rounded-2xl p-4 border border-stone-200/70 italic">
-              « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste sous 48h. »
-            </p>
-
-            <div className="space-y-2 pt-1">
-              <a
-                href="tel:0603580316"
-                className="w-full py-3 px-4 rounded-2xl bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
-              >
-                <PhoneCall className="w-4 h-4 text-[#FFD60A]" />
-                <span className="flex flex-col items-center leading-tight"><span>Appeler Céline</span><span>06 03 58 03 16</span></span>
-              </a>
-
-              <div className="text-center">
-                <span className="text-[11px] text-stone-500">
-                  Pour modifier ou décaler votre créneau, appelez Céline au <strong className="whitespace-nowrap">06 03 58 03 16</strong>
-                </span>
-              </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-stone-900">Céline LEVRAT</h3>
+              <p className="text-xs font-medium text-[#2B4BFF]">Experte immobilière locale</p>
             </div>
           </div>
 
-          {/* Secteur & Engagement Spécifique */}
-          <div className="bg-[#0B0F1F] text-white rounded-3xl p-5 sm:p-6 border-[3px] border-[#0B0F1F] shadow-[6px_6px_0_#FFD60A] space-y-3">
-            <div className="flex items-center gap-2 text-[#FFD60A] text-xs font-bold uppercase tracking-wider">
-              <Compass className="w-4 h-4" />
-              <span>Secteur d'expertise</span>
-            </div>
+          <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 rounded-2xl p-4 border border-stone-200/70 italic">
+            « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste sous 48h. »
+          </p>
 
+          <div className="space-y-2 pt-1 sm:flex sm:items-center sm:gap-5 sm:space-y-0">
+            <a
+              href="tel:0603580316"
+              className="w-full sm:w-auto sm:shrink-0 py-3 px-4 sm:px-8 rounded-2xl bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm group"
+            >
+              <PhoneCall className="w-4 h-4 text-[#FFD60A]" />
+              <span className="flex flex-col items-center leading-tight"><span>Appeler Céline</span><span>06 03 58 03 16</span></span>
+            </a>
+
+            <div className="text-center sm:text-left">
+              <span className="text-[11px] text-stone-500">
+                Pour modifier ou décaler votre créneau, appelez Céline au <strong className="whitespace-nowrap">06 03 58 03 16</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Optional robot-led complementary questions about the property */}
+        <QuickQualification
+          leadId={confirmedLead.id}
+          low={confirmedLead.valuation?.lowPrice}
+          high={confirmedLead.valuation?.highPrice}
+          onSubmitted={() => {}}
+        />
+
+        {/* Discovery & Key Info Card */}
+        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3.5">
             <div>
-              <h4 className="text-sm font-bold text-white">Région Lyonnaise & Beaujolais</h4>
-              <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                Céline intervient exclusivement sur la Région Lyonnaise et le Beaujolais afin de vous garantir une parfaite maîtrise des micromarchés locaux.
+              <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#2B4BFF]" />
+                Préparer votre visite : les éléments utiles
+              </h3>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Pour optimiser notre rendez-vous, vous pouvez préparer ces quelques éléments si vous les avez (rien d'obligatoire).
               </p>
             </div>
           </div>
 
-          <div className="hidden lg:block">{faqBlock}</div>
-        </div>
-
-        {/* Right Col: Discovery Phase & Simple Info */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Optional robot-led complementary questions about the property */}
-          <QuickQualification
-            leadId={confirmedLead.id}
-            low={confirmedLead.valuation?.lowPrice}
-            high={confirmedLead.valuation?.highPrice}
-            onSubmitted={() => {}}
-          />
-
-          {/* Discovery & Key Info Card */}
-          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3.5">
-              <div>
-                <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#2B4BFF]" />
-                  Préparer votre visite : les éléments utiles
-                </h3>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  Pour optimiser notre rendez-vous, vous pouvez préparer ces quelques éléments si vous les avez (rien d'obligatoire).
-                </p>
-              </div>
-            </div>
-
-            {/* Checklist items */}
-            <div className="space-y-3">
-              {PREP_ITEMS.map(([key, title, hint]) => (
-                <div
-                  key={key}
-                  onClick={() => toggleCheck(key)}
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                    checklist[key]
-                      ? 'bg-[#FFF7E6]/60 border-[#0B0F1F] text-emerald-950'
-                      : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
-                  }`}
-                >
-                  <input type="checkbox" checked={!!checklist[key]} onChange={() => {}} className="w-4 h-4 text-[#2B4BFF] rounded border-stone-300 mt-0.5 cursor-pointer" />
-                  <div className="text-xs">
-                    <div className="font-semibold">{title}</div>
-                    <div className="text-stone-500 text-[11px] mt-0.5">{hint}</div>
-                  </div>
+          {/* Checklist items */}
+          <div className="space-y-3">
+            {PREP_ITEMS.map(([key, title, hint]) => (
+              <div
+                key={key}
+                onClick={() => toggleCheck(key)}
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                  checklist[key]
+                    ? 'bg-[#FFF7E6]/60 border-[#0B0F1F] text-emerald-950'
+                    : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
+                }`}
+              >
+                <input type="checkbox" checked={!!checklist[key]} onChange={() => {}} className="w-4 h-4 text-[#2B4BFF] rounded border-stone-300 mt-0.5 cursor-pointer" />
+                <div className="text-xs">
+                  <div className="font-semibold">{title}</div>
+                  <div className="text-stone-500 text-[11px] mt-0.5">{hint}</div>
                 </div>
-              ))}
-            </div>
-
-            {/* Team Evaluation Highlight */}
-            <div className="p-4 rounded-2xl bg-[#FFF7E6] text-[#0B0F1F] border-[3px] border-[#0B0F1F] space-y-1.5 mt-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#0B0F1F]">
-                <Award className="w-4 h-4 text-[#2B4BFF]" />
-                <span>Votre avis de valeur sous 48h</span>
               </div>
-              <p className="text-xs text-stone-600 leading-relaxed">
-                Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez sous 48h un avis de valeur au plus juste du marché local.
-              </p>
-            </div>
+            ))}
           </div>
 
-          {/* Same block, shown under the advisor on large screens (see left column) */}
-          <div className="lg:hidden">{faqBlock}</div>
+          {/* Team Evaluation Highlight */}
+          <div className="p-4 rounded-2xl bg-[#FFF7E6] text-[#0B0F1F] border-[3px] border-[#0B0F1F] space-y-1.5 mt-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#0B0F1F]">
+              <Award className="w-4 h-4 text-[#2B4BFF]" />
+              <span>Votre avis de valeur sous 48h</span>
+            </div>
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez sous 48h un avis de valeur au plus juste du marché local.
+            </p>
+          </div>
         </div>
+
+        {faqBlock}
       </div>
 
       {/* Back to Home / Simulator if needed */}
