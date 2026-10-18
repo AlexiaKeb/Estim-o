@@ -33,7 +33,7 @@ const STEPS: Step[] = [
   { key: 'profession', kind: 'text', ask: "Que faites-vous dans la vie ? C'est facultatif : cela aide Céline à s'adapter à vos horaires.", placeholder: 'Ce que vous souhaitez partager' },
   { key: 'mandate', kind: 'single', ask: "Avez-vous déjà fait estimer ce bien, ou signé un mandat avec une agence ?", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
   { key: 'occupancy', kind: 'single', ask: 'Le logement est-il occupé, vide ou loué ?', options: [['occupe', "J'y habite"], ['libre', 'Il est vide'], ['loue', 'Il est loué']] },
-  { key: 'purchase', kind: 'single', ask: 'Avez-vous un projet d'achat ?', options: [['aucun', 'Non, pas pour le moment'], ['recherche', 'Oui, je suis en pleine recherche'], ['trouve', "Oui, j'ai déjà une piste"]] },
+  { key: 'purchase', kind: 'single', ask: "Avez-vous un projet d'achat ?", options: [['aucun', 'Non, pas pour le moment'], ['recherche', 'Oui, je suis en pleine recherche'], ['trouve', "Oui, j'ai déjà une piste"]] },
   { key: 'expectedPrice', kind: 'price', ask: "Quel prix espérez-vous en tirer ? C'est facultatif, Céline en parlera avec vous lors de la visite." },
 ];
 
