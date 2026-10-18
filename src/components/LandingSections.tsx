@@ -196,7 +196,7 @@ export const STEPS = [
   {
     icon: CheckCircle2,
     title: `Validez l'estimation lors de la visite de ${AGENT.firstName}`,
-    text: `L'estimation IA n'est qu'un indicateur. Seule la visite physique de ${AGENT.firstName} sur place permet de prendre en compte la réalité de votre bien. Sous 48h, elle vous remet votre dossier d'estimation complet et argumenté.`,
+    text: `L'estimation IA n'est qu'un indicateur. Seule la visite physique de ${AGENT.firstName} sur place permet de prendre en compte la réalité de votre bien. Elle vous remet ensuite votre avis de valeur.`,
   },
 ];
 
