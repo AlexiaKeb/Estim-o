@@ -29,16 +29,16 @@ type Step =
   | { key: 'expectedPrice'; kind: 'price'; ask: string };
 
 const STEPS: Step[] = [
-  { key: 'ownership', kind: 'single', ask: "Pour commencer tout en douceur : ce bien, vous le partagez avec quelqu'un (conjoint, famille) ou il est à vous seul ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
-  { key: 'profession', kind: 'text', ask: "Pour que Céline s'adapte à votre emploi du temps et à votre rythme, qu'aimeriez-vous partager sur votre quotidien ? Une activité, une situation… ce que vous voulez, sans obligation.", placeholder: 'Ce que vous souhaitez partager' },
-  { key: 'mandate', kind: 'single', ask: "Avez-vous déjà eu l'occasion d'échanger avec d'autres professionnels au sujet de ce bien ? C'est tout à fait normal de comparer.", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
-  { key: 'occupancy', kind: 'single', ask: 'Et ce logement, comment vit-il aujourd\'hui ?', options: [['occupe', "J'y habite"], ['libre', 'Il est vide'], ['loue', 'Il est loué']] },
-  { key: 'purchase', kind: 'single', ask: 'Votre projet, est-ce aussi de trouver un nouveau chez-vous ?', options: [['aucun', 'Non, pas pour le moment'], ['recherche', 'Oui, je suis en pleine recherche'], ['trouve', "Oui, j'ai déjà une piste"]] },
-  { key: 'expectedPrice', kind: 'price', ask: "Si vous y avez déjà réfléchi, avez-vous une idée du prix que vous aimeriez en tirer ? Aucune obligation : Céline en parlera avec vous, sur place, en toute transparence." },
+  { key: 'ownership', kind: 'single', ask: "Ce bien est-il à vous seul, ou le partagez-vous avec quelqu'un (conjoint, famille) ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
+  { key: 'profession', kind: 'text', ask: "Pour que Céline s'adapte à vos disponibilités, que faites-vous au quotidien ? Quelques mots suffisent, vous pouvez aussi passer.", placeholder: 'Ce que vous souhaitez partager' },
+  { key: 'mandate', kind: 'single', ask: "Avez-vous déjà échangé avec d'autres professionnels au sujet de ce bien ?", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
+  { key: 'occupancy', kind: 'single', ask: 'Ce logement est-il occupé, vide ou loué ?', options: [['occupe', "J'y habite"], ['libre', 'Il est vide'], ['loue', 'Il est loué']] },
+  { key: 'purchase', kind: 'single', ask: 'Souhaitez-vous aussi acheter un nouveau bien ?', options: [['aucun', 'Non, pas pour le moment'], ['recherche', 'Oui, je suis en pleine recherche'], ['trouve', "Oui, j'ai déjà une piste"]] },
+  { key: 'expectedPrice', kind: 'price', ask: "Avez-vous une idée du prix que vous visez ? C'est facultatif : Céline en parlera avec vous lors de la visite." },
 ];
 
 const SKIP = 'Je préfère passer';
-const ACKS = ['Merci, c\'est très précieux.', 'Merci beaucoup, c\'est noté.', 'Je vous remercie pour votre confiance.', 'Très bien, merci de ce partage.', 'Parfait, merci.'];
+const ACKS = ['Merci.', "C'est noté.", 'Très bien.', "Merci, c'est noté.", 'Parfait.'];
 
 interface Msg { from: 'bot' | 'user'; text: string }
 
@@ -48,7 +48,7 @@ const field = 'w-full rounded-xl border-[3px] border-white bg-white px-4 py-3 te
 
 /** Conversational complementary questions shown once the visit is confirmed: the robot asks, the visitor taps. Fully optional. */
 export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmitted }) => {
-  const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: "Bonjour, ravi de vous accueillir ! Votre rendez-vous est bien enregistré. Si vous le souhaitez, j'aimerais mieux comprendre votre projet pour que Céline puisse venir préparée et vous consacrer le meilleur de son temps. Cela ne prend qu'une minute, et vous pouvez passer toute question qui vous mettrait mal à l'aise." }]);
+  const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: "Bonjour, votre rendez-vous est bien enregistré. Si vous le souhaitez, quelques questions sur votre projet permettront à Céline de préparer la visite. Cela prend une minute, et vous pouvez passer n'importe quelle question." }]);
   const [idx, setIdx] = useState(-1); // -1 = intro shown, waiting for "C'est parti"
   const [typing, setTyping] = useState(false);
   const [answers, setAnswers] = useState<QuickAnswers>({});
@@ -97,7 +97,7 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
   const finish = (final: QuickAnswers) => {
     const has = Object.values(final).some((v) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== ''));
     setIdx(STEPS.length);
-    botSays(has ? "Merci infiniment pour votre confiance. Céline aura tout cela en tête pour préparer votre rendez-vous, et vous pourrez en parler librement avec elle. À très bientôt !" : 'Aucun souci, vous faites exactement comme vous le souhaitez. Céline fera connaissance avec vous directement lors du rendez-vous. À très bientôt !');
+    botSays(has ? "Merci. Céline aura ces informations en tête pour préparer votre rendez-vous. À bientôt !" : 'Pas de souci. Céline fera connaissance avec vous directement lors du rendez-vous. À bientôt !');
     if (has) {
       onSubmitted(final);
       pending.current = final;
@@ -115,12 +115,12 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
     const next = from + 1;
     if (next >= STEPS.length) return finish(final);
     setIdx(next);
-    const ack = userText === SKIP ? 'Aucun souci, on laisse cela de côté.' : ACKS[from % ACKS.length];
+    const ack = userText === SKIP ? 'Pas de souci.' : ACKS[from % ACKS.length];
     botSays(`${ack} ${STEPS[next].ask}`);
   };
 
   const start = () => {
-    setMsgs((m) => [...m, { from: 'user', text: 'Avec plaisir' }]);
+    setMsgs((m) => [...m, { from: 'user', text: "D'accord" }]);
     setIdx(0);
     botSays(STEPS[0].ask);
   };
@@ -133,8 +133,8 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
     if (idx === -1)
       return (
         <div className="flex flex-wrap gap-2">
-          <button type="button" id="btn-quick-start" className={chipStrong} onClick={start}>Avec plaisir</button>
-          <button type="button" className={chip} onClick={() => finish({})}>Plus tard, merci</button>
+          <button type="button" id="btn-quick-start" className={chipStrong} onClick={start}>D'accord</button>
+          <button type="button" className={chip} onClick={() => finish({})}>Plus tard</button>
         </div>
       );
     if (!step) return null;
@@ -203,7 +203,7 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
         <Robot className="bob h-14 w-11 shrink-0" />
         <div className="min-w-0">
           <h3 id="quick-q-title" className="text-sm font-black sm:text-base">Quelques questions complémentaires</h3>
-          <p className="text-xs text-white/85">Avec l'assistant IA de Céline · facultatif, à votre rythme</p>
+          <p className="text-xs text-white/85">Assistant IA de Céline · facultatif</p>
         </div>
       </div>
 
