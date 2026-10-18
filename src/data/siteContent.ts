@@ -29,6 +29,9 @@ export const AGENT = {
   photoUrl: '/celine.jpg',
 };
 
+// Lien du crédit « App conçue par La Digitale School » (pied de page et mentions légales)
+export const DIGITALE_SCHOOL_URL = 'https://www.facebook.com/alexiakebir/';
+
 // Informations légales affichées sur les pages « Mentions légales » et « Confidentialité ».
 // Les champs laissés vides ne s'affichent pas : à compléter par Céline (voir la liste dans le message de livraison).
 export const LEGAL = {
@@ -40,7 +43,7 @@ export const LEGAL = {
     'Carte professionnelle « Transaction » n° CPI 69012021000000167, délivrée par la Chambre de Commerce et d\'Industrie de Lyon',
   fonds: 'Sans maniement de fonds',
   // À compléter : numéro d'immatriculation de Céline au RSAC (agent commercial) et greffe
-  rsac: '',
+  rsac: 'RSAC n° 800 580 549',
   // À compléter : e-mail de contact et nom du médiateur de la consommation de NOVEA
   contactEmail: 'cel@novea-immobilier.fr',
   mediator: '',

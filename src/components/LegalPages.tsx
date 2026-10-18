@@ -1,5 +1,5 @@
 import React from 'react';
-import { AGENT, BRAND, LEGAL } from '../data/siteContent';
+import { AGENT, BRAND, LEGAL, DIGITALE_SCHOOL_URL } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -43,6 +43,9 @@ export const MentionsLegales: React.FC = () => (
       </p>
       <p><Contact /></p>
     </Section>
+    <Section title="Directrice de la publication">
+      <p>Céline LEVRAT.</p>
+    </Section>
     <Section title="Agence mandante">
       <p>
         <strong>{LEGAL.company}</strong>, {LEGAL.form}.<br />
@@ -57,7 +60,10 @@ export const MentionsLegales: React.FC = () => (
       </p>
     </Section>
     <Section title="Conception du site">
-      <p>Application conçue par La Digitale School.</p>
+      <p>
+        Application conçue par{' '}
+        <a className="underline" href={DIGITALE_SCHOOL_URL} target="_blank" rel="noopener noreferrer">La Digitale School<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span></a>.
+      </p>
     </Section>
     <Section title="Hébergement">
       <p>Render Services, Inc., 525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis.</p>
