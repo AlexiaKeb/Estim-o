@@ -482,25 +482,10 @@ export const CalendarBookingModal: React.FC<Props> = ({
               <p className="text-sm text-slate-600 max-w-md mx-auto">
                 {slotsError
                   ? 'Votre dossier d\'estimation a été transmis en priorité à Céline. Vous serez recontacté dans les plus brefs délais pour convenir ensemble du rendez-vous.'
-                  : `Votre rendez-vous du ${selectedSummary} est validé. Céline viendra analyser votre bien sur place pour préparer votre avis de valeur sous 48h.`}
+                  : `Votre rendez-vous du ${selectedSummary} est validé. Céline viendra analyser votre bien sur place pour préparer votre avis de valeur.`}
               </p>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs space-y-2 max-w-md mx-auto">
-              <div className="font-semibold text-slate-900">Ce qu'il se passe maintenant :</div>
-              <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-[#2B4BFF] flex-shrink-0" />
-                <span>E-mail de confirmation envoyé à {formData.email}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-[#2B4BFF] flex-shrink-0" />
-                <span>Rappel ou SMS de confirmation de Céline (06 03 58 03 16)</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-[#2B4BFF] flex-shrink-0" />
-                <span>Analyse du marché et remise de votre avis de valeur sous 48h</span>
-              </div>
-            </div>
             {pendingLead && (
               <button type="button" onClick={() => proceed(pendingLead)} className="mx-auto inline-flex items-center gap-2 rounded-xl bg-[#2B4BFF] hover:bg-[#0B0F1F] text-white text-sm font-bold px-5 py-3">
                 Voir ma confirmation
