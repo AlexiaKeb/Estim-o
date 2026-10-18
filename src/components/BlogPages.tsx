@@ -1,7 +1,8 @@
 import React from 'react';
-import { AGENT, BRAND, FAQ } from '../data/siteContent';
+import { AGENT, BRAND, FAQ, LEGAL, SOCIALS } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
 import { CreditLine } from './CreditLine';
+import { Human } from './Mascots';
 import { BlogPost, ArticleBlock, blocksOf, formatPostDate, getPost } from '../data/blog';
 
 // Pages du blog. Aucun hook ni API navigateur : ces composants sont aussi rendus côté serveur (référencement).
@@ -41,6 +42,7 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         <span className="flex flex-wrap justify-center gap-x-4 gap-y-1">
           <a href="/" className="hover:text-[#FFD60A]">Accueil</a>
           <a href="/faq" className="hover:text-[#FFD60A]">Questions fréquentes</a>
+          <a href="/contact" className="hover:text-[#FFD60A]">Contact</a>
           <a href="/mentions-legales" className="hover:text-[#FFD60A]">Mentions légales</a>
           <a href="/confidentialite" className="hover:text-[#FFD60A]">Confidentialité</a>
           <CreditLine />
@@ -202,6 +204,60 @@ export const FaqPage: React.FC = () => (
         ))}
       </div>
       <BlogCta />
+    </main>
+  </Shell>
+);
+
+/** Contact page: every way to reach the advisor (rendered on the server too). */
+export const ContactPage: React.FC = () => (
+  <Shell>
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+      <nav aria-label="Fil d'Ariane" className="text-xs text-stone-500 mb-4">
+        <a href="/" className="hover:underline">Accueil</a> › <span>Contact</span>
+      </nav>
+      <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance]">Contacter {AGENT.firstName} {AGENT.name.split(' ').slice(1).join(' ').toUpperCase()}</h1>
+      <p className="mt-4 text-lg text-stone-700 leading-relaxed">Une question avant ou après votre estimation ? {AGENT.firstName} vous répond directement.</p>
+
+      <section aria-label="Coordonnées" className="mt-8 overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] bg-white shadow-[8px_8px_0_#0B0F1F]">
+        <div className="border-b-[3px] border-[#0B0F1F] bg-[#FFD60A] px-5 py-3 sm:px-8">
+          <span className="text-sm font-black uppercase tracking-wider">{AGENT.firstName} {AGENT.name.split(' ').slice(1).join(' ').toUpperCase()} · Conseillère immobilière indépendante</span>
+        </div>
+        <div className="flex flex-col items-center gap-8 p-5 sm:p-8 md:flex-row md:items-center">
+          <Human className="w-36 shrink-0 sm:w-44" />
+          <dl className="w-full min-w-0 flex-1 space-y-5">
+            <div>
+              <dt className="text-xs font-black uppercase tracking-wider text-[#2B4BFF]">Téléphone</dt>
+              <dd className="mt-1 text-3xl font-black tracking-wide sm:text-4xl">{AGENT.phone}</dd>
+              <dd className="mt-2">
+                <a href={AGENT.phoneHref} className="inline-flex items-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-5 py-2.5 font-black shadow-[4px_4px_0_#0B0F1F] md:hidden">Appeler {AGENT.firstName}</a>
+              </dd>
+            </div>
+            {LEGAL.contactEmail && (
+              <div>
+                <dt className="text-xs font-black uppercase tracking-wider text-[#2B4BFF]">E-mail</dt>
+                <dd className="mt-1 text-xl font-bold"><a className="underline underline-offset-2 hover:text-[#2B4BFF]" href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</a></dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-xs font-black uppercase tracking-wider text-[#2B4BFF]">Zone d'intervention</dt>
+              <dd className="mt-1 text-lg font-bold">{AGENT.zone}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-black uppercase tracking-wider text-[#2B4BFF]">Réseaux sociaux</dt>
+              <dd className="mt-2 flex flex-wrap gap-3">
+                {SOCIALS.map((s) => (
+                  <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="rounded-full border-[3px] border-[#0B0F1F] bg-white px-4 py-1.5 text-sm font-black hover:bg-[#FFD60A]">
+                    {s.label}<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
+                  </a>
+                ))}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <BlogCta />
+      <p className="text-sm text-stone-600">Informations légales : <a className="underline" href="/mentions-legales">mentions légales</a>.</p>
     </main>
   </Shell>
 );

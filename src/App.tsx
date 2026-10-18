@@ -977,7 +977,7 @@ export default function App() {
                         <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
             <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
             <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
-            <a href="tel:+33603580316" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
+            <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
             <span className="flex items-center gap-2" id="footer-socials">
               {SOCIALS.map((s) => (
                 <a

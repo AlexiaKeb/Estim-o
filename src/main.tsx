@@ -17,6 +17,10 @@ async function pageFor(p: string): Promise<ReactElement> {
     const m = await import('./components/LegalPages.tsx');
     return p === '/mentions-legales' ? <m.MentionsLegales /> : <m.Confidentialite />;
   }
+  if (p === '/contact') {
+    const m = await import('./components/BlogPages.tsx');
+    return <m.ContactPage />;
+  }
   if (p === '/faq') {
     const m = await import('./components/BlogPages.tsx');
     return <m.FaqPage />;

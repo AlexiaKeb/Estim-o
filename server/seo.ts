@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AGENT, BRAND, FAQ, FAQ_HOME_COUNT, SOCIALS } from "../src/data/siteContent";
 import { getPost, BlogPost } from "../src/data/blog";
-import { BlogIndex, BlogArticle, BlogNotFound, FaqPage } from "../src/components/BlogPages";
+import { BlogIndex, BlogArticle, BlogNotFound, FaqPage, ContactPage } from "../src/components/BlogPages";
 
 // Référencement : balises par page, données structurées, robots.txt, sitemap.xml.
 // L'adresse canonique vient de APP_URL (ou SITE_URL) pour que le nom de domaine définitif soit toujours celui indexé.
@@ -25,6 +25,7 @@ interface PageMeta {
   post?: BlogPost;
   blogIndex?: boolean;
   faq?: boolean;
+  contact?: boolean;
   status?: number;
 }
 
@@ -54,6 +55,15 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   // Confirmation page (after a booking): served so a refresh keeps it, never indexed
   if (path === "/confirmation") {
     return { title: `Confirmation de votre rendez-vous | ${BRAND.name}`, description: "Confirmation de votre visite d'estimation avec Céline Levrat.", path, index: false };
+  }
+  if (path === "/contact") {
+    return {
+      title: `Contacter Céline Levrat, conseillère immobilière à Lyon | ${BRAND.name}`,
+      description: "Téléphone, zone d'intervention et réseaux sociaux de Céline Levrat, conseillère immobilière indépendante à Lyon et en Beaujolais.",
+      path,
+      index: true,
+      contact: true,
+    };
   }
   if (path === "/mentions-legales") {
     return {
@@ -244,6 +254,8 @@ export async function renderSeo(req: Request, posts: BlogPost[]): Promise<SeoRes
   if (m.post) {
     const related = m.post.related.map((s) => getPost(s, posts)).filter(Boolean) as BlogPost[];
     body = renderToStaticMarkup(createElement(BlogArticle, { post: m.post, all: posts })) + data({ post: m.post, related: related.map(card) });
+  } else if (m.contact) {
+    body = renderToStaticMarkup(createElement(ContactPage));
   } else if (m.faq) {
     body = renderToStaticMarkup(createElement(FaqPage));
   } else if (m.blogIndex) {
@@ -272,6 +284,7 @@ export function sitemapXml(base: string, posts: BlogPost[]): string {
     ["/mentions-legales", "0.2", "yearly"],
     ["/confidentialite", "0.2", "yearly"],
     ["/faq", "0.7", "monthly"],
+    ["/contact", "0.5", "yearly"],
     ["/blog", "0.8", "weekly"],
     ...posts.map((p) => [`/blog/${p.slug}`, "0.7", "monthly"] as [string, string, string]),
   ];
