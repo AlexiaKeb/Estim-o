@@ -101,7 +101,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
       'PRODID:-//Agent Estimation//RDV Decouverte//FR',
       'BEGIN:VEVENT',
       `SUMMARY:Visite découverte & estimation - ${confirmedLead.name}`,
-      `DESCRIPTION:Visite sur place avec Céline pour analyser le bien et préparer votre avis de valeur sous 48h. Tél Céline: 06 03 58 03 16`,
+      `DESCRIPTION:Visite sur place avec Céline pour analyser le bien et préparer votre avis de valeur. Tél Céline: 06 03 58 03 16`,
       `LOCATION:${confirmedLead.address || confirmedLead.city}`,
       `DTSTART:${dateStr}T${timeStr}`,
       `DTEND:${dateStr}T${(parseInt(timeStr.slice(0, 2)) + 1).toString().padStart(2, '0')}${timeStr.slice(2)}`,
@@ -129,7 +129,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
     },
     {
       q: "Comment est établie mon estimation après le passage de Céline ?",
-      a: "Après la visite, Céline confronte les éléments relevés sur place (état, luminosité, étage, vue, prestations) avec les transactions récentes de votre secteur pour établir un avis de valeur, qu'elle vous remet sous 48h.",
+      a: "Après la visite, Céline confronte les éléments relevés sur place (état, luminosité, étage, vue, prestations) avec les transactions récentes de votre secteur pour établir un avis de valeur, qu'elle vous remet ensuite.",
     },
     {
       q: "Dois-je ranger ou nettoyer mon logement avant la visite ?",
@@ -140,7 +140,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
       a: "Bien sûr, c'est même recommandé si le bien est détenu à plusieurs : chacun peut poser ses questions et exprimer ses attentes.",
     },
     {
-      q: "Que se passe-t-il après la remise de l'avis de valeur sous 48h ?",
+      q: "Que se passe-t-il après la remise de l'avis de valeur ?",
       a: "Vous êtes libre de la suite : l'avis de valeur est offert et sans engagement. Vous pouvez en discuter avec Céline, prendre le temps de la réflexion, ou lui demander de vous accompagner dans votre projet de vente.",
     },
     {
@@ -330,7 +330,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
           </div>
 
           <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 rounded-2xl p-4 border border-stone-200/70 italic">
-            « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste sous 48h. »
+            « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste. »
           </p>
 
           <div className="space-y-2 pt-1 sm:flex sm:items-center sm:gap-5 sm:space-y-0">
@@ -397,10 +397,10 @@ export const BookingConfirmationView: React.FC<Props> = ({
           <div className="p-4 rounded-2xl bg-[#FFF7E6] text-[#0B0F1F] border-[3px] border-[#0B0F1F] space-y-1.5 mt-2">
             <div className="flex items-center gap-2 text-xs font-bold text-[#0B0F1F]">
               <Award className="w-4 h-4 text-[#2B4BFF]" />
-              <span>Votre avis de valeur sous 48h</span>
+              <span>Votre avis de valeur</span>
             </div>
             <p className="text-xs text-stone-600 leading-relaxed">
-              Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez sous 48h un avis de valeur au plus juste du marché local.
+              Après la visite, Céline analyse votre bien à la lumière des transactions récentes de votre secteur. Vous recevez ensuite un avis de valeur au plus juste du marché local.
             </p>
           </div>
         </div>

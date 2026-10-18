@@ -90,7 +90,7 @@ export const FAQ: Array<{ q: string; a: string }> = [
   },
   {
     q: 'Sous quel délai vais-je recevoir mon estimation ?',
-    a: "La simulation en ligne vous donne un résultat immédiat en 2 minutes. Suite à la visite sur place, Céline prend le temps d'analyser le marché local et vous remet un avis de valeur détaillé sous 48h.",
+    a: "La simulation en ligne vous donne un résultat immédiat en 2 minutes. Suite à la visite sur place, Céline prend le temps d'analyser le marché local et vous remet un avis de valeur détaillé.",
   },
   {
     q: "Comment est calculée l'estimation lors de la visite ?",

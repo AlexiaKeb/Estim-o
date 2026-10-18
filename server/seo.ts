@@ -70,7 +70,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   if (path === "/faq") {
     return {
       title: `Questions fréquentes sur l'estimation immobilière | ${BRAND.name}`,
-      description: "Estimation gratuite en ligne, visite offerte, avis de valeur sous 48h, documents à préparer : les réponses à vos questions avant de vendre votre bien.",
+      description: "Estimation gratuite en ligne, visite offerte, avis de valeur, documents à préparer : les réponses à vos questions avant de vendre votre bien.",
       path,
       index: true,
       faq: true,

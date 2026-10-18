@@ -748,7 +748,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
               >
                 <CalendarDays className="h-5 w-5 shrink-0" /> Obtenir mon vrai prix : je réserve ma visite
               </button>
-              <p className="text-center text-xs font-semibold text-[#0B0F1F]/70">Visite offerte et sans engagement · avis de valeur sous 48h</p>
+              <p className="text-center text-xs font-semibold text-[#0B0F1F]/70">Visite offerte et sans engagement</p>
             </div>
           </div>
 
