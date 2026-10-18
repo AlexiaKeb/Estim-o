@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { splitName } from '../utils/names';
+import { AutoFollowupCard } from './AutoFollowupCard';
 import { RichEmailEditor, RichEmailEditorHandle } from './RichEmailEditor';
 import { emailTextLength, htmlEscape, isHtmlBody, sanitizeEmailHtml } from '../utils/emailHtml';
 import { CalendarClock, Loader2, Mail, Plus, Save, Send, Trash2 } from 'lucide-react';
@@ -45,7 +46,7 @@ const TEMPLATES: Record<Stage, Array<{ label: string; subject: string; body: str
 
 interface CustomTpl { id: string; stage: Stage; label: string; subject: string; body: string }
 
-const VARS = ['{Prénom}', '{Nom}', '{Adresse}', '{Ville}', '{TypeBien}', '{PrixEstime}', '{Motif}'];
+const VARS = ['{Prénom}', '{Nom}', '{Adresse}', '{Ville}', '{TypeBien}', '{PrixEstime}', '{PrixBas}', '{PrixHaut}', '{Motif}'];
 
 interface Props {
   leads: Lead[];
@@ -481,6 +482,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
       </div>
 
       {view === 'follow' ? (
+        <>
+        <AutoFollowupCard />
         <div className="grid md:grid-cols-2 gap-4">
           <section className="bg-white rounded-2xl border border-stone-200 p-4">
             <h2 className="text-base font-bold text-stone-900">À venir</h2>
@@ -556,6 +559,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
             )}
           </section>
         </div>
+        </>
       ) : (
       <>
       {status && (!status.emailConfigured || !status.baseUrlConfigured) && (

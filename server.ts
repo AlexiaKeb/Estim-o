@@ -30,6 +30,7 @@ import {
   getRevokedBefore,
 } from "./server/auth";
 import { leadChannel } from "./src/utils/channel";
+import { AUTO_FOLLOWUP_STEP, DEFAULT_AUTO_FOLLOWUP, type AutoFollowupConfig } from "./src/data/autoFollowup";
 import { emailTextLength, isHtmlBody, plainToHtml, sanitizeEmailHtml } from "./src/utils/emailHtml";
 import { mailConfig, isMailConfigured, sendEmail, renderEmail, fillVariables } from "./server/mailer";
 import { toLead, pickCrm, leadsToCsv, isUuid as isUuidStr, mapTimeframe, mapMotive } from "./server/crm";
@@ -785,7 +786,13 @@ async function startServer() {
   }
 
   /** Sends one relance row (already inserted with status "envoi") and records the outcome. */
-  async function deliverRelance(client: any, row: { id: string; lead_id: string; subject?: string | null; message: string }) {
+  async function cancelAutoFollowup(client: any, leadId: string) {
+    try {
+      await client.from("relances").update({ status: "annule", error: "Rendez-vous pris" }).eq("lead_id", leadId).eq("step", AUTO_FOLLOWUP_STEP).eq("status", "programme");
+    } catch { /* sans gravité : la vérification est refaite à l'envoi */ }
+  }
+
+  async function deliverRelance(client: any, row: { id: string; lead_id: string; subject?: string | null; message: string; step?: string | null }) {
     const finish = async (patch: Record<string, any>) => {
       await client.from("relances").update(patch).eq("id", row.id);
     };
@@ -793,6 +800,14 @@ async function startServer() {
     if (!lead) {
       await finish({ status: "erreur", error: "Fiche introuvable" });
       return { ok: false as const, error: "Fiche introuvable" };
+    }
+    if (row.step === AUTO_FOLLOWUP_STEP) {
+      // The reminder only makes sense for a visitor who has not booked (or been archived) in the meantime
+      const { count } = await client.from("rendez_vous").select("id", { count: "exact", head: true }).eq("lead_id", lead.id).neq("statut", "annule");
+      if (lead.statut === "rdv_pris" || lead.statut === "perdu" || (count || 0) > 0 || (lead.crm && lead.crm.archive)) {
+        await finish({ status: "annule", error: "Rendez-vous déjà pris ou dossier archivé" });
+        return { ok: false as const, error: "Rendez-vous déjà pris ou dossier archivé." };
+      }
     }
     const to = String(lead.email || "").trim();
     if (!EMAIL_RE.test(to)) {
@@ -819,7 +834,9 @@ async function startServer() {
       signatureName: AGENT_PROFILE.name,
       signatureLine: "Conseillère immobilière indépendante",
       phone: AGENT_PROFILE.phone,
-      bookingUrl: BASE_URL,
+      // Personal link: reopens the booking window with the visitor's details already filled in
+      bookingUrl: `${BASE_URL}/?rdv=${encodeURIComponent(signValue(`rdv:${lead.id}`))}`,
+      ctaLabel: "Choisir mon créneau",
       unsubscribeUrl,
     });
     const result = await sendEmail({ to, toName: lead.nom, subject, text, html, unsubscribeUrl });
@@ -1071,7 +1088,7 @@ async function startServer() {
       for (const d of due) {
         if (budget <= 0) break;
         // Atomic claim: only the instance that flips programme -> envoi sends the message
-        const { data: claimed } = await client.from("relances").update({ status: "envoi" }).eq("id", d.id).eq("status", "programme").select("id, lead_id, subject, message").maybeSingle();
+        const { data: claimed } = await client.from("relances").update({ status: "envoi" }).eq("id", d.id).eq("status", "programme").select("id, lead_id, subject, message, step").maybeSingle();
         if (!claimed) continue;
         const r = await deliverRelance(client, claimed);
         if (r.ok) {
@@ -1121,6 +1138,72 @@ async function startServer() {
     const secret = process.env.CRON_SECRET;
     if (!secret || req.headers["x-cron-secret"] !== secret) return res.status(401).json({ error: "unauthorized" });
     res.json(await processDueRelances());
+  });
+
+  // Automatic reminder after an estimate without appointment: settings (advisor)
+  async function readAutoFollowup(client: any): Promise<AutoFollowupConfig> {
+    const { data } = await client.from("agents").select("script_qualification").order("created_at", { ascending: true }).limit(1).maybeSingle();
+    const c = data?.script_qualification?.auto_followup;
+    const d = DEFAULT_AUTO_FOLLOWUP;
+    if (!c || typeof c !== "object") return d;
+    const delay = Number(c.delayHours);
+    return {
+      enabled: c.enabled !== false,
+      delayHours: Number.isFinite(delay) && delay >= 1 && delay <= 240 ? Math.round(delay) : d.delayHours,
+      subject: typeof c.subject === "string" && c.subject.trim() ? c.subject.slice(0, 200) : d.subject,
+      body: typeof c.body === "string" && emailTextLength(c.body) >= 20 ? c.body.slice(0, 20000) : d.body,
+    };
+  }
+  app.get("/api/auto-followup", requireAgent, async (_req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    res.json({ config: client ? await readAutoFollowup(client) : DEFAULT_AUTO_FOLLOWUP, defaults: DEFAULT_AUTO_FOLLOWUP });
+  });
+  app.put("/api/auto-followup", requireAgent, rateLimit("auto-followup", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    const b = req.body || {};
+    const delay = Math.round(Number(b.delayHours));
+    if (typeof b.subject !== "string" || !b.subject.trim() || typeof b.body !== "string" || emailTextLength(b.body) < 20 || !(delay >= 1 && delay <= 240)) {
+      return res.status(400).json({ error: "Objet, message (20 caractères minimum) et délai (1 à 240 heures) sont obligatoires." });
+    }
+    const cfg: AutoFollowupConfig = { enabled: b.enabled !== false, delayHours: delay, subject: b.subject.trim().slice(0, 200), body: b.body.slice(0, 20000) };
+    const { id, sq } = await readSpend(client);
+    if (!id) return res.status(409).json({ error: "Aucune fiche conseillère en base : créez d'abord un prospect." });
+    const { error } = await client.from("agents").update({ script_qualification: { ...sq, auto_followup: cfg } }).eq("id", id);
+    if (error) return res.status(500).json({ error: error.message });
+    // Messages already programmed follow the new text (and the switch)
+    if (!cfg.enabled) await client.from("relances").update({ status: "annule", error: "Relance automatique désactivée" }).eq("step", AUTO_FOLLOWUP_STEP).eq("status", "programme");
+    else await client.from("relances").update({ subject: cfg.subject, message: cfg.body }).eq("step", AUTO_FOLLOWUP_STEP).eq("status", "programme");
+    res.json({ config: cfg });
+  });
+
+  // Personal booking link from the reminder e-mail: gives back the visitor's own details so the booking window opens pre-filled
+  app.get("/api/rdv/lead", rateLimit("rdv-link", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    const raw = readSignedValue(String(req.query.t || ""));
+    const id = raw && raw.startsWith("rdv:") ? raw.slice(4) : "";
+    if (!client || !isUuidStr(id)) return res.status(400).json({ error: "Lien invalide" });
+    const { data: lead } = await client.from("leads").select("*").eq("id", id).maybeSingle();
+    if (!lead) return res.status(404).json({ error: "Dossier introuvable" });
+    const { count } = await client.from("rendez_vous").select("id", { count: "exact", head: true }).eq("lead_id", id).neq("statut", "annule");
+    if (lead.statut === "rdv_pris" || (count || 0) > 0) return res.json({ booked: true });
+    const val = lead.crm && typeof lead.crm === "object" ? lead.crm.valuation : null;
+    res.json({
+      lead: {
+        id: lead.id,
+        name: lead.nom,
+        phone: lead.telephone,
+        email: lead.email,
+        city: lead.ville_bien,
+        address: lead.adresse || lead.ville_bien,
+        surface: lead.surface,
+        propertyType: lead.type_bien,
+        estimatedValue: lead.valeur_estimee,
+        motive: lead.motif,
+        timeframe: lead.delai_projet,
+        valuation: val && Number(val.lowPrice) > 0 ? { lowPrice: Number(val.lowPrice), highPrice: Number(val.highPrice) } : undefined,
+      },
+    });
   });
 
   // Public unsubscribe link (in every e-mail)
@@ -1575,6 +1658,24 @@ async function startServer() {
       }
 
       await rescoreLead(client, inserted.id, { timeframe: leadData.timeframe, motive: leadData.motive });
+      // Automatic reminder for a visitor who got an estimate but has not booked: sent after the configured delay, cancelled if she books
+      try {
+        const cfg = await readAutoFollowup(client);
+        const v = initialCrm.valuation;
+        if (cfg.enabled && !leadData.meetingBooked && EMAIL_RE.test(String(base.email || "")) && Number(v?.lowPrice) > 0 && Number(v?.highPrice) > 0) {
+          await client.from("relances").insert({
+            lead_id: inserted.id,
+            step: AUTO_FOLLOWUP_STEP,
+            channel: "Email",
+            subject: cfg.subject,
+            message: cfg.body,
+            send_at: new Date(Date.now() + cfg.delayHours * 3600 * 1000).toISOString(),
+            status: "programme",
+          });
+        }
+      } catch (e: any) {
+        console.warn("[Relances] relance automatique non programmée:", e?.message || e);
+      }
       const channel = leadChannel(initialCrm.attribution);
       void notifyAdvisor({
         title: `🔔 Nouveau lead : ${String(base.nom).toUpperCase()}`,
@@ -2244,6 +2345,7 @@ async function startServer() {
           }
 
           await client.from("leads").update({ statut: "rdv_pris", updated_at: new Date().toISOString() }).eq("id", actualLeadId);
+          await cancelAutoFollowup(client, actualLeadId);
           await rescoreLead(client, actualLeadId, { booked: true });
           void (async () => {
             const { data: l } = await client.from("leads").select("nom, telephone, email, adresse, ville_bien, type_bien, surface").eq("id", actualLeadId).maybeSingle();
@@ -2646,6 +2748,7 @@ async function startServer() {
       }
     } else {
       await client.from("leads").update({ statut: "rdv_pris", updated_at: new Date().toISOString() }).eq("id", rdv.lead_id);
+      await cancelAutoFollowup(client, rdv.lead_id);
     }
     slotsMemoryCache.clear();
     return { matched: true, rendezVousId: rdv.id };

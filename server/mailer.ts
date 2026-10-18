@@ -100,6 +100,7 @@ export interface TemplateInput {
   signatureLine: string;
   phone: string;
   bookingUrl?: string;
+  ctaLabel?: string;
   unsubscribeUrl: string;
 }
 
@@ -112,11 +113,11 @@ export function renderEmail(t: TemplateInput): { text: string; html: string } {
   const safeBody = rich ? sanitizeEmailHtml(t.body) : "";
   const text = [
     rich ? htmlToText(safeBody) : t.body.trim(),
+    t.bookingUrl ? `\n${t.ctaLabel || "Réserver une visite"} : ${t.bookingUrl}` : "",
     "",
     `${t.signatureName}`,
     t.signatureLine,
     t.phone ? `Tél. ${t.phone}` : "",
-    t.bookingUrl ? `\nRéserver une visite : ${t.bookingUrl}` : "",
     "",
     "—",
     `Vous recevez ce message suite à votre demande d'estimation. Pour ne plus recevoir de messages : ${t.unsubscribeUrl}`,
@@ -141,8 +142,8 @@ export function renderEmail(t: TemplateInput): { text: string; html: string } {
   const html = `<!doctype html><html lang="fr"><body style="margin:0;padding:24px;background:#f6f5f3;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1c1917">
 <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px">
 ${paragraphs}
-<p style="margin:22px 0 0;line-height:1.5"><strong>${esc(t.signatureName)}</strong><br>${esc(t.signatureLine)}${t.phone ? `<br>Tél. ${esc(t.phone)}` : ""}</p>
-${t.bookingUrl ? `<p style="margin:20px 0 0"><a href="${esc(t.bookingUrl)}" style="display:inline-block;background:#1c1917;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:600">Réserver une visite</a></p>` : ""}
+${t.bookingUrl ? `<p style="margin:22px 0 0"><a href="${esc(t.bookingUrl)}" style="display:inline-block;background:#2B4BFF;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:10px;font-weight:700;font-size:16px">${esc(t.ctaLabel || "Réserver une visite")}</a></p>` : ""}
+<p style="margin:26px 0 0;line-height:1.5"><strong>${esc(t.signatureName)}</strong><br>${esc(t.signatureLine)}${t.phone ? `<br>Tél. ${esc(t.phone)}` : ""}</p>
 </div>
 <p style="max-width:560px;margin:14px auto 0;font-size:12px;color:#78716c;line-height:1.5">Vous recevez ce message suite à votre demande d'estimation. <a href="${esc(t.unsubscribeUrl)}" style="color:#78716c">Ne plus recevoir ces messages</a>.</p>
 </body></html>`;
@@ -150,10 +151,14 @@ ${t.bookingUrl ? `<p style="margin:20px 0 0"><a href="${esc(t.bookingUrl)}" styl
 }
 
 /** Replaces {Prénom}, {Nom}, {Adresse}, {Ville}, {TypeBien}, {PrixEstime}, {Motif} with the lead's real data. */
-export function fillVariables(text: string, lead: { nom?: string; adresse?: string | null; ville_bien?: string; type_bien?: string; valeur_estimee?: number | string | null; motif?: string | null }): string {
+export function fillVariables(text: string, lead: { nom?: string; adresse?: string | null; ville_bien?: string; type_bien?: string; valeur_estimee?: number | string | null; motif?: string | null; crm?: any }): string {
   const { first, last } = splitName(lead.nom || "");
   const price = Number(lead.valeur_estimee) > 0 ? `${Math.round(Number(lead.valeur_estimee)).toLocaleString("fr-FR")} €` : "";
   // In a rich-text message the values are escaped so that a name can never inject HTML
+  const val = lead.crm && typeof lead.crm === "object" ? lead.crm.valuation : null;
+  const round = (n: unknown) => (Number(n) > 0 ? `${(Math.round(Number(n) / 1000) * 1000).toLocaleString("fr-FR")} €` : "");
+  const low = round(val?.lowPrice) || price;
+  const high = round(val?.highPrice) || price;
   const v = isHtmlBody(text) ? htmlEscape : (x: string) => x;
   return text
     .replace(/\{Pr[ée]nom\}/gi, () => v(first))
@@ -162,5 +167,7 @@ export function fillVariables(text: string, lead: { nom?: string; adresse?: stri
     .replace(/\{Ville\}/gi, () => v(lead.ville_bien || ""))
     .replace(/\{TypeBien\}/gi, () => v((lead.type_bien || "bien").toLowerCase()))
     .replace(/\{PrixEstime\}/gi, () => v(price))
+    .replace(/\{PrixBas\}/gi, () => v(low))
+    .replace(/\{PrixHaut\}/gi, () => v(high))
     .replace(/\{Motif\}/gi, () => v(lead.motif || ""));
 }

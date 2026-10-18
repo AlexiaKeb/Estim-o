@@ -480,6 +480,22 @@ export default function App() {
   };
 
 
+  // Personal link from the reminder e-mail (/?rdv=…): reopens the booking window with the visitor's details already filled in
+  useEffect(() => {
+    let token: string | null = null;
+    try { token = new URLSearchParams(window.location.search).get('rdv'); } catch { /* ignoré */ }
+    if (!token) return;
+    try { history.replaceState(null, '', window.location.pathname + window.location.hash); } catch { /* ignoré */ }
+    fetch(`/api/rdv/lead?t=${encodeURIComponent(token)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.booked) showToast('Votre rendez-vous est déjà confirmé : à très bientôt !');
+        else if (d?.lead) { setBookingLeadInfo(d.lead as Partial<Lead>); setIsBookingOpen(true); }
+      })
+      .catch(() => { /* le visiteur reste sur le site et peut réserver normalement */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Handler when meeting is confirmed
   const handleConfirmBooking = (newLead: Lead) => {
     clearAssistantDraft();
