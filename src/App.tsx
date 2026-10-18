@@ -69,7 +69,6 @@ const StatsView = lazyRetry(() => import('./components/StatsView').then((m) => (
 const ArticlesView = lazyRetry(() => import('./components/ArticlesView').then((m) => ({ default: m.ArticlesView })));
 const CalendarHealth = lazyRetry(() => import('./components/CalendarHealth').then((m) => ({ default: m.CalendarHealth })));
 import { BRAND, SOCIALS } from './data/siteContent';
-import { CreditLine } from './components/CreditLine';
 
 // Confirmation page: its own address (/confirmation) so a refresh keeps it; /confirmation?demo=1 shows a sample for tests
 const CONFIRMED_KEY = 'estimo-confirmed-lead-v1';
@@ -988,23 +987,25 @@ export default function App() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="bg-[#0B0F1F] pt-8 pb-24 sm:pb-8 mt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 text-xs text-white/70">
-          <div className="text-center sm:text-left">
-            <p className="text-sm font-black text-white">{BRAND.name} – Céline LEVRAT – Expertise Immobilière</p>
-            <p className="mt-1">Estimation offerte et sans engagement</p>
-          </div>
+      {/* Footer : logo à gauche, menu à droite */}
+      <footer className="bg-[#0B0F1F] py-8 pb-24 sm:pb-8 mt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <a href="/" className="flex items-center gap-2.5 select-none" aria-label={`${BRAND.name} : retour à l'accueil`}>
+            <span className="w-9 h-9 rounded-xl bg-[#2B4BFF] border-[3px] border-white text-white flex items-center justify-center">
+              <Building2 className="w-[18px] h-[18px]" />
+            </span>
+            <span>
+              <span className="block text-sm font-bold text-white tracking-tight leading-tight">{BRAND.name}</span>
+              <span className="block text-[11px] text-white/60 leading-tight">{BRAND.tagline}</span>
+            </span>
+          </a>
 
-          <nav aria-label="Liens du site" className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm sm:justify-start">
+          <nav aria-label="Liens du site" className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-white/80">
             <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
             <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
             <a href="/honoraires" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Honoraires</a>
             <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
             <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
-          </nav>
-
-          <div className="flex flex-col items-center justify-between gap-3 border-t border-white/15 pt-4 sm:flex-row">
             {isAgentMode ? (
               <span className="text-[#FFD60A] font-medium flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -1021,16 +1022,13 @@ export default function App() {
                     setIsAuthModalOpen(true);
                   }
                 }}
-                className="text-stone-400 hover:text-stone-700 text-xs flex items-center gap-1 transition-colors"
+                className="text-stone-400 hover:text-white flex items-center gap-1 transition-colors"
               >
-                <Lock className="w-3 h-3 text-stone-400" />
-                <span>Espace réservé aux conseillers référents</span>
+                <Lock className="w-3 h-3" />
+                <span>Espace conseillers</span>
               </button>
-            ) : (
-              <span />
-            )}
-            <CreditLine />
-          </div>
+            ) : null}
+          </nav>
         </div>
       </footer>
     </div>
