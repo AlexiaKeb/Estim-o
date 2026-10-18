@@ -9,7 +9,6 @@ import {
   PhoneCall, 
   ShieldCheck, 
   CheckCircle2, 
-  Sparkles, 
   Download, 
   Share2, 
   ArrowRight, 
@@ -37,28 +36,9 @@ export const BookingConfirmationView: React.FC<Props> = ({
   onModifyBooking,
   onBackToEstimator,
 }) => {
-  const [checklist, setChecklist] = useState<{ [key: string]: boolean }>({
-    info_travaux: true,
-    info_taxe: false,
-    info_copro: false,
-    info_plan: false,
-    info_dpe: false,
-  });
   const firstName = (confirmedLead.name || '').trim().split(/\s+/)[0] || '';
-  const PREP_ITEMS: Array<[string, string, string]> = [
-    ['info_travaux', '1. Travaux réalisés ou à prévoir', 'Rénovations récentes ou travaux envisagés (toiture, ravalement, chaudière, ascenseur...).'],
-    ['info_taxe', '2. Taxe foncière', 'Le montant annuel approximatif.'],
-    ['info_copro', '3. Charges de copropriété (si appartement)', 'Le montant moyen trimestriel ou annuel des charges courantes.'],
-    ['info_plan', '4. Plan du logement (si disponible)', 'Un plan ou même un schéma aide à apprécier la distribution des espaces.'],
-    ['info_dpe', '5. Diagnostic technique & DPE (si disponibles)', 'Les diagnostics déjà réalisés.'],
-  ];
-
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [copiedCalendar, setCopiedCalendar] = useState(false);
-
-  const toggleCheck = (key: string) => {
-    setChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
 
   const formattedDate = confirmedLead.meetingDate 
     ? new Date(confirmedLead.meetingDate).toLocaleDateString('fr-FR', {
@@ -305,30 +285,30 @@ export const BookingConfirmationView: React.FC<Props> = ({
 
       {/* 2. SINGLE COLUMN: advisor, complementary questions, preparation, sector, FAQ */}
       <div className="space-y-6">
-        <section aria-labelledby="advisor-title" id="advisor-card" className="rounded-3xl border-[3px] border-[#0B0F1F] bg-[#2B4BFF] p-5 text-white shadow-[8px_8px_0_#0B0F1F] sm:p-8">
-          <div className="flex flex-col items-center gap-6 md:flex-row md:items-end md:gap-10">
-            <Human className="w-40 shrink-0 sm:w-48" />
+        <section aria-labelledby="advisor-title" id="advisor-card" className="overflow-hidden rounded-3xl border-[3px] border-[#0B0F1F] bg-[#FFF7E6] text-[#0B0F1F] shadow-[8px_8px_0_#0B0F1F]">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b-[3px] border-[#0B0F1F] bg-[#FFD60A] px-5 py-3 sm:px-8">
+            <span id="advisor-title" className="text-sm font-black uppercase tracking-wider">Votre conseillère dédiée</span>
+            <span className="rounded-full border-2 border-[#0B0F1F] bg-white px-3 py-0.5 text-[11px] font-black text-[#2B4BFF]">Dossier attribué</span>
+          </div>
+          <div className="flex flex-col items-center gap-6 p-5 sm:p-8 md:flex-row md:items-end md:gap-10">
+            <Human className="w-36 shrink-0 sm:w-44" />
             <div className="w-full min-w-0 flex-1 space-y-4 text-center md:text-left">
-              <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-                <span id="advisor-title" className="text-xs font-black uppercase tracking-wider text-[#FFD60A]">Votre conseillère dédiée</span>
-                <span className="rounded-full border-2 border-[#0B0F1F] bg-[#FFF7E6] px-2.5 py-0.5 text-[10px] font-black text-[#2B4BFF]">Dossier attribué</span>
-              </div>
               <div>
                 <h3 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">Céline LEVRAT</h3>
-                <p className="mt-1 text-base font-bold text-white/85">Experte immobilière locale</p>
+                <p className="mt-1 text-base font-bold text-[#2B4BFF]">Experte immobilière locale</p>
               </div>
-              <p className="rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFF7E6] p-4 text-left text-sm font-medium italic leading-relaxed text-[#0B0F1F]">
+              <p className="rounded-2xl border-[3px] border-[#0B0F1F] bg-white p-4 text-left text-sm font-medium italic leading-relaxed">
                 « Bonjour {firstName} ! Cette visite est un moment d'échange pour comprendre votre projet et observer les atouts de votre logement. Suite à notre rencontre, je réaliserai une analyse pour vous remettre un avis de valeur au prix juste. »
               </p>
               <div className="flex flex-col items-center gap-3 sm:flex-row md:justify-start">
                 <a
                   href="tel:0603580316"
-                  className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-6 py-3.5 text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5 sm:w-auto"
+                  className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-6 py-3.5 shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5 sm:w-auto"
                 >
                   <PhoneCall className="h-6 w-6" />
                   <span className="flex flex-col items-start leading-tight"><span className="text-sm font-black">Appeler Céline</span><span className="text-lg font-black tracking-wide">06 03 58 03 16</span></span>
                 </a>
-                <p className="text-sm font-semibold text-white/90 sm:max-w-xs sm:text-left">
+                <p className="text-sm font-semibold text-[#0B0F1F]/80 sm:max-w-xs sm:text-left">
                   Pour modifier ou décaler votre créneau, appelez Céline au <strong className="whitespace-nowrap">06 03 58 03 16</strong>
                 </p>
               </div>
@@ -343,42 +323,6 @@ export const BookingConfirmationView: React.FC<Props> = ({
           high={confirmedLead.valuation?.highPrice}
           onSubmitted={() => {}}
         />
-
-        {/* Discovery & Key Info Card */}
-        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 space-y-5">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-3.5">
-            <div>
-              <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#2B4BFF]" />
-                Préparer votre visite : les éléments utiles
-              </h3>
-              <p className="text-xs text-stone-500 mt-0.5">
-                Pour optimiser notre rendez-vous, vous pouvez préparer ces quelques éléments si vous les avez (rien d'obligatoire).
-              </p>
-            </div>
-          </div>
-
-          {/* Checklist items */}
-          <div className="space-y-3">
-            {PREP_ITEMS.map(([key, title, hint]) => (
-              <div
-                key={key}
-                onClick={() => toggleCheck(key)}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
-                  checklist[key]
-                    ? 'bg-[#FFF7E6]/60 border-[#0B0F1F] text-emerald-950'
-                    : 'bg-stone-50/60 border-stone-200 hover:bg-stone-100/70 text-stone-800'
-                }`}
-              >
-                <input type="checkbox" checked={!!checklist[key]} onChange={() => {}} className="w-4 h-4 text-[#2B4BFF] rounded border-stone-300 mt-0.5 cursor-pointer" />
-                <div className="text-xs">
-                  <div className="font-semibold">{title}</div>
-                  <div className="text-stone-500 text-[11px] mt-0.5">{hint}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {faqBlock}
       </div>
