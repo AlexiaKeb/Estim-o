@@ -187,11 +187,7 @@ export async function invokeBookAppointmentEdgeFunction(params: {
   motive?: string;
 }): Promise<EdgeFunctionBookResponse> {
   try {
-    const response = await fetch('/api/supabase/book-appointment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(20000),
-      body: JSON.stringify({
+    const payload = JSON.stringify({
         lead_id: params.lead_id,
         creneau: params.creneau,
         date: params.date,
@@ -207,10 +203,19 @@ export async function invokeBookAppointmentEdgeFunction(params: {
         estimated_value: params.estimated_value,
         timeframe: params.timeframe,
         motive: params.motive,
-      }),
     });
 
-    const data = await response.json();
+    // 502/503/504: the request never reached the application (site restarting after an update): safe to try again
+    let response = await fetch('/api/supabase/book-appointment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(30000), body: payload });
+    for (let i = 0; i < 3 && [502, 503, 504].includes(response.status); i++) {
+      await new Promise((r) => setTimeout(r, 4000));
+      response = await fetch('/api/supabase/book-appointment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(30000), body: payload });
+    }
+
+    const data = await response.json().catch(() => null);
+    if (!data) {
+      return { success: false, error: "Le site vient d'être mis à jour. Votre créneau n'a pas été confirmé : merci de réessayer dans quelques secondes." };
+    }
     if (!response.ok || data.success === false) {
       return {
         success: false,
