@@ -38,9 +38,15 @@ export const MentionsLegales: React.FC = () => (
   <Shell title="Mentions légales">
     <Section title="Éditeur du site">
       <p>
-        Le site « {BRAND.name} » est édité à l'initiative de <strong>{AGENT.name}</strong>, agent commercial
-        indépendant en immobilier{LEGAL.rsac ? ` (${LEGAL.rsac})` : ''}, mandataire de {LEGAL.company}.
+        Le site « {BRAND.name} » est édité à l'initiative de <strong>Céline LEVRAT</strong>, agent commercial
+        indépendant en immobilier (entreprise individuelle), mandataire de {LEGAL.company}.
       </p>
+      <p>
+        SIRET : {LEGAL.agentSiret}.<br />
+        Immatriculée au {LEGAL.rsac}.<br />
+        Assurance responsabilité civile professionnelle : {LEGAL.agentRcp}.
+      </p>
+      <p>L'agent commercial ne peut recevoir aucun engagement ni aucun versement de fonds, effets ou valeurs.</p>
       <p><Contact /></p>
     </Section>
     <Section title="Directrice de la publication">

@@ -43,7 +43,10 @@ export const LEGAL = {
     'Carte professionnelle « Transaction » n° CPI 69012021000000167, délivrée par la Chambre de Commerce et d\'Industrie de Lyon',
   fonds: 'Sans maniement de fonds',
   // À compléter : numéro d'immatriculation de Céline au RSAC (agent commercial) et greffe
-  rsac: 'RSAC n° 800 580 549',
+  rsac: 'RSAC de Lyon n° 800 580 540',
+  // Céline : entreprise individuelle (agent commercial)
+  agentSiret: '800 580 540 00063',
+  agentRcp: 'RCP n° H278359750',
   // À compléter : e-mail de contact et nom du médiateur de la consommation de NOVEA
   contactEmail: 'cel@novea-immobilier.fr',
   mediator: '',
