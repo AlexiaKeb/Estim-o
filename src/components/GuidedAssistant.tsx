@@ -112,7 +112,7 @@ let uid = 0;
 const nextId = () => `m-${Date.now()}-${uid++}`;
 
 /** Wording of the consent box, kept with each lead as proof (version to bump whenever the text changes). */
-const CONSENT_VERSION = '2026-10-v3';
+const CONSENT_VERSION = '2026-10-v4';
 const CONSENT_TEXT = `Je donne mon consentement explicite à être contacté(e) par ${AGENT.name}, conseillère immobilière indépendante, par téléphone ou par e-mail, au sujet de mon projet immobilier : réception de mon estimation, proposition d'une visite et quelques e-mails utiles liés à cette estimation. Pour cela, elle utilise mon nom, mon numéro de téléphone et mon adresse e-mail. Je peux retirer mon consentement à tout moment, sans frais, en un clic dans chaque e-mail ou en contactant ${AGENT.firstName}. Mes données ne sont jamais revendues et sont conservées 3 ans après notre dernier échange.`;
 
 const Chip: React.FC<{ onClick: () => void; children: React.ReactNode; strong?: boolean; disabled?: boolean }> = ({ onClick, children, strong, disabled }) => (

@@ -78,13 +78,13 @@ export async function getActiveAgent(): Promise<AgentRecord | null> {
   // Default agent fallback
   return {
     id: '00000000-0000-0000-0000-000000000001',
-    nom: 'Céline Levrat (NOVEA Immobilier)',
+    nom: 'Céline LEVRAT (NOVEA Immobilier)',
     ville: 'Lyon',
     zone_intervention: 'Lyon et alentours, rayon de 30 km',
     email_contact: 'cel@novea-immobilier.fr',
     cal_username: 'celine-levrat-novea',
     script_qualification: {
-      agent_display_name: 'Céline Levrat',
+      agent_display_name: 'Céline LEVRAT',
       agency_name: 'Agent Estimation',
       phone: '06 03 58 03 16',
       tone: 'professionnel, empathique, valorisant et orienté vers une visite de découverte sans engagement',

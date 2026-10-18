@@ -16,7 +16,7 @@ export const SOCIALS = [
 ] as const;
 
 export const AGENT = {
-  name: 'Céline Levrat',
+  name: 'Céline LEVRAT',
   // Affichage : nom de famille en majuscules
   displayName: 'Céline LEVRAT',
   firstName: 'Céline',

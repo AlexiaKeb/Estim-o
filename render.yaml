@@ -34,7 +34,7 @@ services:
       - key: MAIL_FROM_EMAIL
         sync: false
       - key: MAIL_FROM_NAME
-        value: Céline Levrat
+        value: Céline LEVRAT
       - key: MAIL_REPLY_TO
         sync: false
       - key: APP_URL

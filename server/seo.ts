@@ -35,7 +35,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
     return {
       title: `Estimation immobilière gratuite à Lyon | ${BRAND.name}`,
       description:
-        "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais en 2 minutes, d'après les ventes réelles (DVF). Visite offerte avec Céline Levrat.",
+        "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais en 2 minutes, d'après les ventes réelles (DVF). Visite offerte avec Céline LEVRAT.",
       path: "/",
       index: true,
       home: true,
@@ -46,7 +46,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
     return {
       title: `Estimation immobilière gratuite à Lyon | ${BRAND.name}`,
       description:
-        "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais en 2 minutes, d'après les ventes réelles (DVF). Visite offerte avec Céline Levrat.",
+        "Estimation immobilière gratuite à Lyon, Villeurbanne et en Beaujolais en 2 minutes, d'après les ventes réelles (DVF). Visite offerte avec Céline LEVRAT.",
       path: "/",
       index: true,
       home: true,
@@ -54,12 +54,12 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   }
   // Confirmation page (after a booking): served so a refresh keeps it, never indexed
   if (path === "/confirmation") {
-    return { title: `Confirmation de votre rendez-vous | ${BRAND.name}`, description: "Confirmation de votre visite d'estimation avec Céline Levrat.", path, index: false };
+    return { title: `Confirmation de votre rendez-vous | ${BRAND.name}`, description: "Confirmation de votre visite d'estimation avec Céline LEVRAT.", path, index: false };
   }
   if (path === "/contact") {
     return {
-      title: `Contacter Céline Levrat, conseillère immobilière à Lyon | ${BRAND.name}`,
-      description: "Téléphone, zone d'intervention et réseaux sociaux de Céline Levrat, conseillère immobilière indépendante à Lyon et en Beaujolais.",
+      title: `Contacter Céline LEVRAT, conseillère immobilière à Lyon | ${BRAND.name}`,
+      description: "Téléphone, zone d'intervention et réseaux sociaux de Céline LEVRAT, conseillère immobilière indépendante à Lyon et en Beaujolais.",
       path,
       index: true,
       contact: true,
@@ -229,7 +229,7 @@ function buildHead(req: Request, m: PageMeta): string {
     `<meta property="og:url" content="${esc(url)}" />`,
     `<meta property="og:image" content="${esc(image)}" />`,
     ...(cover ? [] : [`<meta property="og:image:width" content="1200" />`, `<meta property="og:image:height" content="630" />`]),
-    `<meta property="og:image:alt" content="${esc(m.post ? m.post.title : "Céline Levrat, conseillère immobilière à Lyon : estimation gratuite")}" />`,
+    `<meta property="og:image:alt" content="${esc(m.post ? m.post.title : "Céline LEVRAT, conseillère immobilière à Lyon : estimation gratuite")}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${esc(m.title)}" />`,
     `<meta name="twitter:description" content="${esc(m.description)}" />`,

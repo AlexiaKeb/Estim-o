@@ -272,7 +272,7 @@ async function getQualification(messages: Array<{ role: string; content: string 
 const CAL_BASE = (process.env.CAL_API_BASE || "https://api.cal.com").replace(/\/$/, "");
 
 const AGENT_PROFILE = {
-  name: process.env.AGENT_NAME || "Céline Levrat",
+  name: process.env.AGENT_NAME || "Céline LEVRAT",
   agency: process.env.AGENT_AGENCY || "Agent Estimation",
   phone: process.env.AGENT_PHONE || "06 03 58 03 16",
   city: process.env.AGENT_CITY || "Lyon",
@@ -1526,18 +1526,18 @@ async function startServer() {
         .from("agents")
         .insert({
           id: "d0e8c854-3e91-477c-a49e-108848123abc",
-          nom: "Céline Levrat (NOVEA Immobilier)",
+          nom: "Céline LEVRAT (NOVEA Immobilier)",
           ville: "Lyon",
           zone_intervention: "Lyon et alentours, rayon de 30 km",
           email_contact: "cel@novea-immobilier.fr",
           cal_username: process.env.CAL_USERNAME || "celine-levrat-novea",
           script_qualification: {
-            agent_display_name: "Céline Levrat",
+            agent_display_name: "Céline LEVRAT",
             agency_name: "Agent Estimation",
             phone: "06 03 58 03 16",
             tone: "professionnel, empathique, valorisant et orienté vers une visite de découverte sans engagement",
             geographic_perimeter: "Lyon et 30 km autour",
-            welcome_template: "Bonjour ! Je suis l'assistant de Céline Levrat, conseillère immobilière à Lyon. Je suis à votre écoute pour échanger sur votre bien et préparer votre estimation.",
+            welcome_template: "Bonjour ! Je suis l'assistant de Céline LEVRAT, conseillère immobilière à Lyon. Je suis à votre écoute pour échanger sur votre bien et préparer votre estimation.",
           },
         })
         .select("id")
@@ -2000,7 +2000,7 @@ async function startServer() {
       return res.json({
         agent: {
           id: "ag-001",
-          nom: "Céline Levrat (NOVEA Immobilier)",
+          nom: "Céline LEVRAT (NOVEA Immobilier)",
           ville: "Lyon",
           cal_username: "celine-levrat-novea",
         },
@@ -2015,7 +2015,7 @@ async function startServer() {
     } catch (err) {
       console.error("qualify-lead route error:", err);
       res.json({
-        agent: { nom: "Céline Levrat", ville: "Lyon" },
+        agent: { nom: "Céline LEVRAT", ville: "Lyon" },
         message_a_afficher: "Bonjour ! Nous pouvons planifier un point d'étape sans engagement pour affiner votre estimation.",
         score_qualification: 60,
         lead_chaud: false,

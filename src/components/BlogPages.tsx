@@ -66,22 +66,77 @@ const PostCard: React.FC<{ post: BlogPost }> = ({ post }) => (
   </article>
 );
 
-export const BlogIndex: React.FC<{ posts: BlogPost[] }> = ({ posts }) => (
-  <Shell>
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance]">
-        Conseils pour estimer et vendre son bien à Lyon
-      </h1>
-      <p className="mt-3 text-stone-600 max-w-2xl">
-        Prix, documents, diagnostics, étapes de la vente : des explications claires pour préparer votre projet, rédigées par {AGENT.displayName}, conseillère immobilière à Lyon.
-      </p>
-      <div className="mt-8 grid sm:grid-cols-2 gap-5">
-        {posts.map((p) => <PostCard key={p.slug} post={p} />)}
-      </div>
-      <BlogCta />
-    </main>
-  </Shell>
-);
+type SortKey = 'reco' | 'recent' | 'old' | 'short' | 'az';
+const SORTS: Array<[SortKey, string]> = [
+  ['reco', 'Recommandés'],
+  ['recent', 'Plus récents'],
+  ['old', 'Plus anciens'],
+  ['short', 'Lecture la plus courte'],
+  ['az', 'Ordre alphabétique'],
+];
+
+export const BlogIndex: React.FC<{ posts: BlogPost[] }> = ({ posts }) => {
+  const [sort, setSort] = React.useState<SortKey>('reco');
+  const [category, setCategory] = React.useState<string>('');
+  const categories = Array.from(new Set(posts.map((p) => p.category).filter(Boolean)));
+  const shown = posts
+    .filter((p) => !category || p.category === category)
+    .map((p, i) => ({ p, i }))
+    .sort((x, y) => {
+      if (sort === 'recent') return y.p.date.localeCompare(x.p.date) || x.i - y.i;
+      if (sort === 'old') return x.p.date.localeCompare(y.p.date) || x.i - y.i;
+      if (sort === 'short') return x.p.readingMinutes - y.p.readingMinutes || x.i - y.i;
+      if (sort === 'az') return x.p.title.localeCompare(y.p.title, 'fr');
+      return x.i - y.i;
+    })
+    .map((x) => x.p);
+  return (
+    <Shell>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance]">
+          Conseils pour estimer et vendre son bien à Lyon
+        </h1>
+        <p className="mt-3 text-stone-600 max-w-2xl">
+          Prix, documents, diagnostics, étapes de la vente : des explications claires pour préparer votre projet, rédigées par {AGENT.displayName}, conseillère immobilière à Lyon.
+        </p>
+
+        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {categories.length > 1 && (
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par thème">
+              {['', ...categories].map((c) => (
+                <button
+                  key={c || 'all'}
+                  type="button"
+                  aria-pressed={category === c}
+                  onClick={() => setCategory(c)}
+                  className={`rounded-full border-[3px] border-[#0B0F1F] px-3.5 py-1.5 text-sm font-black transition-colors ${category === c ? 'bg-[#0B0F1F] text-white' : 'bg-white text-[#0B0F1F] hover:bg-[#FFD60A]'}`}
+                >
+                  {c || 'Tous'}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <label htmlFor="blog-sort" className="text-sm font-black text-[#0B0F1F]">Trier par</label>
+            <select
+              id="blog-sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-3 py-2 text-sm font-black text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#2B4BFF]"
+            >
+              {SORTS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-6 grid sm:grid-cols-2 gap-5" aria-live="polite">
+          {shown.map((p) => <PostCard key={p.slug} post={p} />)}
+        </div>
+        <BlogCta />
+      </main>
+    </Shell>
+  );
+};
 
 export const BlogNotFound: React.FC = () => (
   <Shell>
