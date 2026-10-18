@@ -45,16 +45,37 @@ const chipStrong = 'rounded-full border-[3px] border-white bg-[#FFD60A] px-4 py-
 const field = 'w-full rounded-xl border-[3px] border-white bg-white px-4 py-3 text-base font-medium text-[#0B0F1F] placeholder:text-[#0B0F1F]/50 focus:outline-none focus:ring-4 focus:ring-[#FFD60A]';
 
 /** Conversational complementary questions shown once the visit is confirmed: the robot asks, the visitor taps. Fully optional. */
+const INTRO: Msg = { from: 'bot', text: "Bonjour, votre rendez-vous est bien enregistré. Quelques questions rapides aideront Céline à préparer la visite. Vous pouvez passer celles que vous voulez." };
+const saveKey = (id?: string) => `estimo-quick-v1-${id || 'x'}`;
+const loadSaved = (id?: string): { msgs: Msg[]; idx: number; answers: QuickAnswers } | null => {
+  try {
+    const d = JSON.parse(window.localStorage.getItem(saveKey(id)) || 'null');
+    if (d && Array.isArray(d.msgs) && d.msgs.length && typeof d.idx === 'number') return d;
+  } catch { /* ignoré */ }
+  return null;
+};
+
 export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmitted }) => {
-  const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: "Bonjour, votre rendez-vous est bien enregistré. Quelques questions rapides aideront Céline à préparer la visite. Vous pouvez passer celles que vous voulez." }]);
-  const [idx, setIdx] = useState(-1); // -1 = intro shown, waiting for "C'est parti"
+  const saved = React.useMemo(() => {
+    const d = loadSaved(leadId);
+    // A refresh between an answer and the next question: put the question back
+    if (d && d.idx >= 0 && d.idx < STEPS.length && d.msgs[d.msgs.length - 1].from === 'user') d.msgs = [...d.msgs, { from: 'bot', text: STEPS[d.idx].ask }];
+    return d;
+  }, []);
+  const [msgs, setMsgs] = useState<Msg[]>(saved?.msgs ?? [INTRO]);
+  const [idx, setIdx] = useState(saved?.idx ?? -1); // -1 = intro shown, waiting for "C'est parti"
   const [typing, setTyping] = useState(false);
-  const [answers, setAnswers] = useState<QuickAnswers>({});
+  const [answers, setAnswers] = useState<QuickAnswers>(saved?.answers ?? {});
   const [multi, setMulti] = useState<string[]>([]);
   const [text, setText] = useState('');
-  const [state, setState] = useState<'chat' | 'sending' | 'done'>('chat');
+  const [state, setState] = useState<'chat' | 'sending' | 'done'>(saved && saved.idx >= STEPS.length ? 'done' : 'chat');
   const pending = useRef<QuickAnswers | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
+
+  // The conversation survives a refresh or a return to the page
+  useEffect(() => {
+    try { window.localStorage.setItem(saveKey(leadId), JSON.stringify({ msgs, idx, answers })); } catch { /* ignoré */ }
+  }, [msgs, idx, answers, leadId]);
 
   useEffect(() => {
     const el = logRef.current;
@@ -143,9 +164,23 @@ export const QuickQualification: React.FC<Props> = ({ leadId, low, high, onSubmi
 
   const step = idx >= 0 && idx < STEPS.length ? STEPS[idx] : null;
   const over = idx >= STEPS.length;
+  const hasAnswers = Object.values(answers).some((v) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== ''));
+
+  // Skipped everything ("Plus tard"): the visitor can still come back and answer
+  const resume = () => {
+    setState('chat');
+    setIdx(0);
+    botSays(STEPS[0].ask);
+  };
 
   const controls = (() => {
-    if (typing || over) return null;
+    if (typing) return null;
+    if (over)
+      return state === 'sending' || hasAnswers ? null : (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" id="btn-quick-resume" className={chipStrong} onClick={resume}>Répondre aux questions</button>
+        </div>
+      );
     if (idx === -1)
       return (
         <div className="flex flex-wrap gap-2">
