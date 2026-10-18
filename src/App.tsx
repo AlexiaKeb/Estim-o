@@ -964,39 +964,47 @@ export default function App() {
         )}
       </Suspense>
 
-      {/* Footer */}
-      <footer className="bg-[#0B0F1F] pt-6 pb-20 sm:pt-8 sm:pb-8 mt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-[11px] sm:text-xs text-center sm:text-left text-white/70">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1">
-            <span className="w-full font-black text-white sm:w-auto">
-              {BRAND.name} – Céline LEVRAT – Expertise Immobilière
-            </span>
-            <span className="hidden sm:inline">•</span>
-            <span className="w-full sm:w-auto">Estimation offerte et sans engagement</span>
-            <span className="hidden sm:inline">•</span>
-                        <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
-            <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
-            <a href="/honoraires" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Honoraires</a>
-            <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
-            <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
-            <span className="flex items-center gap-2" id="footer-socials">
+      {/* Réseaux sociaux : bandeau bien visible au-dessus du pied de page */}
+      {!isAgentMode && (
+        <section id="footer-socials" aria-label="Réseaux sociaux de Céline" className="border-t-[3px] border-[#0B0F1F] bg-white">
+          <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-4 px-4 py-6 sm:flex-row sm:gap-8 sm:px-6 lg:px-8">
+            <p className="text-lg font-black text-[#0B0F1F]">Suivez Céline sur les réseaux</p>
+            <div className="flex flex-wrap justify-center gap-3">
               {SOCIALS.map((s) => (
                 <a
                   key={s.id}
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`${s.label} de Céline Levrat (s'ouvre dans un nouvel onglet)`}
-                  title={s.label}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/70 text-white transition-colors hover:border-[#FFD60A] hover:bg-[#FFD60A] hover:text-[#0B0F1F]"
+                  className="inline-flex items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-4 py-2 text-sm font-black text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] transition-transform hover:-translate-y-0.5"
                 >
-                  {s.id === 'instagram' ? <Instagram className="h-4 w-4" /> : s.id === 'linkedin' ? <Linkedin className="h-4 w-4" /> : <Facebook className="h-4 w-4" />}
+                  {s.id === 'instagram' ? <Instagram className="h-5 w-5" /> : s.id === 'linkedin' ? <Linkedin className="h-5 w-5" /> : <Facebook className="h-5 w-5" />}
+                  {s.label}
+                  <span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
                 </a>
               ))}
-            </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-[#0B0F1F] pt-8 pb-24 sm:pb-8 mt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 text-xs text-white/70">
+          <div className="text-center sm:text-left">
+            <p className="text-sm font-black text-white">{BRAND.name} – Céline LEVRAT – Expertise Immobilière</p>
+            <p className="mt-1">Estimation offerte et sans engagement</p>
           </div>
 
-          <div className="flex items-center gap-4 text-white/70">
+          <nav aria-label="Liens du site" className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm sm:justify-start">
+            <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
+            <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
+            <a href="/honoraires" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Honoraires</a>
+            <a href="/mentions-legales" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Mentions légales</a>
+            <a href="/confidentialite" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Politique de confidentialité</a>
+          </nav>
+
+          <div className="flex flex-col items-center justify-between gap-3 border-t border-white/15 pt-4 sm:flex-row">
             {isAgentMode ? (
               <span className="text-[#FFD60A] font-medium flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -1019,8 +1027,9 @@ export default function App() {
                 <span>Espace réservé aux conseillers référents</span>
               </button>
             ) : (
-              <CreditLine />
+              <span />
             )}
+            <CreditLine />
           </div>
         </div>
       </footer>
