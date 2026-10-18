@@ -120,10 +120,6 @@ export const BookingConfirmationView: React.FC<Props> = ({
       a: "Bien sûr, c'est même recommandé si le bien est détenu à plusieurs : chacun peut poser ses questions et exprimer ses attentes.",
     },
     {
-      q: "Que se passe-t-il après la remise de l'avis de valeur ?",
-      a: "Vous êtes libre de la suite : l'avis de valeur est offert et sans engagement. Vous pouvez en discuter avec Céline, prendre le temps de la réflexion, ou lui demander de vous accompagner dans votre projet de vente.",
-    },
-    {
       q: "Combien de temps dure la visite sur place ?",
       a: "Comptez environ 30 à 45 minutes. Céline visite les lieux avec vous, écoute votre projet et répond à toutes vos questions.",
     },
