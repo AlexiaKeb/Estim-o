@@ -32,6 +32,7 @@ export const SiteFooter: React.FC<{ hideSocials?: boolean; extra?: React.ReactNo
     <footer className="bg-[#0B0F1F] py-8 pb-24 sm:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
         <nav aria-label="Liens du site" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/80">
+          <a href="/estimation" className="font-bold text-[#FFD60A] underline-offset-2 hover:underline">Simulateur</a>
           <a href="/blog" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Conseils</a>
           <a href="/contact" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Contact</a>
           <a href="/honoraires" className="hover:text-[#FFD60A] underline-offset-2 hover:underline">Honoraires</a>
