@@ -1,6 +1,7 @@
 import React from 'react';
 import { AGENT, BRAND, LEGAL, DIGITALE_SCHOOL_URL, FEES, FEES_DATE } from '../data/siteContent';
 import { BrandLogo } from './BrandLogo';
+import { SiteFooter } from './SiteFooter';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <section className="mt-8">
@@ -22,6 +23,7 @@ const Shell: React.FC<{ title: string; children: React.ReactNode }> = ({ title, 
       {children}
       <p className="mt-10 text-xs text-stone-400">Dernière mise à jour : octobre 2026</p>
     </main>
+    <SiteFooter />
   </div>
 );
 
