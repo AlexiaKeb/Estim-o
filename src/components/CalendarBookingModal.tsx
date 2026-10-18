@@ -456,8 +456,8 @@ export const CalendarBookingModal: React.FC<Props> = ({
               C
             </div>
             <div className="min-w-0">
-              <span className="font-bold text-stone-900">Votre conseillère de proximité : Céline LEVRAT</span>
-              <span className="text-stone-500 hidden sm:inline"> • Spécialiste Région Lyonnaise & Beaujolais</span>
+              <span className="block font-bold text-stone-900">Votre conseillère de proximité : Céline LEVRAT</span>
+              <span className="text-stone-500 hidden sm:block">Spécialiste Région Lyonnaise & Beaujolais</span>
             </div>
           </div>
           <a
