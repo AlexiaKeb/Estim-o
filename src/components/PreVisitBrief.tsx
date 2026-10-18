@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Lead } from '../types';
 import { ClipboardCheck, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
-const OWNERSHIP = { seul: 'Seul propriétaire', plusieurs: 'Plusieurs propriétaires', pas_encore: 'Pas encore propriétaire' } as const;
+const OWNERSHIP = { seul: 'Seul propriétaire', plusieurs: 'Plusieurs propriétaires', pas_encore: 'Pas encore propriétaire', succession: 'Succession' } as const;
 const MANDATE = { aucun: 'Aucun mandat', estimations: 'Estimations reçues, sans mandat', simple: 'Mandat simple ailleurs', exclusif: 'Mandat exclusif ailleurs' } as const;
 const OCCUPANCY = { occupe: 'Occupé par le propriétaire', libre: 'Libre', loue: 'Loué' } as const;
 

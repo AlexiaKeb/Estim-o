@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Robot } from './Mascots';
 
 export interface QuickAnswers {
-  ownership?: 'seul' | 'plusieurs' | 'pas_encore';
+  ownership?: 'seul' | 'plusieurs' | 'pas_encore' | 'succession';
   mandate?: 'aucun' | 'estimations' | 'simple' | 'exclusif';
   occupancy?: 'occupe' | 'libre' | 'loue';
   condition?: 'refait' | 'bon' | 'rafraichir' | 'travaux';
@@ -29,7 +29,7 @@ type Step =
   | { key: 'expectedPrice'; kind: 'price'; ask: string };
 
 const STEPS: Step[] = [
-  { key: 'ownership', kind: 'single', ask: "Êtes-vous seul(e) propriétaire de ce bien, ou avec quelqu'un ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
+  { key: 'ownership', kind: 'single', ask: "Êtes-vous seul(e) propriétaire de ce bien, ou avec quelqu'un ?", options: [['seul', 'Il est à moi seul(e)'], ['plusieurs', 'Je le partage avec quelqu\'un'], ['succession', "C'est une succession"], ['pas_encore', "Je ne suis pas encore propriétaire"]] },
   { key: 'profession', kind: 'text', ask: "Que faites-vous dans la vie ? C'est facultatif : cela aide Céline à s'adapter à vos horaires.", placeholder: 'Ce que vous souhaitez partager' },
   { key: 'mandate', kind: 'single', ask: "Avez-vous déjà fait estimer ce bien, ou signé un mandat avec une agence ?", options: [['aucun', 'Non, pas encore'], ['estimations', "J'ai reçu une ou plusieurs estimations"], ['simple', 'Un mandat simple est en cours'], ['exclusif', 'Un mandat exclusif est en cours']] },
   { key: 'occupancy', kind: 'single', ask: 'Le logement est-il occupé, vide ou loué ?', options: [['occupe', "J'y habite"], ['libre', 'Il est vide'], ['loue', 'Il est loué']] },

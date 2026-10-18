@@ -1,7 +1,7 @@
 // Lead score: a transparent, deterministic rule set. The same inputs always give the same score,
 // and every point can be explained to the advisor. (The AI chat never sets the score.)
 
-export type Ownership = "seul" | "plusieurs" | "pas_encore";
+export type Ownership = "seul" | "plusieurs" | "pas_encore" | "succession";
 export type Mandate = "aucun" | "estimations" | "simple" | "exclusif";
 export type Occupancy = "occupe" | "libre" | "loue";
 
@@ -50,7 +50,8 @@ export function computeScore(i: ScoreInput): ScoreResult {
 
   if (i.ownership === "seul") add("Seul propriétaire : décision simple", 15);
   else if (i.ownership === "plusieurs") add("Plusieurs propriétaires : accord à obtenir", 8);
-  else if (i.ownership === "pas_encore") add("Pas encore propriétaire (succession ou achat en cours)", 3);
+  else if (i.ownership === "pas_encore") add("Pas encore propriétaire (achat en cours)", 3);
+  else if (i.ownership === "succession") add("Bien issu d'une succession : accord des héritiers à obtenir", 6);
 
   if (i.mandate === "aucun") add("Aucun mandat de vente en cours", 15);
   else if (i.mandate === "estimations") add("A reçu des estimations, aucun mandat signé", 12);
@@ -87,7 +88,7 @@ export function computeScore(i: ScoreInput): ScoreResult {
   return { score, status, reasons, blockers };
 }
 
-const OWNERSHIP: Ownership[] = ["seul", "plusieurs", "pas_encore"];
+const OWNERSHIP: Ownership[] = ["seul", "plusieurs", "pas_encore", "succession"];
 const MANDATE: Mandate[] = ["aucun", "estimations", "simple", "exclusif"];
 const OCCUPANCY: Occupancy[] = ["occupe", "libre", "loue"];
 const CONDITION = ["refait", "bon", "rafraichir", "travaux"];

@@ -70,6 +70,7 @@ const MOTIVES: Array<[Motive, string]> = [
 const OWNERSHIP: Array<[string, string]> = [
   ['seul', 'Seul propriétaire'],
   ['plusieurs', 'Plusieurs propriétaires'],
+  ['succession', 'Succession'],
   ['pas_encore', 'Pas encore propriétaire'],
 ];
 const MANDATE: Array<[string, string]> = [
