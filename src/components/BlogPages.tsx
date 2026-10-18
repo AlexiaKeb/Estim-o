@@ -262,8 +262,8 @@ export const ContactPage: React.FC = () => (
         <h2 id="about-title" className="mt-1 text-2xl font-black leading-tight tracking-tight sm:text-3xl">À propos de moi</h2>
         <div className="mt-4 space-y-4 text-base leading-relaxed text-stone-700">
           <p>
-            Je suis Céline LEVRAT, conseillère immobilière indépendante à Lyon et dans le Beaujolais. Je travaille au sein de <strong className="text-[#0B0F1F]">NOVEA Immobilier</strong>,
-            agence immobilière lyonnaise réputée, et je m'appuie sur son équipe pour que chaque projet soit suivi avec sérieux, du premier échange à la remise de votre avis de valeur.
+            Je suis Céline LEVRAT, conseillère immobilière indépendante à Lyon et dans le Beaujolais. Je fais partie de <strong className="text-[#0B0F1F]">NOVEA Immobilier</strong>,
+            agence immobilière lyonnaise réputée. Du premier échange à la remise de votre avis de valeur, je suis à vos côtés pour que votre projet avance sereinement.
           </p>
           <p>
             Chez NOVEA, nous sommes une équipe de 22 agents dans la région, en complète symbiose et dans un esprit collégial. C'est un vrai plus pour vous : nous partageons nos compétences,
