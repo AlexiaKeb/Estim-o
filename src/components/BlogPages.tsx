@@ -318,7 +318,6 @@ export const ContactPage: React.FC = () => (
       </section>
 
       <BlogCta />
-      <p className="text-sm text-stone-600">Informations légales : <a className="underline" href="/mentions-legales">mentions légales</a>.</p>
     </main>
   </Shell>
 );
