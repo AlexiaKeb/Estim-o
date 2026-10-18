@@ -40,7 +40,7 @@ export const AutoFollowupCard: React.FC = () => {
         <MailCheck className="w-5 h-5 text-[#2B4BFF]" />
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-bold text-stone-900">Relance automatique après l'estimation</h2>
-          <p className="text-xs text-stone-600">Envoyée aux visiteurs qui ont reçu leur fourchette de prix mais n'ont pas pris rendez-vous. Elle s'arrête dès qu'un rendez-vous est pris.</p>
+          <p className="text-xs text-stone-600">Un seul e-mail, envoyé peu après l'estimation aux visiteurs qui ont reçu leur fourchette de prix mais n'ont pas pris rendez-vous. Il n'est pas envoyé si un rendez-vous est pris entre-temps.</p>
         </div>
         <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-bold text-stone-800">
           <input id="auto-followup-enabled" type="checkbox" className="h-5 w-5 accent-[#2B4BFF]" checked={cfg.enabled} disabled={saving} onChange={(e) => void save({ ...cfg, enabled: e.target.checked })} />
@@ -51,9 +51,9 @@ export const AutoFollowupCard: React.FC = () => {
       {open && (
         <div className="mt-3 space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <label htmlFor="auto-followup-delay" className="font-semibold text-stone-800">Envoi après</label>
-            <input id="auto-followup-delay" type="number" min={1} max={240} value={cfg.delayHours} onChange={(e) => setCfg({ ...cfg, delayHours: Number(e.target.value) })} className="w-20 rounded-lg border border-stone-300 px-2 py-1.5" />
-            <span className="text-stone-600">heures (la relance n'est envoyée qu'entre 8 h et 20 h)</span>
+            <label htmlFor="auto-followup-delay" className="font-semibold text-stone-800">Envoi</label>
+            <input id="auto-followup-delay" type="number" min={1} max={1440} value={cfg.delayMinutes} onChange={(e) => setCfg({ ...cfg, delayMinutes: Number(e.target.value) })} className="w-20 rounded-lg border border-stone-300 px-2 py-1.5" />
+            <span className="text-stone-600">minutes après l'estimation (une seule relance, de jour comme de nuit)</span>
           </div>
           <div>
             <label htmlFor="auto-followup-subject" className="text-sm font-semibold text-stone-800">Objet</label>

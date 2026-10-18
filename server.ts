@@ -1070,19 +1070,21 @@ async function startServer() {
   let relancesRunning = false;
   async function processDueRelances(): Promise<{ sent: number; failed: number }> {
     const client = getSupabaseAdmin();
-    if (relancesRunning || !client || !isMailConfigured() || !inSendWindow()) return { sent: 0, failed: 0 };
+    if (relancesRunning || !client || !isMailConfigured()) return { sent: 0, failed: 0 };
+    // Outside 8:00-20:00 only the one-off reminder after an estimate leaves (it must arrive within minutes)
+    const onlyAuto = !inSendWindow();
     relancesRunning = true;
     let sent = 0;
     let failed = 0;
     try {
-      const { data: due, error } = await client
+      let dueQuery = client
         .from("relances")
         .select("id")
         .eq("status", "programme")
         .eq("channel", "Email")
-        .lte("send_at", new Date().toISOString())
-        .order("send_at", { ascending: true })
-        .limit(10);
+        .lte("send_at", new Date().toISOString());
+      if (onlyAuto) dueQuery = dueQuery.eq("step", AUTO_FOLLOWUP_STEP);
+      const { data: due, error } = await dueQuery.order("send_at", { ascending: true }).limit(10);
       if (error || !due?.length) return { sent, failed };
       let budget = DAILY_LIMIT - (await sentToday(client));
       for (const d of due) {
@@ -1146,10 +1148,10 @@ async function startServer() {
     const c = data?.script_qualification?.auto_followup;
     const d = DEFAULT_AUTO_FOLLOWUP;
     if (!c || typeof c !== "object") return d;
-    const delay = Number(c.delayHours);
+    const delay = Number(c.delayMinutes);
     return {
       enabled: c.enabled !== false,
-      delayHours: Number.isFinite(delay) && delay >= 1 && delay <= 240 ? Math.round(delay) : d.delayHours,
+      delayMinutes: Number.isFinite(delay) && delay >= 1 && delay <= 1440 ? Math.round(delay) : d.delayMinutes,
       subject: typeof c.subject === "string" && c.subject.trim() ? c.subject.slice(0, 200) : d.subject,
       body: typeof c.body === "string" && emailTextLength(c.body) >= 20 ? c.body.slice(0, 20000) : d.body,
     };
@@ -1162,11 +1164,11 @@ async function startServer() {
     const client = getSupabaseAdmin();
     if (!client) return res.status(503).json({ error: "Supabase non configuré" });
     const b = req.body || {};
-    const delay = Math.round(Number(b.delayHours));
-    if (typeof b.subject !== "string" || !b.subject.trim() || typeof b.body !== "string" || emailTextLength(b.body) < 20 || !(delay >= 1 && delay <= 240)) {
-      return res.status(400).json({ error: "Objet, message (20 caractères minimum) et délai (1 à 240 heures) sont obligatoires." });
+    const delay = Math.round(Number(b.delayMinutes));
+    if (typeof b.subject !== "string" || !b.subject.trim() || typeof b.body !== "string" || emailTextLength(b.body) < 20 || !(delay >= 1 && delay <= 1440)) {
+      return res.status(400).json({ error: "Objet, message (20 caractères minimum) et délai (1 à 1440 minutes) sont obligatoires." });
     }
-    const cfg: AutoFollowupConfig = { enabled: b.enabled !== false, delayHours: delay, subject: b.subject.trim().slice(0, 200), body: b.body.slice(0, 20000) };
+    const cfg: AutoFollowupConfig = { enabled: b.enabled !== false, delayMinutes: delay, subject: b.subject.trim().slice(0, 200), body: b.body.slice(0, 20000) };
     const { id, sq } = await readSpend(client);
     if (!id) return res.status(409).json({ error: "Aucune fiche conseillère en base : créez d'abord un prospect." });
     const { error } = await client.from("agents").update({ script_qualification: { ...sq, auto_followup: cfg } }).eq("id", id);
@@ -1669,7 +1671,7 @@ async function startServer() {
             channel: "Email",
             subject: cfg.subject,
             message: cfg.body,
-            send_at: new Date(Date.now() + cfg.delayHours * 3600 * 1000).toISOString(),
+            send_at: new Date(Date.now() + cfg.delayMinutes * 60 * 1000).toISOString(),
             status: "programme",
           });
         }

@@ -5,14 +5,14 @@ export const AUTO_FOLLOWUP_STEP = 'Relance automatique : estimation sans rendez-
 
 export interface AutoFollowupConfig {
   enabled: boolean;
-  delayHours: number;
+  delayMinutes: number;
   subject: string;
   body: string;
 }
 
 export const DEFAULT_AUTO_FOLLOWUP: AutoFollowupConfig = {
   enabled: true,
-  delayHours: 24,
+  delayMinutes: 10,
   subject: '{Prénom}, votre estimation à {Ville} : de {PrixBas} à {PrixHaut}',
   body: [
     '<p>Bonjour {Prénom},</p>',
