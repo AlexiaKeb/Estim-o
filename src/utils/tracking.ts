@@ -24,13 +24,14 @@ export interface Attribution {
 const KEY = 'agent-estimation-attribution';
 const CONSENT_KEY = 'agent-estimation-ads-consent';
 const env = (import.meta as any).env || {};
-const ADS_ID: string = env.VITE_GOOGLE_ADS_ID || '';
+// Identifiant du compte Google Ads et étiquette « lead » : publics (visibles dans le code de toute page mesurée), surchargeables par variable Vite
+const ADS_ID: string = env.VITE_GOOGLE_ADS_ID || 'AW-18520344523';
 // Google Analytics 4 (mesure d'audience), chargé après consentement comme le reste.
 const GA_ID: string = env.VITE_GA_ID || 'G-Q1DCVQ9HS9';
 // Google Tag Manager (balises supplémentaires, balises de conversion) : chargé lui aussi seulement après consentement.
 const GTM_ID: string = env.VITE_GTM_ID || 'GTM-5HGX9ZBL';
 const LABELS: Record<string, string> = {
-  lead: env.VITE_GOOGLE_ADS_LEAD_LABEL || '',
+  lead: env.VITE_GOOGLE_ADS_LEAD_LABEL || 'VGQmCKK2iqEdEMuPmP9E',
   booking: env.VITE_GOOGLE_ADS_BOOKING_LABEL || '',
 };
 
