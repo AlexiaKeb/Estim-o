@@ -453,6 +453,117 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
     related: ['estimation-en-ligne-ou-agent-immobilier', 'estimer-appartement-lyon-criteres-prix', 'etapes-vente-immobiliere'],
   },
+  {
+    slug: 'vendre-appartement-croix-rousse-lyon',
+    metaTitle: "Vendre à la Croix-Rousse : ce que voient les acheteurs",
+    title: "Vendre à la Croix-Rousse : ce que les acheteurs regardent vraiment dans un appartement",
+    description:
+      "Pentes ou plateau, immeuble canut, mezzanine, copropriété ancienne : ce qui fait la valeur d'un appartement à la Croix-Rousse et comment bien le présenter.",
+    category: 'Quartiers',
+    date: '2026-10-20',
+    readingMinutes: 5,
+    intro:
+      "La Croix-Rousse ne ressemble à aucun autre quartier lyonnais. Ses rues en pente, ses traboules, son esprit de village et ses anciens immeubles de canuts séduisent beaucoup d'acheteurs, mais chaque appartement y a sa propre personnalité. Voici ce qui retient l'attention des visiteurs, et ce qu'il faut préparer avant de vendre.",
+    sections: [
+      {
+        h2: 'Les pentes et le plateau : deux ambiances',
+        paragraphs: [
+          "On parle de « la Croix-Rousse » comme d'un seul lieu, alors qu'il y a en réalité deux ambiances. Sur les pentes, on trouve des ruelles, des escaliers, des passages et une vie très animée, au pied des anciens ateliers. Sur le plateau, les rues sont plus régulières, avec des commerces de proximité, le marché et un rythme plus tranquille. Les acheteurs ne cherchent pas la même chose d'un côté et de l'autre : il faut donc savoir à qui s'adresse votre bien.",
+        ],
+      },
+      {
+        h2: 'Les immeubles de canuts : un atout à bien raconter',
+        paragraphs: [
+          "Les anciens immeubles de tisserands de la soie ont de grandes hauteurs sous plafond et de hautes fenêtres, pensées pour accueillir les métiers à tisser. Cette lumière et ce volume sont souvent ce qui déclenche un coup de cœur. Ils méritent d'être mis en valeur dans les photos et dans l'annonce, sans en faire un argument unique : les acheteurs regardent aussi ce que ces volumes impliquent, comme le chauffage ou l'isolation.",
+        ],
+      },
+      {
+        h2: 'Mezzanine, soupente, surfaces : soyez précis',
+        paragraphs: [
+          "Dans ces appartements, il est fréquent de trouver une mezzanine ou une partie sous la pente d'un toit. Toutes ces surfaces ne sont pas comptées de la même façon dans la surface « loi Carrez », notamment selon la hauteur sous plafond. Avant de mettre en vente, faites vérifier ce qui est réellement pris en compte : un décalage entre la surface annoncée et la surface mesurée est une source classique de litige. Pour comprendre l'effet de ces détails sur le prix, lisez [les critères qui font varier la valeur d'un appartement](/blog/estimer-appartement-lyon-criteres-prix).",
+        ],
+      },
+      {
+        h2: "Ce que les acheteurs regardent en plus",
+        list: [
+          "l'état de la copropriété : façade, toiture, parties communes, et les travaux déjà votés ou à venir ;",
+          "l'exposition, la vue sur la ville et la luminosité, qui varient beaucoup d'un étage à l'autre ;",
+          "l'accès : étage, présence d'un ascenseur, escaliers, accès depuis la rue ;",
+          "le bruit et l'ambiance de la rue, qui peuvent faire pencher la décision dans un sens comme dans l'autre ;",
+          "la facilité de se déplacer : métro, bus, vélo, et le stationnement, toujours très regardé en ville ;",
+          "la performance énergétique, d'autant plus surveillée dans les bâtiments anciens ; renseignez-vous au moment de la vente sur les règles en vigueur, car elles évoluent (voir [le DPE et le prix de vente](/blog/dpe-prix-de-vente-logement)).",
+        ],
+      },
+      {
+        h2: 'Bien présenter son appartement',
+        paragraphs: [
+          "À la Croix-Rousse, les visiteurs viennent chercher une ambiance autant qu'un logement. Dégagez les pièces, laissez entrer la lumière, mettez en valeur les éléments d'origine (parquet, poutres, moulures, cheminée) et rangez le superflu. Préparez aussi les documents de copropriété à l'avance : les acheteurs de logements anciens les demandent souvent dès la première visite, et les avoir prêts rassure (voir [les documents à réunir pour vendre](/blog/documents-vendre-appartement-maison)).",
+        ],
+      },
+      {
+        h2: 'Et le prix ?',
+        paragraphs: [
+          "Deux appartements d'une même rue peuvent être valorisés très différemment selon l'étage, la vue, l'état et la copropriété. Les moyennes du quartier ne suffisent donc pas : il faut regarder les ventes réellement conclues et leur comparabilité (voir [les ventes réelles par quartier](/blog/prix-immobilier-dvf-ventes-reelles-quartier)). Une visite sur place permet de tenir compte de ce que les chiffres ne montrent pas.",
+        ],
+      },
+    ],
+    related: ['estimer-appartement-lyon-criteres-prix', 'prix-immobilier-dvf-ventes-reelles-quartier', 'documents-vendre-appartement-maison'],
+  },
+  {
+    slug: 'vendre-maison-monts-d-or',
+    metaTitle: "Vendre sa maison dans les Monts d'Or : ce qui compte",
+    title: "Vendre sa maison dans les Monts d'Or : ce qui compte pour les acheteurs",
+    description:
+      "Terrain en pente, vue, jardin, proximité de Lyon : ce que regardent les acheteurs d'une maison dans les Monts d'Or et comment préparer sa vente.",
+    category: 'Quartiers',
+    date: '2026-10-20',
+    readingMinutes: 5,
+    intro:
+      "Au nord-ouest de Lyon, les Monts d'Or offrent un cadre rare aux portes de la métropole : collines, villages, vues dégagées et maisons avec jardin. Ceux qui s'y installent cherchent à la fois la nature et la proximité de la ville. Voici ce qui compte pour eux quand ils visitent une maison, et ce qu'il vaut mieux préparer avant de vendre.",
+    sections: [
+      {
+        h2: "Un secteur, des villages aux profils différents",
+        paragraphs: [
+          "Les communes des Monts d'Or, comme Saint-Didier-au-Mont-d'Or, Champagne-au-Mont-d'Or, Collonges-au-Mont-d'Or, Saint-Cyr-au-Mont-d'Or, Limonest ou Couzon-au-Mont-d'Or, ont chacune leur identité : certaines sont plus proches de la Saône et de la ville, d'autres plus rurales et dominantes. Une même maison ne trouve donc pas les mêmes acheteurs d'un village à l'autre. Mentionner précisément l'environnement (calme, vue, accès, commerces) fait toute la différence dans l'annonce.",
+        ],
+      },
+      {
+        h2: "Le terrain, la pente et la vue",
+        paragraphs: [
+          "Le relief est l'une des signatures du secteur. Une vue dégagée est un atout majeur, mais un terrain en pente soulève aussi des questions concrètes : accès, murs de soutènement, entretien du jardin, possibilité d'aménager des espaces plats. Les acheteurs posent ces questions, autant les anticiper : plan du terrain, état des murs, travaux éventuels déjà réalisés.",
+        ],
+      },
+      {
+        h2: "La maison elle-même",
+        list: [
+          "l'agencement : pièces de vie ouvertes sur le jardin, chambres bien réparties, possibilité d'évoluer (agrandissement, aménagement d'un niveau) ;",
+          "l'état général : toiture, façade, menuiseries, chauffage, installation électrique, assainissement ;",
+          "la performance énergétique et l'isolation, sujets de plus en plus suivis par les acheteurs ; les règles évoluant, vérifiez-les au moment de la vente (voir [le DPE et le prix de vente](/blog/dpe-prix-de-vente-logement)) ;",
+          "les annexes : garage, cave, terrasse, piscine éventuelle, abri de jardin, avec leurs autorisations si elles sont nécessaires ;",
+          "les nuisances et les voisinages : calme, vis-à-vis, orientation, ensoleillement.",
+        ],
+      },
+      {
+        h2: "La vie au quotidien compte autant que la maison",
+        paragraphs: [
+          "Beaucoup d'acheteurs viennent de Lyon ou de plus loin et raisonnent en trajets, en écoles, en commerces et en services. Leur question n'est pas seulement « la maison me plaît-elle ? », mais « puis-je y vivre au quotidien ? ». Préparez des réponses précises : temps de trajet vers Lyon, accès aux transports, écoles de la commune, vie associative, sentiers de promenade à proximité. Ce sont des arguments honnêtes qui parlent aux familles.",
+        ],
+      },
+      {
+        h2: "Préparer sa vente sans stress",
+        paragraphs: [
+          "Une maison se vend rarement sur un seul critère. Commencez par réunir les documents (titres, diagnostics, factures de travaux, plans) en suivant [la liste des documents à préparer](/blog/documents-vendre-appartement-maison), puis rendez la maison accueillante : jardin entretenu, pièces dégagées, lumière. Pensez aussi à la suite du projet avec [les étapes d'une vente immobilière](/blog/etapes-vente-immobiliere).",
+        ],
+      },
+      {
+        h2: "Comment fixer le bon prix",
+        paragraphs: [
+          "Dans les Monts d'Or, les maisons sont très différentes les unes des autres : terrain, vue, volume, état, emplacement dans le village. Une moyenne ne dit presque rien. Le plus fiable est de partir des ventes comparables, puis de faire valider la valeur par une visite sur place (voir [comment fixer un prix d'annonce](/blog/fixer-prix-annonce-vente-immobiliere)).",
+        ],
+      },
+    ],
+    related: ['fixer-prix-annonce-vente-immobiliere', 'dpe-prix-de-vente-logement', 'etapes-vente-immobiliere'],
+  },
 ];
 
 export const getPost = (slug: string, all: BlogPost[] = BLOG_POSTS): BlogPost | undefined => all.find((p) => p.slug === slug);
