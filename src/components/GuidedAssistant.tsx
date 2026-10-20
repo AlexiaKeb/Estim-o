@@ -739,15 +739,20 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             </div>
           </div>
 
-          <div className="flex items-end gap-3 sm:gap-4">
-            <Human className="bob w-20 shrink-0 sm:w-28" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+            <Human className="bob hidden w-28 shrink-0 sm:block" />
             <div className="min-w-0 flex-1 space-y-2 pb-1">
               <button
                 type="button"
                 onClick={() => onOpenBooking?.(bookingInfo())}
-                className="cta-pulse flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-4 py-4 text-base font-black text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5 sm:text-lg"
+                className="cta-pulse flex w-full items-center justify-center gap-2 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-4 py-4 text-lg font-black text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5"
               >
-                <CalendarDays className="h-5 w-5 shrink-0" /> Obtenir mon vrai prix : je réserve ma visite
+                <CalendarDays className="h-5 w-5 shrink-0" />
+                <span className="flex flex-col items-start text-left leading-tight sm:hidden">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-[#0B0F1F]/70">Obtenir mon vrai prix</span>
+                  <span>Je réserve ma visite offerte</span>
+                </span>
+                <span className="hidden sm:inline">Obtenir mon vrai prix : je réserve ma visite</span>
               </button>
               <p className="text-center text-xs font-semibold text-[#0B0F1F]/70">Visite offerte et sans engagement</p>
             </div>
