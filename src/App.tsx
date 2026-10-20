@@ -812,7 +812,7 @@ export default function App() {
                         {BRAND.name}
                       </span>
                     </div>
-                    <div className="text-[11px] text-stone-500 font-normal">
+                    <div className="hidden sm:block text-[11px] text-stone-500 font-normal">
                       {BRAND.tagline}
                     </div>
                   </div>
@@ -821,9 +821,9 @@ export default function App() {
 
               {/* Public Right Area: Discreet Reassurance & Optional Pro Login */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white text-[11px] font-bold text-[#0B0F1F] border-2 border-[#0B0F1F]">
+                <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-white text-[11px] font-bold text-[#0B0F1F] border-2 border-[#0B0F1F]" title="Confidentialité garantie">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#2B4BFF]" />
-                  <span>Confidentialité garantie</span>
+                  <span className="hidden sm:inline">Confidentialité garantie</span>
                 </div>
 
                 {!privacySettings.hidePublicLoginButton && (

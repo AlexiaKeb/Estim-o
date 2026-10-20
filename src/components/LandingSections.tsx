@@ -76,8 +76,8 @@ const AddressStartForm: React.FC<{ idPrefix: string; onStart: (a: StartAddress) 
         placeholder="Saisissez l'adresse de votre bien"
         className="min-w-0 flex-1"
       />
-      <button type="submit" id={`btn-${idPrefix}-start`} className={`group ${BTN}`}>
-        Estimer
+      <button type="submit" id={`btn-${idPrefix}-start`} className={`group ${BTN} w-full py-[1.1rem] text-lg sm:w-auto`}>
+        Estimer mon bien
         <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
       </button>
     </form>
@@ -90,14 +90,14 @@ export const LandingHero: React.FC<{ onStart: (a: { address: string; postalCode?
     <div className="relative left-1/2 -translate-x-1/2 w-screen overflow-hidden bg-[#2B4BFF] text-white">
       <div aria-hidden className="spin-slow pointer-events-none absolute -right-10 top-24 hidden h-14 w-14 rounded-xl border-[5px] border-[#0B0F1F] bg-[#FFF7E6] lg:block" />
       <div aria-hidden className="pointer-events-none absolute -left-16 bottom-10 h-40 w-40 rounded-full border-[5px] border-[#0B0F1F] bg-[#FFD60A]" />
-      <section className="relative mx-auto grid min-h-[calc(100svh-4rem)] max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:gap-8 lg:px-8">
-        <div className="min-w-0 space-y-7">
-          <p className="inline-flex items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFF7E6] px-4 py-1.5 text-xs font-black tracking-wide text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F]">
+      <section className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:min-h-[calc(100svh-4rem)] lg:gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-8 lg:px-8">
+        <div className="min-w-0 space-y-5 sm:space-y-7">
+          <p className="hidden items-center gap-2 rounded-full border-[3px] border-[#0B0F1F] bg-[#FFF7E6] px-4 py-1.5 text-xs font-black tracking-wide text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] sm:inline-flex">
             <MapPin className="h-3.5 w-3.5" />
             Région Lyonnaise &amp; Beaujolais
           </p>
 
-          <h1 className="text-[2.6rem] font-black leading-[1.02] tracking-tight [text-wrap:balance] sm:text-6xl lg:text-7xl">
+          <h1 className="text-[2.15rem] font-black leading-[1.05] tracking-tight [text-wrap:balance] sm:text-6xl lg:text-7xl">
             Quelle est la <span className="inline-block -rotate-1 rounded-xl bg-[#FFD60A] px-3 text-[#0B0F1F]">valeur réelle</span> de votre bien à&nbsp;Lyon et sa région&nbsp;?
           </h1>
 
@@ -408,8 +408,8 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
           Réserver ma visite offerte
         </button>
       ) : (
-        <button type="button" onClick={scrollToSimulator} className="flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#2B4BFF] text-white font-black py-3 text-sm shadow-[3px_3px_0_#0B0F1F]">
-          Estimer mon bien
+        <button type="button" onClick={scrollToSimulator} className="flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-base shadow-[3px_3px_0_#0B0F1F]">
+          Estimer mon bien offert
         </button>
       )}
       <a
