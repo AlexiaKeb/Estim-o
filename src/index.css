@@ -32,7 +32,15 @@ html, body { overflow-x: clip; }
 .pop-card:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 #0B0F1F; }
 @keyframes cta-pulse { 0%, 100% { box-shadow: 4px 4px 0 #0B0F1F; } 50% { box-shadow: 7px 7px 0 #0B0F1F; } }
 .cta-pulse { animation: cta-pulse 1.8s ease-in-out infinite; }
+/* Bouton de réservation : pulsation + reflet qui traverse + flèche qui avance, pour attirer l'œil */
+@keyframes cta-hot { 0%, 60%, 100% { transform: scale(1); box-shadow: 4px 4px 0 #0B0F1F; } 12% { transform: scale(1.04); box-shadow: 8px 8px 0 #0B0F1F; } 24% { transform: scale(1); box-shadow: 4px 4px 0 #0B0F1F; } 36% { transform: scale(1.025); box-shadow: 7px 7px 0 #0B0F1F; } 48% { transform: scale(1); box-shadow: 4px 4px 0 #0B0F1F; } }
+@keyframes cta-shine { 0% { transform: translateX(-160%) skewX(-20deg); } 45%, 100% { transform: translateX(520%) skewX(-20deg); } }
+@keyframes cta-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+.cta-hot { position: relative; overflow: hidden; animation: cta-hot 3.2s ease-in-out infinite; }
+.cta-hot::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 22%; background: rgba(255,255,255,.55); animation: cta-shine 3.2s ease-in-out infinite; pointer-events: none; }
+.cta-hot .cta-arrow { animation: cta-nudge 1s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
+  .cta-hot, .cta-hot::after, .cta-hot .cta-arrow { animation: none; }
   .cta-pulse { animation: none; }
   .bob, .robot-eyes, .robot-wave, .robot-antenna, .robot-pulse, .spark, .spin-slow, .bubble, .marquee2 { animation: none; }
   .pop-card, .pop-card:hover { transition: none; transform: none; }

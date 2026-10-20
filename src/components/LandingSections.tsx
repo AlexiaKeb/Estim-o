@@ -403,7 +403,7 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
         <button
           type="button"
           onClick={onBook}
-          className="flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-sm shadow-[3px_3px_0_#0B0F1F]"
+          className="cta-hot flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-sm shadow-[3px_3px_0_#0B0F1F]"
         >
           Réserver ma visite offerte
         </button>
