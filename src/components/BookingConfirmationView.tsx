@@ -245,11 +245,11 @@ export const BookingConfirmationView: React.FC<Props> = ({
           </div>
 
           {/* Quick Calendar & Action Buttons */}
-          <div className="pt-2 flex flex-wrap items-center gap-3">
+          <div className="pt-2 grid grid-cols-1 gap-2.5 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
             <button
               type="button"
               onClick={handleAddToGoogleCalendar}
-              className="py-2.5 px-4 rounded-xl bg-white hover:bg-stone-100 text-stone-900 font-bold text-xs flex items-center gap-2 transition-all shadow-sm"
+              className="py-3 sm:py-2.5 px-4 rounded-xl bg-white hover:bg-stone-100 text-stone-900 font-bold text-sm sm:text-xs flex items-center justify-center sm:justify-start gap-2 transition-all shadow-sm"
             >
               <CalendarPlus className="w-4 h-4 text-[#2B4BFF]" />
               <span>Ajouter à Google Calendar</span>
@@ -258,7 +258,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
             <button
               type="button"
               onClick={handleDownloadiCal}
-              className="py-2.5 px-4 rounded-xl bg-[#0B0F1F] hover:bg-white hover:text-[#0B0F1F] text-white font-black text-xs border-[3px] border-[#0B0F1F] flex items-center gap-2 transition-all"
+              className="py-3 sm:py-2.5 px-4 rounded-xl bg-[#0B0F1F] hover:bg-white hover:text-[#0B0F1F] text-white font-black text-sm sm:text-xs border-[3px] border-[#0B0F1F] flex items-center justify-center sm:justify-start gap-2 transition-all"
             >
               <Download className="w-4 h-4 text-stone-400" />
               <span>{copiedCalendar ? 'Téléchargé !' : 'Télécharger (.ics / Apple & Outlook)'}</span>
@@ -268,7 +268,7 @@ export const BookingConfirmationView: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={onModifyBooking}
-                className="py-2.5 px-4 rounded-xl bg-[#0B0F1F] hover:bg-white hover:text-[#0B0F1F] text-white text-xs font-black border-[3px] border-[#0B0F1F] transition-all ml-auto"
+                className="py-3 sm:py-2.5 px-4 rounded-xl bg-transparent hover:bg-white hover:text-[#0B0F1F] text-white text-sm sm:text-xs font-black border-[3px] border-white/70 transition-all sm:ml-auto"
               >
                 Modifier ou annuler le rendez-vous
               </button>

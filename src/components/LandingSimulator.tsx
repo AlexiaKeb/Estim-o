@@ -82,7 +82,7 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
         className={`${open ? 'flex' : 'hidden'} fixed inset-0 z-[44] items-stretch justify-center overflow-y-auto bg-[#0B0F1F]/70 p-0 overscroll-contain sm:items-center sm:p-6`}
         onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}
       >
-        <div className="relative my-auto flex min-h-[100dvh] w-full max-w-4xl flex-col gap-4 bg-[#FFF7E6] px-4 pb-6 pt-[4.5rem] sm:min-h-0 sm:rounded-3xl sm:border-[3px] sm:border-[#0B0F1F] sm:px-8 sm:pb-8 sm:pt-8 sm:shadow-[8px_8px_0_#0B0F1F]">
+        <div className="relative my-auto flex min-h-[100dvh] w-full max-w-4xl flex-col gap-4 bg-[#FFF7E6] px-4 pb-4 pt-[4rem] sm:min-h-0 sm:rounded-3xl sm:border-[3px] sm:border-[#0B0F1F] sm:px-8 sm:pb-8 sm:pt-8 sm:shadow-[8px_8px_0_#0B0F1F]">
           <button type="button" onClick={close} aria-label="Fermer" id="btn-close-assistant" className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-xl font-black leading-none text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F]">×</button>
           <div className="pointer-events-none absolute left-3 top-2 z-10 flex items-start gap-2 sm:left-5 sm:top-4" aria-hidden="true">
             <Robot className="bob h-16 w-12 sm:h-24 sm:w-[4.5rem]" />
@@ -92,8 +92,8 @@ export const LandingSimulator: React.FC<Props> = ({ onLeadCaptured, onOpenBookin
             </span>
           </div>
           <div className="space-y-2 text-center sm:px-10 lg:px-44">
-            <h2 className="text-2xl font-black tracking-tight text-[#0B0F1F] [text-wrap:balance] sm:text-3xl">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
-            <p className="text-sm font-medium text-[#0B0F1F]/80 sm:text-base">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
+            <h2 className="text-lg font-black leading-tight tracking-tight text-[#0B0F1F] [text-wrap:balance] sm:text-3xl">Votre estimation immobilière en Région Lyonnaise &amp; Beaujolais, pas à pas</h2>
+            <p className="hidden text-sm font-medium text-[#0B0F1F]/80 sm:block sm:text-base">Obtenez une première valeur en 2 minutes, puis planifiez votre rendez-vous avec Céline.</p>
           </div>
           <GuidedAssistant key={session} seed={seed} onLeadCaptured={onLeadCaptured} onOpenBooking={(l) => { onOpenBooking?.(l); }} onLeadReady={setLeadInfo} />
         </div>
