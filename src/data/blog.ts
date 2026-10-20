@@ -129,7 +129,7 @@ export const BLOG_POSTS: BlogPost[] = [
     metaTitle: "Ventes réelles (DVF) : comment les lire, et leurs limites",
     title: "Ventes réelles (base DVF) : ce qu'elles révèlent sur votre bien, et ce qu'elles ne disent pas",
     description:
-      "La base DVF recense les ventes immobilières réelles. Ce qu'elle apporte pour estimer un bien, pourquoi elle ne suffit pas et ce que seule une visite permet de voir.",
+      "La base DVF recense les ventes immobilières réelles. Ce qu'elle apporte pour estimer un bien, ses limites et ce que seule une visite permet de voir.",
     category: 'Marché',
     date: '2026-10-04',
     updated: '2026-10-05',

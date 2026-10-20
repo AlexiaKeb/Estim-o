@@ -31,6 +31,9 @@ interface PageMeta {
   status?: number;
 }
 
+/** Ajoute la marque au titre seulement si le total reste lisible dans les résultats (≤ 60 caractères). */
+const withBrand = (t: string) => (t.length + BRAND.name.length + 3 <= 60 ? `${t} | ${BRAND.name}` : t);
+
 export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   const path = rawPath.toLowerCase().replace(/\/+$/, "") || "/";
   if (path === "/") {
@@ -60,7 +63,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   }
   if (path === "/contact") {
     return {
-      title: `Contacter Céline LEVRAT, conseillère immobilière à Lyon | ${BRAND.name}`,
+      title: withBrand("Contacter Céline LEVRAT, conseillère immobilière à Lyon"),
       description: "Téléphone, zone d'intervention et réseaux sociaux de Céline LEVRAT, conseillère immobilière indépendante à Lyon et en Beaujolais.",
       path,
       index: true,
@@ -90,7 +93,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   }
   if (path === "/faq") {
     return {
-      title: `Questions fréquentes sur l'estimation immobilière | ${BRAND.name}`,
+      title: withBrand("Questions fréquentes sur l'estimation immobilière"),
       description: "Estimation gratuite en ligne, visite offerte, avis de valeur, documents à préparer : les réponses à vos questions avant de vendre votre bien.",
       path,
       index: true,
@@ -99,7 +102,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   }
   if (path === "/blog") {
     return {
-      title: `Conseils pour estimer et vendre son bien à Lyon | ${BRAND.name}`,
+      title: withBrand("Conseils pour estimer et vendre son bien à Lyon"),
       description:
         "Prix, documents, diagnostics, étapes de la vente : des conseils clairs pour estimer et vendre son appartement ou sa maison à Lyon et dans le Beaujolais.",
       path,
@@ -109,7 +112,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
   }
   if (path.startsWith("/blog/")) {
     const post = getPost(path.slice("/blog/".length), posts);
-    if (post) return { title: post.metaTitle.length + BRAND.name.length + 3 <= 68 ? `${post.metaTitle} | ${BRAND.name}` : post.metaTitle, description: post.description, path, index: true, post };
+    if (post) return { title: withBrand(post.metaTitle), description: post.description, path, index: true, post };
     return { title: `Article introuvable | ${BRAND.name}`, description: BRAND.tagline, path, index: false, status: 404 };
   }
   // Espace conseiller : jamais indexé. Toute autre adresse inconnue répond « 404 » (et non un faux 200) pour ne pas polluer Google
