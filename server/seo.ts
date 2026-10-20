@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AGENT, BRAND, FAQ, FAQ_HOME_COUNT, SOCIALS } from "../src/data/siteContent";
 import { getPost, BlogPost } from "../src/data/blog";
 import { BlogIndex, BlogArticle, BlogNotFound, FaqPage, ContactPage } from "../src/components/BlogPages";
+import { Honoraires, MentionsLegales, Confidentialite } from "../src/components/LegalPages";
 
 // Référencement : balises par page, données structurées, robots.txt, sitemap.xml.
 // L'adresse canonique vient de APP_URL (ou SITE_URL) pour que le nom de domaine définitif soit toujours celui indexé.
@@ -26,6 +27,7 @@ interface PageMeta {
   blogIndex?: boolean;
   faq?: boolean;
   contact?: boolean;
+  legal?: "honoraires" | "mentions" | "confidentialite";
   status?: number;
 }
 
@@ -66,7 +68,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
     };
   }
   if (path === "/honoraires") {
-    return { title: `Barème d'honoraires | ${BRAND.name}`, description: "Barème des honoraires de transaction de l'agence mandante, toutes taxes comprises.", path, index: true };
+    return { title: `Barème d'honoraires | ${BRAND.name}`, description: "Barème des honoraires de transaction de l'agence mandante, toutes taxes comprises.", path, index: true, legal: "honoraires" };
   }
   if (path === "/mentions-legales") {
     return {
@@ -74,6 +76,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
       description: "Mentions légales du site Agent Estimation : éditeur, agence mandante, hébergeur et nature des estimations.",
       path,
       index: true,
+      legal: "mentions",
     };
   }
   if (path === "/confidentialite") {
@@ -82,6 +85,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
       description: "Données collectées, finalités, durée de conservation, vos droits et cookies : la politique de confidentialité d'Agent Estimation.",
       path,
       index: true,
+      legal: "confidentialite",
     };
   }
   if (path === "/faq") {
@@ -259,6 +263,9 @@ export async function renderSeo(req: Request, posts: BlogPost[]): Promise<SeoRes
     body = renderToStaticMarkup(createElement(BlogArticle, { post: m.post, all: posts })) + data({ post: m.post, related: related.map(card) });
   } else if (m.contact) {
     body = renderToStaticMarkup(createElement(ContactPage));
+  } else if (m.legal) {
+    const Page = m.legal === "honoraires" ? Honoraires : m.legal === "mentions" ? MentionsLegales : Confidentialite;
+    body = renderToStaticMarkup(createElement(Page));
   } else if (m.faq) {
     body = renderToStaticMarkup(createElement(FaqPage));
   } else if (m.blogIndex) {
