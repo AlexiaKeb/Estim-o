@@ -742,7 +742,10 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
             <Human className="bob hidden w-28 shrink-0 sm:block" />
             <div className="min-w-0 flex-1 space-y-2 pb-1">
-              <button
+              <div className="relative">
+                <span aria-hidden className="cta-ring" />
+                <span aria-hidden className="cta-ring" />
+                <button
                 type="button"
                 onClick={() => onOpenBooking?.(bookingInfo())}
                 className="cta-hot flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-4 py-5 text-lg font-black text-[#0B0F1F] shadow-[4px_4px_0_#0B0F1F] transition-transform hover:-translate-y-0.5"
@@ -755,6 +758,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
                 <span className="hidden sm:inline">Obtenir mon vrai prix : je réserve ma visite</span>
                 <ArrowRight className="cta-arrow h-6 w-6 shrink-0" />
               </button>
+              </div>
               <p className="text-center text-xs font-semibold text-[#0B0F1F]/70">Visite offerte et sans engagement</p>
             </div>
           </div>

@@ -400,13 +400,16 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
         </div>
       )}
       {unlocked && onBook ? (
-        <button
+        <div className="relative flex flex-1">
+          <span aria-hidden className="cta-ring" />
+          <button
           type="button"
           onClick={onBook}
-          className="cta-hot flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-sm shadow-[3px_3px_0_#0B0F1F]"
+          className="cta-hot w-full rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-sm shadow-[3px_3px_0_#0B0F1F]"
         >
           Réserver ma visite offerte
         </button>
+        </div>
       ) : (
         <button type="button" onClick={scrollToSimulator} className="flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-base shadow-[3px_3px_0_#0B0F1F]">
           Estimer mon bien offert
