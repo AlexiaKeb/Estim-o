@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Mail } from 'lucide-react';
 import { AbandonBadge, isAbandonStep } from './AbandonBadge';
+import type { Lead } from '../types';
 
 interface MailRow {
   id: string;
@@ -22,7 +23,7 @@ interface MailDetail {
 const when = (r: MailRow) => r.sent_at || r.send_at || r.created_at || '';
 
 /** Dossier client : les e-mails déjà envoyés à ce contact, avec aperçu du message tel qu'il est parti. Les envois annulés ne sont pas listés. */
-export const LeadMailHistory: React.FC<{ leadId: string }> = ({ leadId }) => {
+export const LeadMailHistory: React.FC<{ leadId: string; lead?: Pick<Lead, 'email' | 'meetingBooked' | 'meetingDate' | 'meetingTime' | 'address' | 'city' | 'visit1'> }> = ({ leadId, lead }) => {
   const [rows, setRows] = useState<MailRow[] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [detail, setDetail] = useState<Record<string, MailDetail | 'loading' | 'error'>>({});
@@ -53,19 +54,47 @@ export const LeadMailHistory: React.FC<{ leadId: string }> = ({ leadId }) => {
       .catch(() => setDetail((m) => ({ ...m, [id]: 'error' })));
   };
 
+  // Le client qui a réservé en ligne reçoit automatiquement la confirmation de Cal.com : le site n'en garde pas le texte, on en signale l'envoi
+  const calConfirm = lead?.meetingBooked && !lead.visit1 && lead.meetingDate ? lead : null;
+  const calWhen = calConfirm
+    ? new Date(`${calConfirm.meetingDate}T12:00:00Z`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }) + (calConfirm.meetingTime ? ` à ${calConfirm.meetingTime}` : '')
+    : '';
+  const calOpen = open === 'cal-confirmation';
+  const total = (rows?.length || 0) + (calConfirm ? 1 : 0);
+
   return (
     <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs" id="lead-mail-history">
       <div className="flex items-center gap-2 border-b border-stone-100 pb-3 mb-3">
         <Mail className="w-4 h-4 text-stone-500" />
         <h4 className="text-sm font-bold text-stone-900">E-mails envoyés</h4>
-        {rows && rows.length > 0 && <span className="text-xs text-stone-500">({rows.length})</span>}
+        {total > 0 && <span className="text-xs text-stone-500">({total})</span>}
       </div>
       {rows === null ? (
         <Loader2 className="w-4 h-4 animate-spin" />
-      ) : rows.length === 0 ? (
+      ) : total === 0 ? (
         <p className="text-sm text-stone-400">Aucun e-mail envoyé à ce contact pour l'instant.</p>
       ) : (
         <ul className="divide-y divide-stone-100">
+          {calConfirm && (
+            <li className="py-2 text-sm">
+              <button type="button" onClick={() => setOpen((cur) => (cur === 'cal-confirmation' ? null : 'cal-confirmation'))} aria-expanded={calOpen} className="w-full text-left rounded-lg hover:bg-stone-50 -mx-1 px-1">
+                <p className="font-semibold text-stone-900 truncate">
+                  Confirmation de rendez-vous <span className="text-[10px] font-bold text-sky-800 bg-sky-50 rounded px-1.5 py-0.5 ml-1 align-middle">envoyé par Cal.com</span>
+                </p>
+                <p className="text-xs text-stone-500">À la prise de rendez-vous • <span className="font-bold text-sky-700">{calOpen ? 'Masquer' : 'Voir le détail'}</span></p>
+              </button>
+              {calOpen && (
+                <div className="mt-2 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFF7E6] p-3 text-sm space-y-1.5">
+                  <p className="text-[11px] text-stone-600">À : <strong>{calConfirm.email || 'adresse du client'}</strong></p>
+                  <p className="font-bold text-stone-900 border-b border-stone-300 pb-2">Confirmation de votre rendez-vous</p>
+                  <p>E-mail envoyé automatiquement par l'agenda (Cal.com) dès que le client a réservé en ligne.</p>
+                  <p><strong>Rendez-vous :</strong> {calWhen} (heure de Paris)</p>
+                  {(calConfirm.address || calConfirm.city) && <p><strong>Lieu :</strong> {calConfirm.address || calConfirm.city}</p>}
+                  <p className="text-xs text-stone-500">Le texte exact de ce message est celui de Cal.com : il n'est pas conservé par le site.</p>
+                </div>
+              )}
+            </li>
+          )}
           {rows.map((r) => {
             const det = detail[r.id];
             const isOpen = open === r.id;

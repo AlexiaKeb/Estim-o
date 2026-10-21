@@ -1131,7 +1131,7 @@ export const CrmPipelineView: React.FC<Props> = ({
               />
 
               {/* 3 bis. E-MAILS ENVOYÉS */}
-              <LeadMailHistory leadId={selectedLeadDrawer.id} />
+              <LeadMailHistory leadId={selectedLeadDrawer.id} lead={selectedLeadDrawer} />
 
               {/* 4. MANDAT */}
               <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs space-y-4">
