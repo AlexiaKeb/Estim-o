@@ -663,7 +663,8 @@ async function startServer() {
       projet: { delai: row.delai_projet, motif: row.motif },
       reponses_rapides: crm.qualification || {},
       score: { valeur: row.score_qualification, raisons: crm.scoreReasons || [], points_de_vigilance: crm.blockers || [] },
-      visite: (rdvs || []).map((r: any) => r.creneau),
+      // Heure de Paris déjà calculée : le modèle ne doit jamais convertir un fuseau lui-même (heure d'été / d'hiver)
+      visite: (rdvs || []).map((r: any) => `${new Date(r.creneau).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" })} (heure de Paris)`),
       echange_avec_assistant: (conv?.messages || []).slice(-12).map((m: any) => `${m.role === "user" ? "Client" : "Assistant"} : ${m.content}`),
     };
 
@@ -679,7 +680,7 @@ async function startServer() {
     if (isClaudeConfigured()) {
       try {
         const ai = await claudeJson<any>({
-          system: "Tu prépares la fiche de pré-visite d'une conseillère immobilière à partir des seules données fournies. N'invente RIEN : si une information manque, écris « non renseigné ». Français, concis, utile sur le terrain. summary : 3 phrases maximum. strengths : ce qui est favorable à un mandat. watchouts : risques ou points sensibles (indivision, mandat ailleurs, attentes de prix, locataire...). questions : 4 à 6 questions précises à poser pendant la visite.",
+          system: "Tu prépares la fiche de pré-visite d'une conseillère immobilière à partir des seules données fournies. N'invente RIEN : si une information manque, écris « non renseigné ». Les horaires fournis sont déjà en heure de Paris : recopie-les tels quels, sans conversion ni mention d'UTC. Français, concis, utile sur le terrain. summary : 3 phrases maximum. strengths : ce qui est favorable à un mandat. watchouts : risques ou points sensibles (indivision, mandat ailleurs, attentes de prix, locataire...). questions : 4 à 6 questions précises à poser pendant la visite.",
           messages: [{ role: "user", content: JSON.stringify(facts) }],
           schema: {
             type: "object",
@@ -2381,7 +2382,7 @@ async function startServer() {
             const existingMessages = convData?.messages || [];
             const bookingMsg = {
               role: "assistant",
-              content: `Rendez-vous de visite confirmé pour le ${new Date(startIso).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} à ${new Date(startIso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}. Céline a bien noté le créneau !`,
+              content: `Rendez-vous de visite confirmé pour le ${new Date(startIso).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" })} à ${new Date(startIso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" })}. Céline a bien noté le créneau !`,
               timestamp: new Date().toISOString(),
             };
             await client.from("conversations").upsert({
