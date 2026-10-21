@@ -4,6 +4,7 @@ import { stageOf, frDate } from '../utils/stage';
 import { CommissionFields, type CommissionResult } from './CommissionCalculator';
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
+import { LeadMailHistory } from './LeadMailHistory';
 
 /** Rendez-vous R1 / R2 : date et heure, fixés à la main depuis la fiche (le R1 peut aussi venir de la réservation en ligne). */
 const VisitBox: React.FC<{ title: string; idPrefix: string; value?: { date: string; time?: string }; note?: string; onSave: (v: { date: string; time?: string } | undefined) => void }> = ({ title, idPrefix, value, note, onSave }) => {
@@ -1128,6 +1129,9 @@ export const CrmPipelineView: React.FC<Props> = ({
                   setSelectedLeadDrawer(updated);
                 }}
               />
+
+              {/* 3 bis. E-MAILS ENVOYÉS */}
+              <LeadMailHistory leadId={selectedLeadDrawer.id} />
 
               {/* 4. MANDAT */}
               <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-xs space-y-4">
