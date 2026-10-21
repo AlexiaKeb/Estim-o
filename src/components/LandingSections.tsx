@@ -412,7 +412,7 @@ export const StickyMobileCta: React.FC<{ unlocked?: boolean; onBook?: () => void
         </div>
       ) : (
         <button type="button" onClick={scrollToSimulator} className="flex-1 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] text-[#0B0F1F] font-black py-3.5 text-base shadow-[3px_3px_0_#0B0F1F]">
-          Estimer mon bien offert
+          Estimer mon bien
         </button>
       )}
       <a

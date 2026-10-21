@@ -34,7 +34,7 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-[#FFD60A] text-[#0B0F1F] border-t-[3px] border-[#0B0F1F] font-black text-center py-4"
       style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
     >
-      Estimer mon bien, offert →
+      Estimer mon bien →
     </a>
     <div className="mt-16">
       <SiteFooter />
