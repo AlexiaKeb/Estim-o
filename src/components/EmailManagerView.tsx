@@ -351,7 +351,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   useEffect(() => { if (view === 'follow') loadFollow(); }, [view]);
   const shownLogs = (sentLogs || []).filter((l) => {
     if (onlyAbandon && !l.abandon) return false;
-    if (sStatus !== 'all' && l.status !== sStatus) return false;
+    if (sStatus === 'all' ? l.status === 'annule' : l.status !== sStatus) return false; // les messages annulés (rendez-vous déjà pris…) n'apparaissent que sous « Annulés »
     if (sPeriod !== 'all' && Date.now() - new Date(l.sentAt).getTime() > Number(sPeriod) * 86400000) return false;
     const needle = sq.trim().toLowerCase();
     return !needle || `${l.leadName} ${l.subject}`.toLowerCase().includes(needle);
@@ -539,7 +539,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
                     <div className="flex items-start gap-2">
                     <input type="checkbox" aria-label={`Sélectionner le message à ${l.leadName}`} className="mt-1 h-4 w-4 shrink-0 accent-[#2B4BFF]" checked={sSel.has(l.id)} onChange={() => setSSel((prev) => { const n = new Set(prev); if (n.has(l.id)) n.delete(l.id); else n.add(l.id); return n; })} />
                     <button type="button" onClick={() => toggleSent(l.id)} aria-expanded={isOpen} className="min-w-0 flex-1 text-left rounded-lg hover:bg-stone-50 -mx-1 px-1">
-                      <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.abandon && <AbandonBadge className="ml-1 align-middle" />} {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">annulé</span>}</p>
+                      <p className="font-semibold text-stone-900 truncate"><span className="uppercase">{l.leadName}</span> {l.abandon && <AbandonBadge className="ml-1 align-middle" />} {l.status === 'erreur' && <span className="text-[10px] font-bold text-rose-700 bg-rose-50 rounded px-1.5 py-0.5 ml-1">échec</span>}{l.status === 'annule' && <span className="text-[10px] font-bold text-stone-600 bg-stone-100 rounded px-1.5 py-0.5 ml-1">non envoyé · annulé</span>}</p>
                       <p className="text-xs text-stone-500 truncate">{l.subject || 'Sans objet'} • {new Date(l.sentAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} • <span className="font-bold text-sky-700">{isOpen ? 'Masquer' : 'Voir le message'}</span></p>
                     </button>
                     <button type="button" onClick={() => void deleteSent([l.id])} disabled={sBusy} aria-label={`Supprimer le message à ${l.leadName}`} title="Supprimer ce message de la liste" className="shrink-0 rounded-full p-1.5 text-stone-400 hover:text-rose-600"><Trash2 className="w-4 h-4" /></button>
@@ -551,7 +551,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
                             <p className="text-[11px] text-stone-600">À : <strong>{det.recipient || 'adresse inconnue'}</strong></p>
                             <p className="mt-1 font-bold text-stone-900 border-b border-stone-300 pb-2 mb-2">{det.subject}</p>
                             <div className="rich-email text-stone-800" dangerouslySetInnerHTML={{ __html: det.html }} />
-                            {det.error && <p className="mt-2 text-xs text-rose-700">Erreur d'envoi : {det.error}</p>}
+                            {l.status === 'erreur' && det.error && <p className="mt-2 text-xs text-rose-700">Erreur d'envoi : {det.error}</p>}
+                            {l.status === 'annule' && <p className="mt-2 text-xs font-semibold text-stone-600">Ce message n'a pas été envoyé : il a été annulé{det.error ? ` (${String(det.error).replace(/^Rendez-vous pris$/, 'rendez-vous déjà pris')})` : ''}.</p>}
                           </>
                         )}
                       </div>
