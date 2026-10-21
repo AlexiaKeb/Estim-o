@@ -367,7 +367,7 @@ export const FinalCta: React.FC = () => (
         <h2 className="text-4xl font-black tracking-tight [text-wrap:balance] sm:text-6xl">Prêt à connaître la valeur réelle de votre bien&nbsp;?</h2>
         <p className="mx-auto mt-5 max-w-xl text-lg font-medium text-white/95 lg:mx-0 sm:text-xl">2 minutes pour la simulation en ligne, une visite offerte pour valider. {AGENT.firstName} s'occupe de tout.</p>
         <button type="button" onClick={scrollToSimulator} className={`group mt-8 ${BTN}`}>
-          Lancer mon estimation offerte
+          Lancer mon estimation
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </button>
       </div>
