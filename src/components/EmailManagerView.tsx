@@ -351,7 +351,8 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
   useEffect(() => { if (view === 'follow') loadFollow(); }, [view]);
   const shownLogs = (sentLogs || []).filter((l) => {
     if (onlyAbandon && !l.abandon) return false;
-    if (sStatus === 'all' ? l.status === 'annule' : l.status !== sStatus) return false; // les messages annulés (rendez-vous déjà pris…) n'apparaissent que sous « Annulés »
+    if (l.status === 'annule') return false; // un message annulé (rendez-vous déjà pris…) n'est jamais parti : on ne l'affiche pas
+    if (sStatus !== 'all' && l.status !== sStatus) return false;
     if (sPeriod !== 'all' && Date.now() - new Date(l.sentAt).getTime() > Number(sPeriod) * 86400000) return false;
     const needle = sq.trim().toLowerCase();
     return !needle || `${l.leadName} ${l.subject}`.toLowerCase().includes(needle);
@@ -509,7 +510,7 @@ export const EmailManagerView: React.FC<Props> = ({ leads, onUpdateLead, onShowT
               <div className="mb-3 space-y-2">
                 <input value={sq} onChange={(e) => setSq(e.target.value)} placeholder="Rechercher un nom, un objet…" aria-label="Rechercher dans les messages envoyés" className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm" />
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  {([['all', 'Tous'], ['envoye', 'Envoyés'], ['erreur', 'Échecs'], ['annule', 'Annulés']] as const).map(([k, l]) => (
+                  {([['all', 'Tous'], ['envoye', 'Envoyés'], ['erreur', 'Échecs']] as const).map(([k, l]) => (
                     <button key={k} type="button" onClick={() => setSStatus(k)} className={`rounded-full px-3 py-1 font-bold ${sStatus === k ? 'bg-[#0B0F1F] text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{l}</button>
                   ))}
                   <button type="button" id="filter-abandon" aria-pressed={onlyAbandon} onClick={() => setOnlyAbandon((v) => !v)} className={`rounded-full border-2 border-[#DC2626] px-3 py-1 font-bold ${onlyAbandon ? 'bg-[#DC2626] text-white' : 'bg-white text-[#B91C1C] hover:bg-red-50'}`}>Mails d'abandon</button>
