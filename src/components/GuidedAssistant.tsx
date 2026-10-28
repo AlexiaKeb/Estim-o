@@ -870,6 +870,18 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
             <p className="text-sm font-bold leading-snug text-white sm:text-base">
               Votre estimation est prête à être calculée à partir des ventes réelles autour de chez vous. Où puis-je vous l'envoyer, et à qui {AGENT.firstName} peut-elle s'adresser ?
             </p>
+            <ul className="space-y-1 text-xs font-semibold text-white sm:text-sm" aria-label="Ce qu'il faut savoir avant de continuer">
+              {[
+                'Votre estimation s\'affiche à l\'écran juste après',
+                'Sans engagement, vos données ne sont jamais revendues',
+                `Un seul interlocuteur : ${AGENT.firstName}, sans centre d\'appels`,
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#FFD60A]" aria-hidden />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
             <input id="input-prospect-name" className={field} placeholder="Prénom et nom" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} aria-label="Prénom et nom" />
             <div className="grid sm:grid-cols-2 gap-2.5">
               <input id="input-prospect-phone" className={field} placeholder="Téléphone" type="tel" autoComplete="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} aria-label="Téléphone" />
