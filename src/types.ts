@@ -102,6 +102,15 @@ export interface LeadActivity {
   author?: string;
 }
 
+/** Un appel (ou une tentative) noté par la conseillère */
+export interface CallLogEntry {
+  id: string;
+  /** Instant de l'appel (ISO) */
+  at: string;
+  outcome: 'joint' | 'repondeur' | 'pas_de_reponse' | 'rappel_demande' | 'refus';
+  note?: string;
+}
+
 export interface LeadTask {
   id: string;
   label: string;
@@ -176,6 +185,10 @@ export interface Lead {
   tasks?: LeadTask[];
   activities?: LeadActivity[];
   mandate?: MandateDetails;
+  /** Appels passés au contact, du plus récent au plus ancien */
+  callLog?: CallLogEntry[];
+  /** Date du prochain rappel (AAAA-MM-JJ) */
+  callbackDate?: string;
 }
 
 export interface NurtureSequenceItem {

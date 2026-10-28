@@ -5,6 +5,8 @@ import { CommissionFields, type CommissionResult } from './CommissionCalculator'
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
 import { LeadMailHistory } from './LeadMailHistory';
+import { LeadCallFollowup } from './LeadCallFollowup';
+import { callbackState } from '../utils/callbacks';
 
 /** Rendez-vous R1 / R2 : date et heure, fixés à la main depuis la fiche (le R1 peut aussi venir de la réservation en ligne). */
 const VisitBox: React.FC<{ title: string; idPrefix: string; value?: { date: string; time?: string }; note?: string; onSave: (v: { date: string; time?: string } | undefined) => void }> = ({ title, idPrefix, value, note, onSave }) => {
@@ -526,6 +528,15 @@ export const CrmPipelineView: React.FC<Props> = ({
             {pipeVisits.length + pipeR2.length > 0 ? ` • ${pipeVisits.length + pipeR2.length} rendez-vous à suivre` : ''}
             {pipeMandates.length > 0 ? ` • ${pipeMandates.length} mandat${pipeMandates.length > 1 ? 's' : ''} actif${pipeMandates.length > 1 ? 's' : ''}` : ''}
           </p>
+          {(() => {
+            const due = activeLeads.filter((l) => ['overdue', 'today'].includes(callbackState(l)));
+            const late = due.filter((l) => callbackState(l) === 'overdue').length;
+            return due.length > 0 ? (
+              <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#FFD60A] px-3 py-1 text-xs font-extrabold text-[#0B0F1F]">
+                📞 {due.length} rappel{due.length > 1 ? 's' : ''} à faire{late > 0 ? ` (dont ${late} en retard)` : ''}
+              </p>
+            ) : null;
+          })()}
         </div>
       </div>
 
@@ -590,6 +601,11 @@ export const CrmPipelineView: React.FC<Props> = ({
                         <p className="truncate text-[11px] text-stone-500">📍 {l.city} • {l.propertyType} {l.surface} m²</p>
                       </div>
                     </div>
+                    {callbackState(l) !== 'none' && title === 'LEADS' && (
+                      <p className={`mt-1.5 rounded-lg px-2 py-1 text-[11px] font-extrabold ${callbackState(l) === 'overdue' ? 'bg-red-100 text-red-800' : callbackState(l) === 'today' ? 'bg-amber-100 text-amber-900' : 'bg-sky-50 text-sky-800'}`}>
+                        📞 {callbackState(l) === 'overdue' ? 'Rappel en retard' : callbackState(l) === 'today' ? "À rappeler aujourd'hui" : 'À rappeler'} · {frDate(l.callbackDate)}
+                      </p>
+                    )}
                     {openCol === title && <p className="mt-1.5 truncate text-[11px] text-stone-500">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</p>}
                     <p className="mt-2 rounded-lg bg-stone-50 px-2 py-1 text-[11px] font-semibold text-stone-700">
                       {title === 'VENTE'
@@ -1075,6 +1091,15 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </div>
                 </div>
               </div>
+
+              {/* 1 bis. SUIVI DES APPELS */}
+              <LeadCallFollowup
+                lead={selectedLeadDrawer}
+                onUpdate={(updated) => {
+                  onUpdateLead?.(updated);
+                  setSelectedLeadDrawer(updated);
+                }}
+              />
 
               {/* 2. PRÉ-VISITE + R1 */}
               <div className="space-y-3">

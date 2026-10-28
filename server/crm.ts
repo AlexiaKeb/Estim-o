@@ -17,6 +17,8 @@ export const CRM_KEYS = [
   "archive",
   "visit2",
   "autoRelances",
+  "callLog",
+  "callbackDate",
 ] as const;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -130,6 +132,8 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     visit2: crm.visit2,
     valuation: crm.valuation,
     autoRelances: crm.autoRelances,
+    callLog: Array.isArray(crm.callLog) ? crm.callLog : undefined,
+    callbackDate: typeof crm.callbackDate === "string" ? crm.callbackDate : undefined,
     qualification: crm.qualification,
     scoreReasons: crm.scoreReasons,
     blockers: crm.blockers,
