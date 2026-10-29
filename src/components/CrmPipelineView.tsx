@@ -14,14 +14,18 @@ import { callbackState } from '../utils/callbacks';
 const VisitBox: React.FC<{ title: string; idPrefix: string; value?: { date: string; time?: string }; note?: string; onSave: (v: { date: string; time?: string } | undefined) => void }> = ({ title, idPrefix, value, note, onSave }) => {
   const [date, setDate] = useState(value?.date || '');
   const [time, setTime] = useState(value?.time || '10:00');
+  const [editing, setEditing] = useState(false);
   return (
     <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-3 space-y-2">
       <div className="text-[11px] font-bold uppercase tracking-wider text-orange-800">{title}</div>
       {note && <p className="text-xs text-stone-600">{note}</p>}
-      {value?.date ? (
+      {value?.date && !editing ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-semibold text-stone-900">📅 {frDate(value.date)}{value.time ? ` à ${value.time}` : ''}</p>
-          <button type="button" onClick={() => onSave(undefined)} className="text-xs underline text-stone-600">Retirer</button>
+          <span className="flex items-center gap-3">
+            <button type="button" id={`btn-edit-${idPrefix}`} onClick={() => { setDate(value.date); setTime(value.time || '10:00'); setEditing(true); }} className="rounded-lg border-2 border-orange-300 bg-white px-3 py-1.5 text-xs font-bold text-orange-900 hover:border-orange-500">Modifier</button>
+            <button type="button" onClick={() => onSave(undefined)} className="text-xs underline text-stone-600">Retirer</button>
+          </span>
         </div>
       ) : (
         <div className="flex flex-wrap items-end gap-2">
@@ -33,7 +37,8 @@ const VisitBox: React.FC<{ title: string; idPrefix: string; value?: { date: stri
             <label htmlFor={`${idPrefix}-time`} className="block text-[10px] font-bold uppercase text-stone-500 mb-1">Heure</label>
             <input id={`${idPrefix}-time`} type="time" value={time} onChange={(e) => setTime(e.target.value)} className="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm bg-white" />
           </div>
-          <button type="button" id={`btn-save-${idPrefix}`} disabled={!date} onClick={() => onSave({ date, time })} className="rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-40 text-white text-xs font-bold px-4 py-2">Ajouter</button>
+          <button type="button" id={`btn-save-${idPrefix}`} disabled={!date} onClick={() => { onSave({ date, time }); setEditing(false); }} className="rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-40 text-white text-xs font-bold px-4 py-2">{editing ? 'Enregistrer' : 'Ajouter'}</button>
+          {editing && <button type="button" onClick={() => setEditing(false)} className="text-xs underline text-stone-600 pb-2">Annuler</button>}
         </div>
       )}
     </div>
