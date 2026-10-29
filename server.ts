@@ -1938,6 +1938,56 @@ async function startServer() {
     res.json({ success: true, contact: { name, phone, email, address, city } });
   });
 
+  // Rendez-vous R1 réservé en ligne, déplacé par la conseillère (accord pris par téléphone avec le client).
+  // L'agenda Cal.com est déplacé en premier ; s'il refuse, rien n'est changé sauf demande explicite (syncCalendar: false).
+  app.patch("/api/crm/leads/:id/rdv", requireAgent, rateLimit("lead-rdv", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    if (!isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const date = String(req.body?.date || "");
+    const time = String(req.body?.time || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return res.status(400).json({ error: "Date ou heure invalide." });
+    const startIso = convertParisTimeToUtcIso(date, time);
+    if (new Date(startIso).getTime() < Date.now() - 60 * 60 * 1000) return res.status(400).json({ error: "Cette date est déjà passée." });
+
+    const { data: rdvs } = await client.from("rendez_vous").select("id, creneau, statut, cal_booking_id").eq("lead_id", req.params.id).eq("statut", "confirme").order("creneau", { ascending: true });
+    const list: any[] = rdvs || [];
+    const rdv = list.find((r) => new Date(r.creneau).getTime() >= Date.now() - 60 * 60 * 1000) || list[list.length - 1];
+    if (!rdv) return res.status(404).json({ error: "Aucun rendez-vous réservé en ligne pour ce dossier." });
+
+    let calUid: string = rdv.cal_booking_id || "";
+    let calSynced = false;
+    const calApiKey = process.env.CAL_API_KEY;
+    if (req.body?.syncCalendar !== false && calApiKey && calUid && !calUid.startsWith("dev-")) {
+      try {
+        const r = await fetch(`${CAL_BASE}/v2/bookings/${encodeURIComponent(calUid)}/reschedule`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${calApiKey}`, "cal-api-version": "2024-08-13", "Content-Type": "application/json" },
+          body: JSON.stringify({ start: startIso, reschedulingReason: "Modifié par la conseillère après accord avec le client" }),
+          signal: AbortSignal.timeout(12000),
+        });
+        const body: any = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          console.warn("[Cal.com v2] reschedule refused:", r.status, JSON.stringify(body).slice(0, 300));
+          return res.status(409).json({
+            error: "L'agenda Cal.com n'a pas accepté ce nouveau créneau (déjà occupé ou indisponible). Le rendez-vous n'a pas été modifié.",
+            calRefused: true,
+          });
+        }
+        calUid = String(body?.data?.uid || body?.uid || calUid);
+        calSynced = true;
+      } catch (e: any) {
+        console.warn("[Cal.com v2] reschedule failed:", e?.message);
+        return res.status(502).json({ error: "L'agenda Cal.com est injoignable pour le moment. Le rendez-vous n'a pas été modifié.", calRefused: true });
+      }
+    }
+    const { error } = await client.from("rendez_vous").update({ creneau: startIso, cal_booking_id: calUid || null }).eq("id", rdv.id);
+    if (error) return res.status(500).json({ error: error.message });
+    slotsMemoryCache.clear();
+    await client.from("leads").update({ updated_at: new Date().toISOString() }).eq("id", req.params.id);
+    res.json({ success: true, creneau: startIso, date, time, calSynced });
+  });
+
   // Quick answers from the seller (3 taps + optional price): public, protected by the unguessable lead id
   app.post("/api/supabase/qualification", rateLimit("qualification", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();

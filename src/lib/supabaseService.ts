@@ -383,3 +383,20 @@ export async function saveLeadContact(id: string, c: { name: string; phone: stri
     return 'Serveur injoignable';
   }
 }
+
+/** Déplace le rendez-vous R1 réservé en ligne. Resolves to { ok } ou un message d'erreur (calRefused : l'agenda a refusé). */
+export async function saveLeadVisit(id: string, v: { date: string; time: string; syncCalendar: boolean }): Promise<{ ok: true; calSynced: boolean } | { ok: false; error: string; calRefused?: boolean }> {
+  try {
+    const res = await fetch(`/api/crm/leads/${encodeURIComponent(id)}/rdv`, {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(v),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { ok: true, calSynced: Boolean(data.calSynced) };
+    return { ok: false, error: data.error || `Erreur ${res.status}`, calRefused: Boolean(data.calRefused) };
+  } catch {
+    return { ok: false, error: 'Serveur injoignable' };
+  }
+}

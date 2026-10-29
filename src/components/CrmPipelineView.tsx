@@ -7,6 +7,7 @@ import { EmailComposer } from './EmailComposer';
 import { LeadMailHistory } from './LeadMailHistory';
 import { LeadCallFollowup } from './LeadCallFollowup';
 import { LeadContactEditor } from './LeadContactEditor';
+import { LeadVisitEditor } from './LeadVisitEditor';
 import { callbackState } from '../utils/callbacks';
 
 /** Rendez-vous R1 / R2 : date et heure, fixés à la main depuis la fiche (le R1 peut aussi venir de la réservation en ligne). */
@@ -1122,30 +1123,41 @@ export const CrmPipelineView: React.FC<Props> = ({
                 }}
               />
 
+                {selectedLeadDrawer.meetingBooked && !selectedLeadDrawer.visit1 ? (
+                  <LeadVisitEditor
+                    key={`r1e-${selectedLeadDrawer.id}`}
+                    lead={selectedLeadDrawer}
+                    onUpdate={(updated) => {
+                      onUpdateLead?.(updated);
+                      setSelectedLeadDrawer(updated);
+                    }}
+                  />
+                ) : (
                 <VisitBox
-                  key={`r1-${selectedLeadDrawer.id}-${selectedLeadDrawer.meetingDate || ''}`}
-                  title="R1 • Visite d'estimation"
-                  idPrefix="r1"
-                  value={selectedLeadDrawer.meetingBooked && selectedLeadDrawer.meetingDate ? { date: selectedLeadDrawer.meetingDate, time: selectedLeadDrawer.meetingTime } : undefined}
-                  note={selectedLeadDrawer.meetingBooked && !selectedLeadDrawer.visit1 ? 'Réservé en ligne par le client.' : selectedLeadDrawer.visit1 ? 'Ajouté manuellement.' : "Le client n'a pas réservé en ligne : vous pouvez ajouter le R1 à la main."}
-                  onSave={(v) => {
-                    if (!v && !selectedLeadDrawer.visit1) {
-                      window.alert("Ce R1 a été réservé en ligne par le client : il se modifie depuis l'agenda (Cal.com).");
-                      return;
-                    }
-                    const updated = {
-                      ...selectedLeadDrawer,
-                      visit1: v,
-                      meetingBooked: Boolean(v),
-                      meetingDate: v?.date,
-                      meetingTime: v?.time,
-                      meetingType: v ? ('Visite estimation à domicile' as const) : undefined,
-                      activities: [{ id: `act-${Date.now()}`, type: 'visit', label: v ? `R1 fixé le ${frDate(v.date)}${v.time ? ` à ${v.time}` : ''}` : 'R1 retiré', date: "À l'instant" }, ...(selectedLeadDrawer.activities || [])],
-                    } as Lead;
-                    onUpdateLead?.(updated);
-                    setSelectedLeadDrawer(updated);
-                  }}
-                />
+                    key={`r1-${selectedLeadDrawer.id}-${selectedLeadDrawer.meetingDate || ''}`}
+                    title="R1 • Visite d'estimation"
+                    idPrefix="r1"
+                    value={selectedLeadDrawer.meetingBooked && selectedLeadDrawer.meetingDate ? { date: selectedLeadDrawer.meetingDate, time: selectedLeadDrawer.meetingTime } : undefined}
+                    note={selectedLeadDrawer.meetingBooked && !selectedLeadDrawer.visit1 ? 'Réservé en ligne par le client.' : selectedLeadDrawer.visit1 ? 'Ajouté manuellement.' : "Le client n'a pas réservé en ligne : vous pouvez ajouter le R1 à la main."}
+                    onSave={(v) => {
+                      if (!v && !selectedLeadDrawer.visit1) {
+                        window.alert("Ce R1 a été réservé en ligne par le client : il se modifie depuis l'agenda (Cal.com).");
+                        return;
+                      }
+                      const updated = {
+                        ...selectedLeadDrawer,
+                        visit1: v,
+                        meetingBooked: Boolean(v),
+                        meetingDate: v?.date,
+                        meetingTime: v?.time,
+                        meetingType: v ? ('Visite estimation à domicile' as const) : undefined,
+                        activities: [{ id: `act-${Date.now()}`, type: 'visit', label: v ? `R1 fixé le ${frDate(v.date)}${v.time ? ` à ${v.time}` : ''}` : 'R1 retiré', date: "À l'instant" }, ...(selectedLeadDrawer.activities || [])],
+                      } as Lead;
+                      onUpdateLead?.(updated);
+                      setSelectedLeadDrawer(updated);
+                    }}
+                  />
+                )}
               </div>
 
               {/* 3. R2 */}
