@@ -6,6 +6,7 @@ import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
 import { LeadMailHistory } from './LeadMailHistory';
 import { LeadCallFollowup } from './LeadCallFollowup';
+import { LeadContactEditor } from './LeadContactEditor';
 import { callbackState } from '../utils/callbacks';
 
 /** Rendez-vous R1 / R2 : date et heure, fixés à la main depuis la fiche (le R1 peut aussi venir de la réservation en ligne). */
@@ -1091,6 +1092,15 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </div>
                 </div>
               </div>
+
+              {/* 1 ter. MODIFIER LES COORDONNÉES */}
+              <LeadContactEditor
+                lead={selectedLeadDrawer}
+                onUpdate={(updated) => {
+                  onUpdateLead?.(updated);
+                  setSelectedLeadDrawer(updated);
+                }}
+              />
 
               {/* 1 bis. SUIVI DES APPELS */}
               <LeadCallFollowup

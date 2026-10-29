@@ -1914,6 +1914,30 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Coordonnées du contact corrigées par la conseillère (nom, téléphone, e-mail, adresse du bien, ville)
+  app.patch("/api/crm/leads/:id/contact", requireAgent, rateLimit("lead-contact", 120, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const client = getSupabaseAdmin();
+    if (!client) return res.status(503).json({ error: "Supabase non configuré" });
+    if (!isUuidStr(req.params.id)) return res.status(400).json({ error: "Identifiant invalide" });
+    const clean = (v: unknown, max: number) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+    const name = clean(req.body?.name, 120);
+    const phone = clean(req.body?.phone, 30);
+    const email = clean(req.body?.email, 160).toLowerCase();
+    const address = clean(req.body?.address, 200);
+    const city = clean(req.body?.city, 100);
+    if (!name) return res.status(400).json({ error: "Le nom est obligatoire." });
+    if (!/^[+\d][\d\s().-]{5,}$/.test(phone)) return res.status(400).json({ error: "Numéro de téléphone invalide." });
+    if (email && !EMAIL_RE.test(email)) return res.status(400).json({ error: "Adresse e-mail invalide." });
+    const { data: existing } = await client.from("leads").select("id").eq("id", req.params.id).maybeSingle();
+    if (!existing) return res.status(404).json({ error: "Dossier introuvable" });
+    const { error } = await client
+      .from("leads")
+      .update({ nom: name, telephone: phone, email: email || null, adresse: address || null, ville_bien: city || null, updated_at: new Date().toISOString() })
+      .eq("id", req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true, contact: { name, phone, email, address, city } });
+  });
+
   // Quick answers from the seller (3 taps + optional price): public, protected by the unguessable lead id
   app.post("/api/supabase/qualification", rateLimit("qualification", 30, 10 * 60 * 1000), async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();

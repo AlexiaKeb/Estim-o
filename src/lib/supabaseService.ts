@@ -366,3 +366,20 @@ export async function saveCrmLead(lead: Lead): Promise<string | null> {
     return 'Serveur injoignable';
   }
 }
+
+/** Corrige les coordonnées d'un contact (nom, téléphone, e-mail, adresse, ville). Resolves to an error message or null. */
+export async function saveLeadContact(id: string, c: { name: string; phone: string; email: string; address: string; city: string }): Promise<string | null> {
+  try {
+    const res = await fetch(`/api/crm/leads/${encodeURIComponent(id)}/contact`, {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(c),
+    });
+    if (res.ok) return null;
+    const data = await res.json().catch(() => ({}));
+    return data.error || `Erreur ${res.status}`;
+  } catch {
+    return 'Serveur injoignable';
+  }
+}
