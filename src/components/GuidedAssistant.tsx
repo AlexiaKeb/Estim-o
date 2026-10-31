@@ -296,7 +296,7 @@ export const GuidedAssistant: React.FC<Props> = ({ seed, onLeadCaptured, onOpenB
     if (inZone === false) {
       userSays(`${street}, ${postalCode} ${city}`);
       await say(
-        `${AGENT.firstName} intervient à Lyon et dans un rayon d'environ ${radius} km autour. Votre bien à **${city}** semble en dehors de ce secteur, je ne peux donc pas planifier de visite. Si l'adresse est erronée, saisissez-la de nouveau ci-dessous. Pour un projet particulier, vous pouvez appeler ${AGENT.firstName} au **${AGENT.phone}**.`,
+        `${AGENT.firstName} intervient à Lyon et autour, de Belleville-en-Beaujolais au nord à Givors au sud. Votre bien à **${city}** semble en dehors de ce secteur, je ne peux donc pas planifier de visite. Si l'adresse est erronée, saisissez-la de nouveau ci-dessous. Pour un projet particulier, vous pouvez appeler ${AGENT.firstName} au **${AGENT.phone}**.`,
       );
       return;
     }

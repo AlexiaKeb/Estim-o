@@ -1,11 +1,13 @@
-// Zone d'intervention : Lyon et un rayon autour (50 km par défaut). Sert à ne garder dans le parcours que les biens
+// Zone d'intervention : Lyon et un rayon autour (42 km par défaut, de Belleville-en-Beaujolais au nord à Givors au sud). Sert à ne garder dans le parcours que les biens
 // que la conseillère peut réellement visiter, pour ne pas payer (publicité) ni traiter des demandes hors secteur.
 
 export const ZONE = {
   name: "Lyon",
   lat: 45.764,
   lon: 4.8357,
-  radiusKm: Number(process.env.ZONE_RADIUS_KM) || 50,
+  radiusKm: Number(process.env.ZONE_RADIUS_KM) || 42,
+  // Limite sud : Givors. Plus au sud, le secteur de la conseillère s'arrête (le rayon seul irait trop loin vers Vienne et l'Isère)
+  southLat: Number(process.env.ZONE_SOUTH_LAT) || 45.55,
 };
 
 export function distanceKm(la1: number, lo1: number, la2: number, lo2: number): number {
@@ -19,7 +21,7 @@ export function distanceKm(la1: number, lo1: number, la2: number, lo2: number): 
 
 export function zoneFromCoords(lat: number, lon: number): { inZone: boolean; distanceKm: number } {
   const d = distanceKm(ZONE.lat, ZONE.lon, lat, lon);
-  return { inZone: d <= ZONE.radiusKm, distanceKm: Math.round(d) };
+  return { inZone: d <= ZONE.radiusKm && lat >= ZONE.southLat, distanceKm: Math.round(d) };
 }
 
 /**

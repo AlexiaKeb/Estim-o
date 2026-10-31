@@ -80,7 +80,7 @@ export async function getActiveAgent(): Promise<AgentRecord | null> {
     id: '00000000-0000-0000-0000-000000000001',
     nom: 'Céline LEVRAT (NOVEA Immobilier)',
     ville: 'Lyon',
-    zone_intervention: 'Lyon et alentours, rayon de 30 km',
+    zone_intervention: 'Lyon et alentours, de Belleville-en-Beaujolais au nord à Givors au sud',
     email_contact: 'cel@novea-immobilier.fr',
     cal_username: 'celine-levrat-novea',
     script_qualification: {

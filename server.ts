@@ -1537,7 +1537,7 @@ async function startServer() {
           id: "d0e8c854-3e91-477c-a49e-108848123abc",
           nom: "Céline LEVRAT (NOVEA Immobilier)",
           ville: "Lyon",
-          zone_intervention: "Lyon et alentours, rayon de 30 km",
+          zone_intervention: "Lyon et alentours, de Belleville-en-Beaujolais au nord à Givors au sud",
           email_contact: "cel@novea-immobilier.fr",
           cal_username: process.env.CAL_USERNAME || "celine-levrat-novea",
           script_qualification: {
@@ -1545,7 +1545,7 @@ async function startServer() {
             agency_name: "Agent Estimation",
             phone: "06 03 58 03 16",
             tone: "professionnel, empathique, valorisant et orienté vers une visite de découverte sans engagement",
-            geographic_perimeter: "Lyon et 30 km autour",
+            geographic_perimeter: "Lyon et alentours, de Belleville-en-Beaujolais au nord à Givors au sud",
             welcome_template: "Bonjour ! Je suis l'assistant de Céline LEVRAT, conseillère immobilière à Lyon. Je suis à votre écoute pour échanger sur votre bien et préparer votre estimation.",
           },
         })
