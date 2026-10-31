@@ -39,3 +39,5 @@ services:
         sync: false
       - key: APP_URL
         sync: false
+      - key: ZONE_RADIUS_KM
+        value: "42"
