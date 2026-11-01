@@ -47,7 +47,7 @@ export function pageMeta(rawPath: string, posts: BlogPost[]): PageMeta {
     };
   }
   // Landing page of the ads: the home page, with the estimate assistant opened straight away (canonical = home page)
-  if (path === "/estimation") {
+  if (path === "/estimation" || path === "/simulateur") {
     return {
       title: `Estimation immobilière gratuite à Lyon | ${BRAND.name}`,
       description:
