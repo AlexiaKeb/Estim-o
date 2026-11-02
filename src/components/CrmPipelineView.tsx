@@ -550,8 +550,8 @@ export const CrmPipelineView: React.FC<Props> = ({
       {/* Indicateurs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {([
-          ['Leads', leads.length, 'demandes reçues via le site', <Users className="w-5 h-5" />, 'bg-sky-500', 'bg-sky-50'],
-          ['Rendez-vous', pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length, `${leads.length ? Math.round(((pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length) / leads.length) * 100) : 0} % des leads`, <Calendar className="w-5 h-5" />, 'bg-amber-500', 'bg-amber-50'],
+          ['Leads', activeLeads.length, 'demandes reçues via le site (hors archivés)', <Users className="w-5 h-5" />, 'bg-sky-500', 'bg-sky-50'],
+          ['Rendez-vous', pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length, `${activeLeads.length ? Math.round(((pipeVisits.length + pipeR2.length + pipeMandates.length + pipeSold.length) / activeLeads.length) * 100) : 0} % des leads`, <Calendar className="w-5 h-5" />, 'bg-amber-500', 'bg-amber-50'],
           ['Mandats', pipeMandates.length, `${(pipeMandates.reduce((n, l) => n + (l.mandate?.sellingPrice || 0), 0) / 1e6).toFixed(2).replace('.', ',')} M€ sous mandat`, <ScrollText className="w-5 h-5" />, 'bg-violet-500', 'bg-violet-50'],
           ['Ventes', pipeSold.length, `${pipeSold.reduce((n, l) => n + (l.mandate?.saleFee || 0), 0).toLocaleString('fr-FR')} € de commission`, <Award className="w-5 h-5" />, 'bg-emerald-500', 'bg-emerald-50'],
         ] as Array<[string, number, string, React.ReactNode, string, string]>).map(([label, value, sub, icon, grad, tint]) => (

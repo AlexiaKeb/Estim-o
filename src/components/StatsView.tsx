@@ -94,7 +94,9 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
 
   const s = useMemo(() => {
     const from = periodStart(period);
-    const inPeriod = leads.filter((l) => !from || !l.createdAtIso || new Date(l.createdAtIso) >= from);
+    const received = leads.filter((l) => !from || !l.createdAtIso || new Date(l.createdAtIso) >= from);
+    // Les dossiers archivés (hors zone, mandat perdu…) ne comptent ni dans les leads ni dans les coûts : ils ont leur bloc à part
+    const inPeriod = received.filter((l) => !l.archive);
     const visits = inPeriod.filter(hasVisit);
     const mandates = inPeriod.filter(hasMandate);
     const sales = inPeriod.filter(isSold);
@@ -102,11 +104,11 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
     const fromKey = from ? monthKey(from) : '';
     const budget = Object.entries(spend || {}).filter(([k]) => !fromKey || k >= fromKey).reduce((a, [, v]) => a + (Number(v) || 0), 0);
     const ads = inPeriod.filter(isAds);
-    const archived = inPeriod.filter((l) => l.archive);
+    const archived = received.filter((l) => l.archive);
     const lostMandates = archived.filter((l) => l.archive?.kind === 'mandat_perdu');
     const byStage: Record<string, number> = {};
     archived.forEach((l) => { const k = l.archive!.stage; byStage[k] = (byStage[k] || 0) + 1; });
-    return { inPeriod, visits, mandates, sales, revenue, budget, ads, archived, lostMandates, byStage };
+    return { received, inPeriod, visits, mandates, sales, revenue, budget, ads, archived, lostMandates, byStage };
   }, [leads, period, spend]);
 
   const L = s.inPeriod.length;
@@ -271,7 +273,7 @@ export const StatsView: React.FC<{ leads: Lead[] }> = ({ leads }) => {
         <section aria-labelledby="archive-title" className={`${card} p-5 sm:p-6`}>
           <h2 id="archive-title" className="text-base font-bold text-stone-900">Dossiers archivés &amp; mandats perdus</h2>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-stone-50 border border-stone-200 p-3"><p className="text-2xl font-extrabold text-stone-900">{s.archived.length}</p><p className="text-[11px] text-stone-500">archivés ({pct(s.archived.length, L)} des leads)</p></div>
+            <div className="rounded-xl bg-stone-50 border border-stone-200 p-3"><p className="text-2xl font-extrabold text-stone-900">{s.archived.length}</p><p className="text-[11px] text-stone-500">archivés ({pct(s.archived.length, s.received.length)} des leads reçus)</p></div>
             <div className="rounded-xl bg-rose-50 border border-rose-200 p-3"><p className="text-2xl font-extrabold text-rose-900">{s.lostMandates.length}</p><p className="text-[11px] text-rose-700">mandats perdus ({pct(s.lostMandates.length, M + s.lostMandates.filter((l) => !hasMandate(l)).length)})</p></div>
           </div>
           <p className="mt-3 text-xs text-stone-600">
