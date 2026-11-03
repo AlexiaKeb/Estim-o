@@ -1,6 +1,6 @@
 import { PreVisitBrief } from './PreVisitBrief';
 import { leadChannel } from '../utils/channel';
-import { stageOf, frDate } from '../utils/stage';
+import { stageOf, frDate, frDateTime, frDateTimeShort } from '../utils/stage';
 import { CommissionFields, type CommissionResult } from './CommissionCalculator';
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
@@ -608,6 +608,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                         <p className="truncate text-[11px] text-stone-500">📍 {l.city} • {l.propertyType} {l.surface} m²</p>
                       </div>
                     </div>
+                    {l.createdAtIso && <p className="mt-1 text-[11px] text-stone-500">🕒 Reçu le {frDateTimeShort(l.createdAtIso)}</p>}
                     {callbackState(l) !== 'none' && title === 'LEADS' && (
                       <p className={`mt-1.5 rounded-lg px-2 py-1 text-[11px] font-extrabold ${callbackState(l) === 'overdue' ? 'bg-red-100 text-red-800' : callbackState(l) === 'today' ? 'bg-amber-100 text-amber-900' : 'bg-sky-50 text-sky-800'}`}>
                         📞 {callbackState(l) === 'overdue' ? 'Rappel en retard' : callbackState(l) === 'today' ? "À rappeler aujourd'hui" : 'À rappeler'} · {frDate(l.callbackDate)}
@@ -816,7 +817,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 flex-1 text-sm">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-6 gap-y-2 flex-1 text-sm">
                     <div>
                       <p className="text-[10px] font-bold uppercase text-stone-400">Bien</p>
                       <p className="font-semibold text-stone-800">{lead.propertyType} {lead.surface} m²</p>
@@ -838,6 +839,10 @@ export const CrmPipelineView: React.FC<Props> = ({
                       <p className="text-[10px] font-bold uppercase text-stone-400">Projet</p>
                       <p className="font-semibold text-stone-800">{lead.motive}</p>
                       <p className="text-xs text-stone-500">{lead.timeframe}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-stone-400">Reçu le</p>
+                      <p className="font-semibold text-stone-800">{lead.createdAtIso ? frDateTimeShort(lead.createdAtIso) : lead.createdAt}</p>
                     </div>
                   </div>
 
@@ -884,7 +889,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-1">
-                  Enregistré {selectedLeadDrawer.createdAt} • {selectedLeadDrawer.propertyType} {selectedLeadDrawer.surface} m² à {selectedLeadDrawer.city}
+                  Reçu le {selectedLeadDrawer.createdAtIso ? frDateTime(selectedLeadDrawer.createdAtIso) : selectedLeadDrawer.createdAt} • {selectedLeadDrawer.propertyType} {selectedLeadDrawer.surface} m² à {selectedLeadDrawer.city}
                 </p>
               </div>
 
