@@ -1091,6 +1091,24 @@ export const CrmPipelineView: React.FC<Props> = ({
                     </div>
                   </div>
 
+                  {/* Copy Address */}
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">Adresse Complète</span>
+                    <div className="text-xs font-bold text-slate-900 truncate my-1" title={selectedLeadDrawer.address || selectedLeadDrawer.city}>
+                      {selectedLeadDrawer.address || selectedLeadDrawer.city}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyValue('address', selectedLeadDrawer.address || selectedLeadDrawer.city)}
+                      className={`w-full py-1 px-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all ${
+                        copiedField === 'address' ? 'bg-emerald-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {copiedField === 'address' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedField === 'address' ? 'Copié !' : 'Copier Adresse'}</span>
+                    </button>
+                  </div>
+
                   {/* Date et heure de réception du lead */}
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between sm:col-span-2" id="lead-received">
                     <span className="text-[10px] text-slate-500 font-bold uppercase">Lead reçu le</span>
@@ -1110,23 +1128,6 @@ export const CrmPipelineView: React.FC<Props> = ({
                     );
                   })()}
 
-                  {/* Copy Address */}
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase">Adresse Complète</span>
-                    <div className="text-xs font-bold text-slate-900 truncate my-1" title={selectedLeadDrawer.address || selectedLeadDrawer.city}>
-                      {selectedLeadDrawer.address || selectedLeadDrawer.city}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyValue('address', selectedLeadDrawer.address || selectedLeadDrawer.city)}
-                      className={`w-full py-1 px-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all ${
-                        copiedField === 'address' ? 'bg-emerald-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                      }`}
-                    >
-                      {copiedField === 'address' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                      <span>{copiedField === 'address' ? 'Copié !' : 'Copier Adresse'}</span>
-                    </button>
-                  </div>
                 </div>
               </div>
 
