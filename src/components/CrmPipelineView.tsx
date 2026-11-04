@@ -609,6 +609,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                         <p className="truncate text-[11px] text-stone-500">📍 {cityLabel(l)} • {l.propertyType}</p>
                       </div>
                     </div>
+                    {l.createdAtIso && <p className="mt-1 text-[11px] text-stone-500">🕒 Reçu le {frDateTimeShort(l.createdAtIso)}</p>}
                     {openCol === title && <p className="mt-1.5 truncate text-[11px] text-stone-500">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</p>}
                   </button>
                 ))}
