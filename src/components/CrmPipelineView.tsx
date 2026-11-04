@@ -228,6 +228,7 @@ export const CrmPipelineView: React.FC<Props> = ({
 📜 MANDAT : ${mandateStr}
 🎯 MOTIF : ${lead.motive}
 ⏱️ DÉLAI : ${lead.timeframe}
+🕒 REÇU LE : ${lead.createdAtIso ? frDateTime(lead.createdAtIso) : lead.createdAt}
 🔥 STATUT : ${lead.status} (Score : ${lead.score}/100)
 📅 VISITE : ${lead.meetingBooked ? `Rendez-vous fixé le ${frDate(lead.meetingDate)} à ${lead.meetingTime} (${lead.meetingType || 'Visite sur place'})` : 'En séquence d\'accompagnement'}
 ⚡ DERNIÈRE ACTION : ${lead.lastAction ? `${lead.lastAction.label} (${lead.lastAction.date})` : 'Simulation validée'}
@@ -1088,6 +1089,13 @@ export const CrmPipelineView: React.FC<Props> = ({
                         <Mail className="w-3.5 h-3.5" />
                       </a>
                     </div>
+                  </div>
+
+                  {/* Date et heure de réception du lead */}
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between sm:col-span-2" id="lead-received">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">Lead reçu le</span>
+                    <div className="text-xs font-bold text-slate-900 my-1">{selectedLeadDrawer.createdAtIso ? frDateTime(selectedLeadDrawer.createdAtIso) : selectedLeadDrawer.createdAt}</div>
+                    {selectedLeadDrawer.createdAtIso && <div className="text-[11px] text-slate-600">{selectedLeadDrawer.createdAt}</div>}
                   </div>
 
                   {/* Origine du lead */}
