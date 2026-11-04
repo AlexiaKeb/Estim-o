@@ -8,7 +8,7 @@ import { LeadMailHistory } from './LeadMailHistory';
 import { LeadCallFollowup } from './LeadCallFollowup';
 import { LeadContactEditor } from './LeadContactEditor';
 import { LeadVisitEditor } from './LeadVisitEditor';
-import { callbackState } from '../utils/callbacks';
+import { callbackState, lastCall, outcomeLabel } from '../utils/callbacks';
 
 /** Rendez-vous R1 / R2 : date et heure, fixés à la main depuis la fiche (le R1 peut aussi venir de la réservation en ligne). */
 const VisitBox: React.FC<{ title: string; idPrefix: string; value?: { date: string; time?: string }; note?: string; onSave: (v: { date: string; time?: string } | undefined) => void }> = ({ title, idPrefix, value, note, onSave }) => {
@@ -609,6 +609,12 @@ export const CrmPipelineView: React.FC<Props> = ({
                       </div>
                     </div>
                     {l.createdAtIso && <p className="mt-1 text-[11px] text-stone-500">🕒 Reçu le {frDateTimeShort(l.createdAtIso)}</p>}
+                    {lastCall(l) && (
+                      <p className="mt-1 rounded-lg bg-stone-50 px-2 py-1 text-[11px] text-stone-700" title={lastCall(l)!.note || ''}>
+                        📞 <span className="font-bold">{outcomeLabel(lastCall(l)!.outcome)}</span> · {frDateTimeShort(lastCall(l)!.at)}
+                        {lastCall(l)!.note ? <span className="block truncate text-stone-500">{lastCall(l)!.note}</span> : null}
+                      </p>
+                    )}
                     {callbackState(l) !== 'none' && title === 'LEADS' && (
                       <p className={`mt-1.5 rounded-lg px-2 py-1 text-[11px] font-extrabold ${callbackState(l) === 'overdue' ? 'bg-red-100 text-red-800' : callbackState(l) === 'today' ? 'bg-amber-100 text-amber-900' : 'bg-sky-50 text-sky-800'}`}>
                         📞 {callbackState(l) === 'overdue' ? 'Rappel en retard' : callbackState(l) === 'today' ? "À rappeler aujourd'hui" : 'À rappeler'} · {frDate(l.callbackDate)}
@@ -843,6 +849,18 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <div>
                       <p className="text-[10px] font-bold uppercase text-stone-400">Reçu le</p>
                       <p className="font-semibold text-stone-800">{lead.createdAtIso ? frDateTimeShort(lead.createdAtIso) : lead.createdAt}</p>
+                    </div>
+                    <div className="col-span-2 sm:col-span-5">
+                      <p className="text-[10px] font-bold uppercase text-stone-400">Dernier appel</p>
+                      {lastCall(lead) ? (
+                        <p className="text-sm text-stone-800">
+                          <span className="font-bold">{outcomeLabel(lastCall(lead)!.outcome)}</span> • {frDateTimeShort(lastCall(lead)!.at)}
+                          {lastCall(lead)!.note ? <span className="text-stone-600"> — {lastCall(lead)!.note}</span> : null}
+                          {lead.callbackDate ? <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-extrabold ${callbackState(lead) === 'overdue' ? 'bg-red-100 text-red-800' : callbackState(lead) === 'today' ? 'bg-amber-100 text-amber-900' : 'bg-sky-50 text-sky-800'}`}>à rappeler le {frDate(lead.callbackDate)}</span> : null}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-stone-400">Aucun appel noté{lead.callbackDate ? ` • à rappeler le ${frDate(lead.callbackDate)}` : ''}</p>
+                      )}
                     </div>
                   </div>
 

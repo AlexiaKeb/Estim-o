@@ -27,3 +27,7 @@ export const callbackState = (l: Pick<Lead, 'callbackDate'>): 'none' | 'overdue'
   const t = todayParis();
   return d < t ? 'overdue' : d === t ? 'today' : 'later';
 };
+
+/** Dernier appel noté sur le dossier (le plus récent), pour l'aperçu dans les listes */
+export const lastCall = (l: Pick<Lead, 'callLog'>): CallLogEntry | undefined =>
+  (l.callLog || []).reduce<CallLogEntry | undefined>((best, c) => (!best || c.at > best.at ? c : best), undefined);
