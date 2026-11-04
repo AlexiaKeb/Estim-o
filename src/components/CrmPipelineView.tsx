@@ -606,7 +606,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${grad} text-white text-xs font-extrabold`}>{l.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}</span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-stone-900 uppercase">{l.name}</p>
-                        <p className="truncate text-[11px] text-stone-500">📍 {cityLabel(l)} • {l.propertyType}</p>
+                        <p className="truncate text-[11px] text-stone-500">📍 {cityLabel(l)} • {l.propertyType} {l.surface} m²</p>
                       </div>
                     </div>
                     {l.createdAtIso && <p className="mt-1 text-[11px] text-stone-500">🕒 Reçu le {frDateTimeShort(l.createdAtIso)}</p>}
