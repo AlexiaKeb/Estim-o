@@ -1,6 +1,6 @@
 import { PreVisitBrief } from './PreVisitBrief';
 import { leadChannel } from '../utils/channel';
-import { stageOf, frDate, frDateTime, frDateTimeShort } from '../utils/stage';
+import { stageOf, frDate, frDateTime, frDateTimeShort, cityLabel } from '../utils/stage';
 import { CommissionFields, type CommissionResult } from './CommissionCalculator';
 import { SecurityPanel } from './SecurityPanel';
 import { EmailComposer } from './EmailComposer';
@@ -606,7 +606,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${grad} text-white text-xs font-extrabold`}>{l.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}</span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-stone-900 uppercase">{l.name}</p>
-                        <p className="truncate text-[11px] text-stone-500">📍 {l.city} • {l.propertyType} {l.surface} m²</p>
+                        <p className="truncate text-[11px] text-stone-500">📍 {cityLabel(l)} • {l.propertyType} {l.surface} m²</p>
                       </div>
                     </div>
                     {l.createdAtIso && <p className="mt-1 text-[11px] text-stone-500">🕒 Reçu le {frDateTimeShort(l.createdAtIso)}</p>}
@@ -828,7 +828,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                     <div>
                       <p className="text-[10px] font-bold uppercase text-stone-400">Bien</p>
                       <p className="font-semibold text-stone-800">{lead.propertyType} {lead.surface} m²</p>
-                      <p className="text-xs text-stone-500">📍 {lead.city}</p>
+                      <p className="text-xs text-stone-500">📍 {cityLabel(lead)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold uppercase text-stone-400">Étape</p>
@@ -908,7 +908,7 @@ export const CrmPipelineView: React.FC<Props> = ({
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-1">
-                  Reçu le {selectedLeadDrawer.createdAtIso ? frDateTime(selectedLeadDrawer.createdAtIso) : selectedLeadDrawer.createdAt} • {selectedLeadDrawer.propertyType} {selectedLeadDrawer.surface} m² à {selectedLeadDrawer.city}
+                  Reçu le {selectedLeadDrawer.createdAtIso ? frDateTime(selectedLeadDrawer.createdAtIso) : selectedLeadDrawer.createdAt} • {selectedLeadDrawer.propertyType} {selectedLeadDrawer.surface} m² à {cityLabel(selectedLeadDrawer)}
                 </p>
               </div>
 

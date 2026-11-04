@@ -130,6 +130,8 @@ export interface Lead {
   propertyType: 'Appartement' | 'Maison' | 'Garage / Box' | 'Terrain' | 'Immeuble' | 'Local commercial' | string;
   surface: number;
   city: string;
+  /** Code postal du bien (permet d'afficher l'arrondissement de Lyon) */
+  postalCode?: string;
   estimatedValue: number;
   motive: 'Succession' | 'Mutation pro' | 'Agrandissement' | 'Divorce / Séparation' | 'Vente investissement' | 'Autre';
   hasConsultedAgency?: string;

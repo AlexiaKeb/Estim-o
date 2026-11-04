@@ -36,3 +36,13 @@ export const frDateTimeShort = (iso?: string) => {
   const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
   return `${date} à ${time}`;
 };
+
+/** « Lyon » + 69008 → « Lyon 8e » (le code postal peut aussi être lu dans l'adresse) ; les autres villes restent telles quelles */
+export const cityLabel = (l: Pick<Lead, 'city' | 'postalCode' | 'address'>): string => {
+  const city = l.city || '';
+  if (!/^lyon(\s+\d+e?r?)?$/i.test(city.trim())) return city;
+  const m = (l.postalCode || '').match(/^690(0[1-9])$/) || (l.address || '').match(/\b690(0[1-9])\b/);
+  if (!m) return city;
+  const n = parseInt(m[1], 10);
+  return `Lyon ${n === 1 ? '1er' : `${n}e`}`;
+};

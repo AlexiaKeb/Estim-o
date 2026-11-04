@@ -107,6 +107,7 @@ export function toLead(row: any, conv?: any, rdvs: any[] = []) {
     propertyType: row.type_bien || "Bien",
     surface: Number(row.surface) || 0,
     city: row.ville_bien || "",
+    postalCode: row.code_postal || undefined,
     estimatedValue: Number(row.valeur_estimee) || 0,
     motive: mapMotive(row.motif),
     timeframe: mapTimeframe(row.delai_projet),
