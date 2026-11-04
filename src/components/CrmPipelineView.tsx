@@ -606,33 +606,10 @@ export const CrmPipelineView: React.FC<Props> = ({
                       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${grad} text-white text-xs font-extrabold`}>{l.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('')}</span>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-stone-900 uppercase">{l.name}</p>
-                        <p className="truncate text-[11px] text-stone-500">📍 {cityLabel(l)} • {l.propertyType} {l.surface} m²</p>
+                        <p className="truncate text-[11px] text-stone-500">📍 {cityLabel(l)} • {l.propertyType}</p>
                       </div>
                     </div>
-                    {l.createdAtIso && <p className="mt-1 text-[11px] text-stone-500">🕒 Reçu le {frDateTimeShort(l.createdAtIso)}</p>}
-                    {lastCall(l) && (
-                      <p className="mt-1 rounded-lg bg-stone-50 px-2 py-1 text-[11px] text-stone-700" title={lastCall(l)!.note || ''}>
-                        📞 <span className="font-bold">{outcomeLabel(lastCall(l)!.outcome)}</span> · {frDateTimeShort(lastCall(l)!.at)}
-                        {lastCall(l)!.note ? <span className="block truncate text-stone-500">{lastCall(l)!.note}</span> : null}
-                      </p>
-                    )}
-                    {callbackState(l) !== 'none' && title === 'LEADS' && (
-                      <p className={`mt-1.5 rounded-lg px-2 py-1 text-[11px] font-extrabold ${callbackState(l) === 'overdue' ? 'bg-red-100 text-red-800' : callbackState(l) === 'today' ? 'bg-amber-100 text-amber-900' : 'bg-sky-50 text-sky-800'}`}>
-                        📞 {callbackState(l) === 'overdue' ? 'Rappel en retard' : callbackState(l) === 'today' ? "À rappeler aujourd'hui" : 'À rappeler'} · {frDate(l.callbackDate)}
-                      </p>
-                    )}
                     {openCol === title && <p className="mt-1.5 truncate text-[11px] text-stone-500">📞 {l.phone || '—'} • ✉️ {l.email || '—'}</p>}
-                    <p className="mt-2 rounded-lg bg-stone-50 px-2 py-1 text-[11px] font-semibold text-stone-700">
-                      {title === 'VENTE'
-                        ? `Commission : ${(l.mandate?.saleFee || 0).toLocaleString('fr-FR')} €`
-                        : title === 'MANDAT'
-                          ? `${l.mandate?.type === 'exclusive' ? 'Exclusif' : 'Simple'} • ${(l.mandate?.sellingPrice || l.estimatedValue || 0).toLocaleString('fr-FR')} €`
-                          : title === 'R2'
-                            ? `📅 ${l.visit2?.date ? frDate(l.visit2.date) : 'Date à fixer'}${l.visit2?.time ? ` à ${l.visit2.time}` : ''}`
-                            : title === 'R1'
-                              ? `📅 ${l.meetingDate ? frDate(l.meetingDate) : 'Date à confirmer'}${l.meetingTime ? ` à ${l.meetingTime}` : ''}`
-                              : `${l.estimatedValue ? `${l.estimatedValue.toLocaleString('fr-FR')} € estimés` : 'À contacter'}`}
-                    </p>
                   </button>
                 ))}
               </div>
