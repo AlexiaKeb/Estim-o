@@ -1189,6 +1189,29 @@ async function startServer() {
     res.json({ config: cfg });
   });
 
+  // Exemple de la relance automatique, envoyé à une adresse choisie par la conseillère (aperçu en version finale, données fictives)
+  app.post("/api/auto-followup/test", requireAgent, rateLimit("auto-followup-test", 6, 10 * 60 * 1000), async (req: Request, res: Response) => {
+    const to = String(req.body?.email || "").trim().toLowerCase();
+    if (!EMAIL_RE.test(to)) return res.status(400).json({ error: "Adresse e-mail invalide." });
+    if (!isMailConfigured()) return res.status(409).json({ error: "L'envoi d'e-mails n'est pas configuré (clé du service d'envoi et adresse expéditeur manquantes)." });
+    if (!BASE_URL) return res.status(409).json({ error: "L'adresse du site (variable APP_URL) n'est pas renseignée." });
+    const client = getSupabaseAdmin();
+    const cfg = client ? await readAutoFollowup(client) : DEFAULT_AUTO_FOLLOWUP;
+    const sample = { nom: "Marie DURAND", ville_bien: "Lyon", adresse: "Lyon 8e", type_bien: "Appartement", crm: { valuation: { lowPrice: 252000, highPrice: 278000 } } };
+    const { text, html } = renderEmail({
+      body: fillVariables(cfg.body, sample),
+      signatureName: AGENT_PROFILE.name,
+      signatureLine: "Conseillère immobilière indépendante",
+      phone: AGENT_PROFILE.phone,
+      bookingUrl: `${BASE_URL}/`,
+      ctaLabel: "Choisir mon créneau",
+      unsubscribeUrl: `${BASE_URL}/confidentialite`,
+    });
+    const result = await sendEmail({ to, subject: `[EXEMPLE] ${fillVariables(cfg.subject, sample)}`, text, html });
+    if (result.ok === false) return res.status(502).json({ error: result.error });
+    res.json({ success: true, to });
+  });
+
   // Personal booking link from the reminder e-mail: gives back the visitor's own details so the booking window opens pre-filled
   app.get("/api/rdv/lead", rateLimit("rdv-link", 60, 10 * 60 * 1000), async (req: Request, res: Response) => {
     const client = getSupabaseAdmin();

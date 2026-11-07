@@ -12,6 +12,9 @@ export const AutoFollowupCard: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [open, setOpen] = useState(false);
+  const [testTo, setTestTo] = useState('');
+  const [testBusy, setTestBusy] = useState(false);
+  const [testMsg, setTestMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const ref = useRef<RichEmailEditorHandle>(null);
 
   useEffect(() => {
@@ -34,6 +37,19 @@ export const AutoFollowupCard: React.FC = () => {
     setSaving(false);
   };
 
+  const sendTest = async () => {
+    setTestBusy(true);
+    setTestMsg(null);
+    try {
+      const r = await fetch('/api/auto-followup/test', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: testTo }) });
+      const d = await r.json().catch(() => ({}));
+      setTestMsg(r.ok ? { ok: true, text: `Exemple envoyé à ${d.to}. Regarde aussi dans les courriers indésirables.` } : { ok: false, text: d.error || "L'envoi a échoué." });
+    } catch {
+      setTestMsg({ ok: false, text: 'Serveur injoignable.' });
+    }
+    setTestBusy(false);
+  };
+
   if (!cfg) return <div className="mb-4"><Loader2 className="w-4 h-4 animate-spin" /></div>;
   return (
     <section id="auto-followup" className="mb-4 rounded-2xl border-[3px] border-[#DC2626] bg-white p-4 shadow-[4px_4px_0_#DC2626]">
@@ -49,6 +65,14 @@ export const AutoFollowupCard: React.FC = () => {
         </label>
       </div>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mt-2 text-xs font-bold text-sky-700 underline">{open ? 'Masquer le message' : 'Voir / modifier le message'}</button>
+      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-stone-50 border border-stone-200 p-2.5 text-sm">
+        <label htmlFor="auto-followup-test" className="font-semibold text-stone-800">Recevoir un exemple par e-mail</label>
+        <input id="auto-followup-test" type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="votre@adresse.fr" autoComplete="email" className="min-w-[12rem] flex-1 rounded-lg border border-stone-300 px-3 py-1.5" />
+        <button type="button" id="btn-auto-followup-test" disabled={testBusy || !testTo.trim()} onClick={() => void sendTest()} className="inline-flex items-center gap-2 rounded-xl border-[3px] border-[#0B0F1F] bg-[#FFD60A] px-3 py-1.5 text-sm font-black text-[#0B0F1F] shadow-[3px_3px_0_#0B0F1F] disabled:opacity-60">
+          {testBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <MailCheck className="w-4 h-4" />} Envoyer l'exemple
+        </button>
+        {testMsg && <p role="status" className={`basis-full text-xs font-semibold ${testMsg.ok ? 'text-emerald-800' : 'text-rose-700'}`}>{testMsg.text}</p>}
+      </div>
       {open && (
         <div className="mt-3 space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-sm">
